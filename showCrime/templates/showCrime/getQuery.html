@@ -1,0 +1,41 @@
+<html>
+<head>
+    <title>ShowCrime - Query</title>
+</head>
+<body>
+<h1 align=center>ShowCrime</h1>
+<h2 align=center><a href="htpp://OpenOakland.org">OpenOakland.org</a></h2>
+<h2 align=center>A  &nbsp; <a href="htpp://CodeForAmerica.org">CodeForAmerica.org</a> &nbsp; Brigade</h2>
+<p>
+<hr>
+<p>
+    {% if form.errors %}
+        <p style="color: red;">
+            Please correct the error{{ form.errors|pluralize }} below.
+        </p>
+    {% endif %}
+<center>
+<p>It's simple: select a beat of interest (see beat map resources below), one crime category and perhaps another for comparison, then hit <b>Submit</b>!</p>
+<p>
+    <form action="" method="post">{% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        
+        <input type="submit" value="Submit query">
+    </form>
+</center>
+<p>
+<hr>
+<p><h3>Related resources</h3>
+<ul>
+<li><a href="http://static.electronicartifacts.com/OPD_beatMap.jpg">OPD beat map</a>
+<p>
+<li><a href="http://spjika.github.io/FindYourBeat/">FindYourBeat</a>
+</ul>
+<hr>
+<p>
+<h3 align=center>OPData.ElectronicArtifacts.com/showCrime/query</h3>
+</body>
+</html>
+
