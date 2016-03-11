@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+#viz {position:relative;
+    top:-200px;
+    left:250px;}
+
+</style>
+<body>
+<h1 align=center>Visualizing Stops and Charges in Oakland</h1>
+<h2 align=center><a href="cbstops_doc.html">Background and documentation</a></h2>
+       <div id="controls">
+        <p><b>Statistics</b>:
+            <input type=radio id="stopStat" name=statTypeRadio value=0 checked>Stops
+            <input type=radio id="chgStat" name=statTypeRadio value=1>Charges
+            <input type=radio id="diffStat" name=statTypeRadio value=2>(Stops-Charges)
+        </p>
+    	<p><label for="asian_Slider" style="display: inline-block; width: 60px; text-align: right">Asian</label>
+    	   <input type="range" min="1" max="100" value="100" id="asian_Slider">
+        </p>
+        <p><label for="black_Slider" style="display: inline-block; width: 60px; text-align: right">Black</label>
+    	   <input type="range" min="1" max="100" value="100" id="black_Slider">
+        </p>
+        <p>
+    	  <label for="hispanic_Slider" style="display: inline-block; width: 60px; text-align: right">Hispanic</label>
+    	  <input type="range" min="1" max="100" value="100" id="hispanic_Slider">
+    	</p>
+        <p>
+    	  <label for="white_Slider" style="display: inline-block; width: 60px; text-align: right">White</label>
+    	  <input type="range" min="1" max="100" value="100" id="white_Slider">
+    	</p>
+        <p>
+    	  <label for="other_Slider" style="display: inline-block; width: 60px; text-align: right">Other</label>
+    	  <input type="range" min="1" max="100" value="100" id="other_Slider">
+    	</p>
+        <p>
+        <button id='resetButton' title='Reset Layout to initial even weighting'>Reset race sliders</button>
+        </p>
+  </div>
+
+  <div id="viz"></div>
+
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="d3-legend.js" charset="utf-8"></script>
+<!-- <script src="//d3js.org/topojson.v1.min.js"></script> -->
+<script src="cbStop.js" charset="utf-8"></script>
+
+</body>
+</html>
