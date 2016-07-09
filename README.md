@@ -11,4 +11,5 @@ Primary bits involve:
 
 * showCrime, a django site for visualization of historical crime data
 
+* stopData, visualization of discretionary stop data
 
