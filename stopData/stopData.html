@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+#viz {position:relative;
+    top:-200px;
+    left:250px;}
+
+</style>
+<body>
+<h1 align=center>Visualizing Oakland Police Stops - 2015</h1>
+<h2 align=center><a href="stopData_doc.html">Background and documentation</a></h2>
+       <div id="controls">
+        <p><b>Encounter type</b>:
+            <input type=radio id="vehicle" name=encTypeRadio value=0 checked>Vehicles
+            <input type=radio id="pedest" name=encTypeRadio value=1>Pedestrian
+            <input type=radio id="other" name=encTypeRadio value=2>Other
+        </p>
+        <p><b>Encounter result</b>:
+		  
+            <input type=radio id="nonarrest" name=encResultRadio value=0 checked>Non-arrest
+            <input type=radio id="arrest" name=encResultRadio value=1>Arrest
+			
+        </p>
+    	<p><label for="asian_Slider" style="display: inline-block; width: 60px; text-align: right">Asian</label>
+    	   <input type="range" min="1" max="100" value="100" id="asian_Slider">
+        </p>
+        <p><label for="aa_Slider" style="display: inline-block; width: 60px; text-align: right">African American</label>
+    	   <input type="range" min="1" max="100" value="100" id="aa_Slider">
+        </p>
+        <p>
+    	  <label for="hispanic_Slider" style="display: inline-block; width: 60px; text-align: right">Hispanic</label>
+    	  <input type="range" min="1" max="100" value="100" id="hispanic_Slider">
+    	</p>
+        <p>
+    	  <label for="white_Slider" style="display: inline-block; width: 60px; text-align: right">White</label>
+    	  <input type="range" min="1" max="100" value="100" id="white_Slider">
+    	</p>
+        <p>
+    	  <label for="other_Slider" style="display: inline-block; width: 60px; text-align: right">Other</label>
+    	  <input type="range" min="1" max="100" value="100" id="other_Slider">
+    	</p>
+        <p>
+        <button id='resetButton' title='Reset Layout to initial even weighting'>Reset race sliders</button>
+        </p>
+  </div>
+
+  <div id="viz"></div>
+
+<script src="d3.v3.min.js" charset="utf-8"></script>
+<script src="queue.v1.js"></script>
+<script src="d3-legend.js" charset="utf-8"></script>
+<!-- <script src="//d3js.org/topojson.v1.min.js"></script> -->
+<script src="stopData.js" charset="utf-8"></script>
+
+</body>
+</html>
