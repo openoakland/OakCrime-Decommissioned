@@ -1,7 +1,7 @@
 Show Crime
 ==========
 
-`Below are notes for each file in showCrime that can help when understanding the codebase for Show Crime.`
+`Below are notes for each file in showCrime that can help when understanding the codebase for Show Crime. (This is still incomplete please fill in the blanks, correct mistakes, or change format for better readability.)`
 
 - admin.py
 
