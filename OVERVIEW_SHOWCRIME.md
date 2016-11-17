@@ -1,7 +1,9 @@
 Show Crime
 ==========
 
-`Below are notes for each file in showCrime that can help when understanding the codebase for Show Crime. (This is still incomplete please fill in the blanks, correct mistakes, or change format for better readability.)`
+`Below are notes for each file in showCrime that can help when understanding the codebase for Show Crime. (This is still incomplete please fill in the blanks, correct mistakes, or change format for better readability.)
+ Also, documentation for understanding the data can be found at the following link: http://rikiwiki.electronicartifacts.com/opd-crime-statistics/its-showcrime
+`
 
 - admin.py
 
@@ -21,7 +23,7 @@ They are populated using BeatChoices and CrimeCatChoices
 
 - models.py
 
-Purpose: Contains the model(s) for showCrime
+Purpose: Contains the model(s) for showCrime. Documentation for understanding the data can be found at this link http://rikiwiki.electronicartifacts.com/opd-crime-statistics/its-showcrime
 
 Contains OakCrime model whose schema is defined below:
 
