@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import OakCrime
+from .models import OakCrime
 
 # admin.site.register(OakCrime)
 

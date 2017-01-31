@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
-from forms import *
-from models import *
+from .forms import *
+from .models import *
 
 def index(request):
     template = loader.get_template('showCrime/index.html')
@@ -219,7 +219,7 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
     
     figDPI=200
     fullPath = PlotPath+fname+'_'+runTime+'.png'
-    print 'plotting %d/%d (%6.2f sec) to %s' % (totBeat,totCity,qryTime.total_seconds(),fullPath)
+    print('plotting %d/%d (%6.2f sec) to %s' % (totBeat,totCity,qryTime.total_seconds(),fullPath))
     f1.savefig(fullPath,dpi=figDPI)
 
     canvas = FigureCanvas(f1)
