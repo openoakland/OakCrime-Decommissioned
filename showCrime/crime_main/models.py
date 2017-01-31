@@ -3,7 +3,7 @@
 __author__ = "rik@electronicArtifacts.com"
 __version__ = "0.1"
 
-from django.db import models
+from django.contrib.gis.db import models
 
 class OakCrime(models.Model):
     idx = models.IntegerField(primary_key=True)
@@ -19,6 +19,7 @@ class OakCrime(models.Model):
     addr = models.CharField(max_length=100,blank=True,null=True)
     lat = models.FloatField(null=True)
     long = models.FloatField(null=True)
+    latlong = models.PointField(null=True)
     ucr = models.CharField(max_length=5,blank=True,null=True)
     statute = models.CharField(max_length=50,blank=True,null=True)
     crimeCat = models.CharField(max_length=50,blank=True,null=True)
