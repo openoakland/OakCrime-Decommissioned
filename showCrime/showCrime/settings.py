@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'crime_main'
 ]
 
@@ -74,13 +75,16 @@ WSGI_APPLICATION = 'showCrime.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'oakCrime',
+        'USER': os.getenv('SHOWCRIME_DB_USER', 'oakCrime'),
+        'PASSWORD': os.getenv('SHOWCRIME_DB_PASS', 'oakCrime'),
+        'HOST': os.getenv('SHOWCRIME_DB_HOST', 'localhost')
+    },
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
