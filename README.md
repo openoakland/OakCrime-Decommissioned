@@ -13,3 +13,26 @@ Primary bits involve:
 
 * stopData, visualization of discretionary stop data
 
+## Working on showCrime (django app)
+
+Setup a virtualenv for python dependencies:
+
+```bash
+python3 -m venv showCrime/oakcrime_venv
+```
+
+Activate the virtualenv to start work:
+
+```bash
+source showCrime/oakcrime_venv/bin/activate
+cd showCrime
+```
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+# install system packages. for ubuntu:
+sudo apt-get install python3-tk
+```
+
+
