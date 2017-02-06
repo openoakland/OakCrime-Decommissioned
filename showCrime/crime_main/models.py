@@ -13,7 +13,7 @@ class OakCrime(models.Model):
     # cf. .../django-docs-1.5-en/intro/tutorial01.html
     cdate = models.DateField()
     ctime = models.TimeField()
-    ctype = models.CharField(max_length=50,blank=True,null=True)
+    ctype = models.CharField(max_length=100,blank=True,null=True)
     desc = models.CharField(max_length=200,blank=True,null=True)
     beat = models.CharField(max_length=20,blank=True,null=True)
     addr = models.CharField(max_length=100,blank=True,null=True)
