@@ -63,7 +63,7 @@ docker start showCrimeDB
 
 First retrieve a csv file from http://data.openoakland.org/dataset/crime-reports in csv file format
 
-Then use the dropSource4django.py script (not commited at present) to convert to another csv file suitable for use in our db. You will need to edit the file paths in this script to reflect where you currently have the data.
+Then use the dropSource4django.py script (in showCrime/etc/) to convert to another csv file suitable for use in our db. You will need to edit the file paths in this script to reflect where you currently have the data. 
 
 ```bash
 # Connect via psql to docker-contained db.
