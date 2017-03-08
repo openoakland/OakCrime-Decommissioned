@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import OakCrime
+from .models import OakCrime
 
 # admin.site.register(OakCrime)
 
@@ -14,7 +14,7 @@ class OakCrimeAdmin(admin.ModelAdmin):
     fieldsets = [
         ('Meta',    {'fields': ['idx', 'oidx']}),
         ('OPD',     {'fields': ['opd_rd','cdate', 'ctype', 'desc','beat', 'addr']}),
-        ('Inferred', {'fields': ['lat', 'long', 'ucr', 'statute', 'crimeCat']}),
+        ('Inferred', {'fields': ['lat', 'long', 'latlong', 'ucr', 'statute', 'crimeCat']}),
     ]
     
     list_display = ('cdate', 'beat', 'desc')

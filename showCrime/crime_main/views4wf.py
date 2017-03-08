@@ -219,7 +219,7 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
     
     figDPI=200
     fullPath = PlotPath+fname+'_'+runTime+'.png'
-    print 'plotting %d/%d (%6.2f sec) to %s' % (totBeat,totCity,qryTime.total_seconds(),fullPath)
+    print('plotting %d/%d (%6.2f sec) to %s' % (totBeat,totCity,qryTime.total_seconds(),fullPath))
     f1.savefig(fullPath,dpi=figDPI)
 
     canvas = FigureCanvas(f1)
