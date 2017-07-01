@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} ShowCrime {% endblock %}
+
+{% block content %}
+
+<p>
+    {% if form.errors %}
+        <p style="color: red;">
+            Please correct the error{{ form.errors|pluralize }} below.
+        </p>
+    {% endif %}
+<p>Select a beat of interest (see beat map resources below), either one crime category or two categories 
+for comparison, then hit <b>Submit</b>!</p>
+
+<p align=center>
+    <form action="" method="post">{% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        
+        <input type="submit" value="Submit">
+    </form>
+<p>
+<p>The crime categories are organized hierarchically.  For example, the crime category <code>ASSAULT_FIREARM</code> 
+includes both <code>ASSAULT_FIREARM_FELONY</code> and <code>ASSAULT_FIREARM_MISDEMEANOR</code> incidents.  
+The crime category system is described in more detail in this <a href="http://rikiwiki.electronicartifacts.com/opd-crime-statistics/crimecatoak">
+rikiwiki post</a>.</p>
+
+<p>After specifying the beat and crime types of interest and submitting your query,
+you'll be presented with a plot showing (for either one or two crime categories) the monthly number of incidents
+of that crime type in the selected beat, as well as the beat average across all Oakland beats.</p>
+
+<hr>
+<p><h3>Related resources</h3>
+<ul>
+<li><a href="http://static.electronicartifacts.com/OPD_beatMap.jpg">OPD beat map</a>
+<p>
+<li><a href="http://spjika.github.io/FindYourBeat/">FindYourBeat</a>
+</ul>
+<hr>
+<p>
+<p align=center>{{siteUrl}}</p>
+
+{% endblock %}

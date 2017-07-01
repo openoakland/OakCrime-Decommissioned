@@ -1,0 +1,92 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+
+<title>{% block title %}ShowCrime{% endblock %}</title> 
+
+{% load static %} 
+
+<link rel="stylesheet" href="{% static 'css/normalize.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+<script src="{% static 'js/vendor/modernizr-2.8.3.min.js' %}"></script>
+
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+{% block prescripts %}
+
+{% endblock %}
+
+{% block head %}
+<meta name="description" content="ShowCrime: Oakland crime incidents">
+<meta name="keywords" content="Oakland crime data">
+{% endblock %}
+</head>
+
+<body>
+
+<div class="container-fluid">
+ <div class="row">
+	<div class="navbar">
+		<img align=center type="image/png" height=80 src="{% static 'beat_dim0_tn.jpg' %}" alt="logo"/>
+   		{% if user.is_authenticated %}
+			<img align=center type="image/png" height=80 src="{% static 'avatar.png' %}" alt="userAvatar"/>
+			<b>{{user}}</b>
+	   {% endif %}
+	   <div class="container">
+	     <nav class="nav blog-nav">
+	       <a class="nav-link active" href="/dailyIncid/">Home</a>
+	       
+<!-- 		   <a class="nav-link" href="/dailyIncid/otherUtil">Other functions</a>  -->	
+	   
+		   {% if user.is_authenticated %}
+    			<a class="nav-link" href="/dailyIncid/logout">Logout</a>
+		   {% else %}
+		   		<a class="nav-link" href="/dailyIncid/login"><b>LOGIN</b></a>
+		   {% endif %}
+	     </nav>
+	   </div>
+	 </div> 
+</div> <!-- eo-navbar row -->
+		 
+ <div class="row"> <!-- content row -->
+
+	<div class="col-md-10 content">
+	
+	{% block content %}
+
+	<!-- CONTENT GOES HERE -->
+	
+	{% endblock %}		
+	
+	</div> <!-- eo-col-md-10 -->
+
+</div> <!-- eo-content row -->
+
+<div class="row"> 
+<footer class="footer">
+<h3 align=center><a href="https://OakCrime.org">OakCrime.org</a></h3>
+<p align=center>from <a href="htpp://OpenOakland.org">OpenOakland</a>, a proud <a href="htpp://CodeForAmerica.org">CodeForAmerica</a> brigade</p>
+</footer>
+</div>
+
+</div> <!-- eo-container-fluid -->
+
+<h3 align=center></h3>
+
+<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+<script>window.jQuery || document.write('<script src="{% static 'js/vendor/jquery-1.12.0.min.js' %}><\/script>')</script>
+<script src="{% static 'js/plugins.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+
+{% block endscripts %}
+{% endblock %}
+
+</body>

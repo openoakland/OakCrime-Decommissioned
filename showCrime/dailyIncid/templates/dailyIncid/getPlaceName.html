@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} Get {{ptype}} {% endblock %}
+
+{% block content %}
+
+<h1 align=center>Get {{ptype}}</h1>
+<center>
+
+{% comment %} {% debug %}  
+  onChange="redirectUrl()"
+  <input type="submit" value="Submit" />
+  
+{% endcomment %}
+
+<form method=post>{% csrf_token %}
+<p>Select from this list</p>
+<p>
+<select id="placeList" name="placeList">
+	{% for choice in form.placeList.field.queryset %}
+		<option value="{{choice.id}}"> {{ choice.desc }} </option> 
+	{% endfor %}
+</select>
+<input type="submit" value="Submit" />
+</form>
+</p>
+</center>
+
+{% endblock %}

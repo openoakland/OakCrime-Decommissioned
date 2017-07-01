@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} NearHere (mz) {% endblock %}
+{% block prescripts %}
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
+    <script src="https://mapzen.com/js/mapzen.min.js"></script>
+    <style>
+        height: 100%;
+        width: 100%;
+        position: absolute;
+      }
+      html,body{margin: 0; padding: 0;}
+    </style>
+{% endblock %}
+
+{% block content %}
+
+	<p>NearHere (mz): ({{ lat }},{{ lng }}) N={{nIncid}}; 
+		<img type="image/png" height=15 src="{% static  'marker-icon-red.png' %}" alt="redIcon"/> : Homocide, Rape, Robbery, Assault, Weapons; 
+		<img type="image/png" height=15 src="{% static  'marker-icon-green.png' %}" alt="greenIcon"/> : Other 
+	</p>	
+
+	{% if ptype %}
+	<p> <b>{{ptype}}:</b> {{pdesc}} </p>
+	{% endif %}
+		
+    <div id="map"></div>
+    <script>
+    
+    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+		var mapmargin = 100;
+		$('#map').css("height", ($(window).height() - mapmargin));
+		$(window).on("resize", resize);
+		resize();
+		function resize(){
+		
+		    if($(window).width()>=980){
+		        $('#map').css("height", ($(window).height() - mapmargin));    
+		        $('#map').css("margin-top",50);
+		    }else{
+		        $('#map').css("height", ($(window).height() - (mapmargin+12)));    
+		        $('#map').css("margin-top",10);
+		    }
+		
+		}
+    
+    	L.Mapzen.apiKey = 'mapzen-QutHoCK';
+      	var map = L.Mapzen.map('map');
+      	// NB: L.marker requires lat, lng order!
+		var ctr = L.marker([{{ lat }}, {{ lng }}]).addTo(map);
+		
+		// https://github.com/pointhi/leaflet-color-markers
+		var greenIcon = new L.Icon( {
+		  iconUrl: '{% static 'marker-icon-green.png' %}',
+		  iconSize: [25, 41],
+		  iconAnchor: [12, 41],
+		  popupAnchor: [1, -34],
+		  shadowSize: [41, 41]
+		});
+		
+		var redIcon = new L.Icon( {
+		  iconUrl: '{% static 'marker-icon-red.png' %}',
+		  iconSize: [25, 41],
+		  iconAnchor: [12, 41],
+		  popupAnchor: [1, -34],
+		  shadowSize: [41, 41]
+		});
+		
+		var popupOptions = {maxWidth: 500};
+		{% for incid in incidList %}
+			var icon;
+			// 2do: use shared MAJOR_CRIME predicate
+			if ("{{incid.crimeCat}}"=="HOMOCIDE" || 
+				"{{incid.crimeCat}}"=="SEX_RAPE" ||
+				"{{incid.crimeCat}}"=="WEAPONS" ||
+				"{{incid.crimeCat}}".startsWith("ROBBERY") || 
+				"{{incid.crimeCat}}".startsWith("ASSAULT") ) 
+				icon = redIcon; 
+			else 
+				icon = greenIcon;
+			// NB: L.marker requires lat, lng order!
+			var m = L.marker( [ {{ incid.ylat }}, {{ incid.xlng  }}  ], {icon: icon} );
+			var popTxt = "{{ incid.opd_rd }}" + " " + "{{ incid.cdateTime }}" + " " + "{{ incid.crimeCat }}";
+			
+			// console.log(popTxt+" "+icon);
+			
+			m.bindPopup(popTxt, popupOptions);
+			
+			m.addTo(map);
+		{% endfor %}
+		
+      map.setView([{{ lat }}, {{ lng }}], 17);
+    </script>
+
+    
+{% endblock %}

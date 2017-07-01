@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} DailyIncidents {% endblock %}
+
+{% block content %}
+
+<h1 align=center>Visualizing Oakland Police Department <br> Daily Incident data</h1>
+<ul>
+	<li><h3><a href="query/">Plot <em>longitudinal data</em></a></h3> All data (since 2007) for a specific OPD "beat" 
+	and one or two crime categories
+	<li><h3>Plot recent incidents <em>near a geographic point on a map</em>:</h3>
+	<p>All incidents within the last six months and within a 0.5 kilometer radius of the point of interested are plotted
+	on a map.  "Major" crime incidents (<code>HOMOCIDE, SEX_RAPE, WEAPONS, ROBBERY, ASSAULT</code>) are plotted with red 
+	markers; all other incidents are shown as green markers.</p>
+		<ul>
+		<li><h4><a href="choosePlace-BARTctr/">Incidents near an Oakland BART station</a></h4></li>
+		<li><h4><a href="choosePlace-park4/">Incidents near a (District 4) Oakland park </a></h4></li>
+		<li><h4><a href="nearheremz/">Incidents near a specific location (with known longitude/latitude)</a></h4></li>
+		</ul>
+	
+	</li>
+</ul>
+
+{% endblock %}

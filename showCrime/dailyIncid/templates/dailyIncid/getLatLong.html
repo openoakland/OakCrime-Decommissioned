@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} Get Lat/Long {% endblock %}
+
+{% block content %}
+
+<h1 align=center>Get </h1>
+    {% if form.errors %}
+        <p style="color: red;">
+            Please correct the error{{ form.errors|pluralize }} below.
+        </p>
+    {% endif %}
+<center>
+
+<p>The initial values for latitude and longitude are for Macarthur BART. 
+Provide your own coordinates (within Oakland), then hit <b>Submit</b>!</p>
+<p>
+    <form action="" method="post">{% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        
+        <input type="submit" value="Submit query">
+    </form>
+</center>
+
+{% endblock %}
