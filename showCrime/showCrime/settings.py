@@ -26,6 +26,7 @@ if HostName.startswith('hancock'):
 	INTERNAL_IPS = ['127.0.0.1']
 	
 	keyFile = '/Users/rik/hacks/showCrime_secretKey.txt'
+	dbkf = '/Users/rik/hacks/psql4djangoPW.txt'
 	# memcacheFile = '/Data/virtualenv/django/memcached.sock'
 
 	# Static files (CSS, JavaScript, Images)
@@ -40,6 +41,7 @@ elif HostName.find('webfaction') != -1:
 	DEBUG = True # False  
 	ALLOWED_HOSTS = ['oakcrime.org']
 	keyFile = '/home/rik/hacks/showCrime_secretKey.txt'
+	dbkf = '/home/rik/hacks/psql4djangoPW.txt'
 	# memcacheFile = '$HOME/memcached.sock'
 
 	# https://docs.webfaction.com/software/django/config.html#serving-django-static-media
@@ -137,6 +139,8 @@ WSGI_APPLICATION = 'showCrime.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
+with open(dbkf) as f:
+	DBPW = f.read().strip()
 
 DATABASES = {
     'default': {
@@ -144,7 +148,8 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
 		'NAME': 'oakcrime',
 		'USER': os.getenv('SHOWCRIME_DB_USER', 'rik'),
-		'PASSWORD': os.getenv('SHOWCRIME_DB_PASS', 'xxxx'),
+		
+		'PASSWORD': DBPW, # os.getenv('SHOWCRIME_DB_PASS', 'oakcrime'),
 		'HOST': os.getenv('SHOWCRIME_DB_HOST', 'localhost')
 
         # webfaction database specfics
@@ -152,8 +157,7 @@ DATABASES = {
 #         'ENGINE': 'django.contrib.gis.db.backends.postgis',
 #         'NAME': 'djdb10',
 #         'USER': 'rik',
-#         # 2do: separate database password
-#         'PASSWORD': 'xxxx',
+#		  'PASSWORD': DBPW, 
 #         'HOST': '127.0.0.1',
 
     },
