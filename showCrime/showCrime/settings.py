@@ -141,10 +141,10 @@ WSGI_APPLICATION = 'showCrime.wsgi.application'
 DATABASES = {
     'default': {
             # LOCAL
-        # 'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
 		'NAME': 'oakcrime',
 		'USER': os.getenv('SHOWCRIME_DB_USER', 'rik'),
-		'PASSWORD': os.getenv('SHOWCRIME_DB_PASS', 'xxxxxx'),
+		'PASSWORD': os.getenv('SHOWCRIME_DB_PASS', 'xxxx'),
 		'HOST': os.getenv('SHOWCRIME_DB_HOST', 'localhost')
 
         # webfaction database specfics
@@ -153,7 +153,7 @@ DATABASES = {
 #         'NAME': 'djdb10',
 #         'USER': 'rik',
 #         # 2do: separate database password
-#         'PASSWORD': 'xxxxxx',
+#         'PASSWORD': 'xxxx',
 #         'HOST': '127.0.0.1',
 
     },
@@ -211,6 +211,45 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'dailyIncid': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+        }
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

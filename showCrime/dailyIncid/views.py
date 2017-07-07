@@ -11,6 +11,9 @@ from .forms import *
 from .models import *
 from showCrime.settings import PlotPath, SiteURL
 
+import logging
+logger = logging.getLogger(__name__)
+
 def index(request):
  	return render(request, 'dailyIncid/index.html')
 
@@ -210,7 +213,8 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 	
 	figDPI=200
 	fullPath = PlotPath+fname+'_'+runTime+'.png'
-	print('plotting %d/%d (%6.2f sec) to %s' % (totBeat,totCity,qryTime.total_seconds(),fullPath))
+	userName = request.user.get_username()
+	logger.info('user=%s plotting %d/%d (%6.2f sec) to %s' % (userName,totBeat,totCity,qryTime.total_seconds(),fullPath))
 	f1.savefig(fullPath,dpi=figDPI)
 
 	canvas = FigureCanvas(f1)
@@ -239,7 +243,9 @@ def add_geo(request):
 	begTime = datetime.now()
 	begTimeStr = begTime.strftime('%y%m%d_%H%M%S')
 	
-	print('add_geo: Start=%s' % (begTimeStr))
+	userName = request.user.get_username()
+
+	logger.info('user=%s add_geo: Start=%s' % (userName,begTimeStr))
 	nmissPt = 0
 	nullPt = Point([])
 	rptInterval = 1000
@@ -265,14 +271,14 @@ def add_geo(request):
 			# print i, c.opd_rd,c.zip
 
 		except IntegrityError as e:
-			print('add_geo Integrity?! %d %s %s' % (i,c.opd_rd,e))
+			logger.error('user=%s add_geo Integrity?! %d %s %s' % (userName, i,c.opd_rd,e))
 			
 		except Exception as e:
-			print('add_geo?! %d %s %s' % (i,c.opd_rd,e))
+			logger.error('user=%s add_geo?! %d %s %s' % (userName,i,c.opd_rd,e))
 
 		if (i % rptInterval) == 0:
 			elapTime = datetime.now() - begTime
-			print('add_geo: %d %s NMiss=%d' % (i,elapTime.total_seconds(),nmissPt))
+			logger.info('user=%s add_geo: %d %s NMiss=%d' % userName, (i,elapTime.total_seconds(),nmissPt))
 				
 	return HttpResponse("You're at add_geo")
 
@@ -311,7 +317,8 @@ def nearHereMZ(request):
 					
 		incidList = list(queryset)
 		
-		print('NearHereMZ: NIncid=%d near (lat=%s,lng=%s)' % (len(incidList), qryData['lat'], qryData['lng']))
+		userName = request.user.get_username()
+		logger.info('user=%s NearHereMZ: NIncid=%d near (lat=%s,lng=%s)' % (userName, len(incidList), qryData['lat'], qryData['lng']))
 
 		context = {}
 		context['lat'] = qryData['lat']
@@ -364,8 +371,9 @@ def choosePlace(request,ptype):
 					
 		incidList = list(queryset)
 		
-		print('choosePlace: Ptype=%s Choice=%s NIncid=%d near (xlng=%s,ylat=%s)' % \
-			(ptype, tpchoice.name, len(incidList), xlng, ylat))
+		userName = request.user.get_username()
+		logger.info('username=%s choosePlace: Ptype=%s Choice=%s NIncid=%d near (xlng=%s,ylat=%s)' % \
+			(userName, ptype, tpchoice.name, len(incidList), xlng, ylat))
 
 		context = {}
 		context['lat'] = ylat
@@ -497,14 +505,15 @@ def add_zip(request):
 	begTime = datetime.now()
 	begTimeStr = begTime.strftime('%y%m%d_%H%M%S')
 	
-	print('add_zip: Start=%s' % (begTimeStr))
+	userName = request.user.get_username()
+	logger.info('userName=%s add_zip: Start=%s' % (userName, begTimeStr))
 	rptInterval = 1000
 	nnull = 0
 	for i,c in enumerate(OakCrime.objects.all()): # .order_by('opd_rd')):
 
 		if (i % rptInterval) == 0:
 			elapTime = datetime.now() - begTime
-			print('add_zip: %d %s NNull=%d' % (i,elapTime.total_seconds(),nnull))
+			logger.info('userName=%s add_zip: %d %s NNull=%d' % (userName,i,elapTime.total_seconds(),nnull))
 
 		try:
 			pnt = c.point
@@ -519,13 +528,13 @@ def add_zip(request):
 			c.save()
 
 		except IntegrityError as e:
-			print('add_zip Integrity?! %d %s %s' % (i,c.opd_rd,e))
+			logger.error('userName=%s add_zip Integrity?! %d %s %s' % (userName,i,c.opd_rd,e))
 			
 		except Exception as e:
-			print('add_zip?! %d %s %s' % (i,c.opd_rd,e))
+			logger.error('userName=%s add_zip?! %d %s %s' % (userName,i,c.opd_rd,e))
 
 	
-	return HttpResponse("add_zip complete NNullPoint=%d" % (nnull))
+	return HttpResponse("userName=%s add_zip complete NNullPoint=%d" % (userName,nnull))
 
 import csv
 def tstAllFile(request):
@@ -548,7 +557,7 @@ def tstAllFile(request):
 	closeRadius = 500
 	tstDT = datetime(2017, 2, 10, 17, 00)
 	minDate = tstDT - timedelta(days=180)
-	
+	userName = request.user.get_username()
 	for loc,qryData in locTbl.items():
 		
 
@@ -577,7 +586,8 @@ def tstAllFile(request):
 					nserious += 1
 					continue
 			
-		print('tstAllBART: %s NIncid=%d NSerious=%d near (lat=%s,lng=%s)' % (loc,len(incidList),nserious, qryData['lat'], qryData['lng']))
+		logger.info('userName=%s tstAllBART: %s NIncid=%d NSerious=%d near (lat=%s,lng=%s)' % \
+				(userName, loc,len(incidList),nserious, qryData['lat'], qryData['lng']))
 		
 	return HttpResponse('tstAllBART %d locations' % (len(locTbl)))
 
