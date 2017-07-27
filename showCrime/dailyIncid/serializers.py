@@ -11,5 +11,5 @@ from dailyIncid.models import OakCrime
 class IncidSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = OakCrime
-        fields = ('opd_rd', 'cdate', 'ctime', 'beat', 'ylat', 'xlng' ,'crimeCat')
+        fields = ('opd_rd', 'cdateTime', 'beat', 'xlng' ,'ylat','crimeCat')
         

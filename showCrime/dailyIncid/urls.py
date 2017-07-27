@@ -30,9 +30,9 @@ urlpatterns = [
 	url(r'^addGeo$', views.add_geo, name='addGeo'),
 	
 	# DRF/API
-	url(r'beatlist/(?P<beat>.+)/$', views.IncidList.as_view(), name='beatlist'),
-	url(r'nearbart/(?P<datetime>.+)/$', views.NearBART.as_view(), name='nearbart'),
-	url(r'nearhereapi/(?P<lat>.+)/(?P<lng>.+)/$', views.NearHereAPI.as_view(), name='nearhereapi'),
+	url(r'beatAPI/(?P<beat>.+)/$', views.BeatAPI.as_view(), name='beatlist'),
+	url(r'nearHereAPI/(?P<lng>.+)_(?P<lat>.+)/$', views.NearHereAPI.as_view(), name='nearhereapi'),
+	url(r'crimeCatAPI/(?P<cc>.+)/$', views.CrimeCatAPI.as_view(), name='crimecatapi'),
 	
 
 	url(r'^testPage$', views.testPage, name='testPage'),

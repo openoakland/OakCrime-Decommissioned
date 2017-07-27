@@ -411,52 +411,92 @@ from datetime import datetime, timedelta
 # 
 #     URL pattern: ^diAPI/$ Name: 'dailyIncid-list'
 #     URL pattern: ^diAPI/{pk}/$ Name: 'dailyIncid-detail'
-
-class IncidViewSet(viewsets.ReadOnlyModelViewSet):
-	"""API endpoint for DailyIncidents
-	"""
-
-	serializer_class = serializers.IncidSerializer
-
-	minDate = datetime.now() - timedelta(days=730)
-	queryset = OakCrime.objects.filter(cdateTime__gt=minDate).order_by('opd_rd')
+# 
+# class IncidViewSet(viewsets.ReadOnlyModelViewSet):
+# 	"""API endpoint for DailyIncidents
+# 	"""
+# 
+# 	serializer_class = serializers.IncidSerializer
+# 
+# 	minDate = datetime.now() - timedelta(days=730)
+# 	queryset = OakCrime.objects.filter(cdateTime__gt=minDate).order_by('opd_rd')
 
 # The simplest way to filter the queryset of any view that subclasses
 # GenericAPIView is to override the .get_queryset() method.
 	
-class IncidList(generics.ListAPIView):
-	'''API view for last two years from specified beat
+class BeatAPI(generics.ListAPIView):
+	'''API view for crimes from specified beat 
+		restricted to last two years 
 	'''
 	
 	serializer_class = serializers.IncidSerializer
 	
 	def get_queryset(self):
 		# restrict to last two years
+		begTime = datetime.now()
 		minDate = datetime.now() - timedelta(days=730)
 		beat = self.kwargs['beat']
-		queryset = OakCrime.objects.filter(cdateTime__gt=minDate).filter(beat__iexact=beat).order_by('opd_rd')
+		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
+						filter(beat__iexact=beat). \
+						order_by('opd_rd')
+		
+		nresult = len(queryset)
+		elapTime = datetime.now() - begTime
+		userName = self.request.user.get_username()
+		logger.info('user=%s BeatListAPI %s nresult=%d (%6.2f sec) ' % (userName,beat,nresult,elapTime.total_seconds()))
 
 		return queryset
 
 class NearHereAPI(generics.ListAPIView):
+	'''API view for crimes within 500m of this longitude_latitude, 
+		restricted to last 6 months 
+	'''
+
 	serializer_class = serializers.IncidSerializer
 	
 	def get_queryset(self):
-		# restrict to 3 months, near this latLong
 
-		latStr = self.kwargs['lat']
 		lngStr = self.kwargs['lng']
+		latStr = self.kwargs['lat']
 		
 		pt = Point(float(lngStr), float(latStr))
 		
 		closeRadius = 500
-		
-		tstDT = datetime(2017, 2, 10, 17, 00)
-		minDate = tstDT - timedelta(days=90)
+		begTime = datetime.now()
+		minDate = datetime.now() - timedelta(days=180)
 
 		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
 					filter(point__distance_lte=(pt, D(m=closeRadius))). \
 					order_by('cdateTime')
+
+		nresult = len(queryset)
+		elapTime = datetime.now() - begTime
+		userName = self.request.user.get_username()
+		logger.info('user=%s NearHereAPI lng=%s lat=%s nresult=%d (%6.2f sec)' % (userName,lngStr,latStr,nresult,elapTime.total_seconds()))
+
+		return queryset
+
+class CrimeCatAPI(generics.ListAPIView):
+	'''API view for crimes of this crime category 
+		restricted to last 6 months 
+	'''
+	serializer_class = serializers.IncidSerializer
+	
+	def get_queryset(self):
+
+		crimeCat = self.kwargs['cc']
+		begTime = datetime.now()
+		# restrict to last two years
+		minDate = datetime.now() - timedelta(days=180)
+
+		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
+						filter(crimeCat__iexact=crimeCat). \
+						order_by('opd_rd')
+
+		nresult = len(queryset)
+		elapTime = datetime.now() - begTime
+		userName = self.request.user.get_username()
+		logger.info('user=%s CrimeCatAPI cc=%s nresult=%d (%6.2f sec)' % (userName,crimeCat,nresult,elapTime.total_seconds()))
 
 		return queryset
 

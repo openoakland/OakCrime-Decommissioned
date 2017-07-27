@@ -21,23 +21,10 @@ from rest_framework import routers
 # import debug_toolbar
 
 from dailyIncid import views
-# 2do: simpler import dailyIncid and then reference to dailyIncid.views doesn't work?!
-
-router = routers.DefaultRouter()
-router.register(r'diAPI', views.IncidViewSet)
-
-
-# router.register(r'users', UserViewSet)
-# The example above would generate the following URL patterns:
-# 
-#     URL pattern: ^diAPI/$ Name: 'dailyIncid-list'
-#     URL pattern: ^diAPI/{pk}/$ Name: 'dailyIncid-detail'
-
-
 
 urlpatterns = [
     url(r'^dailyIncid/', include('dailyIncid.urls')),
-    url(r'^', include(router.urls)),
+    # url(r'^', include(router.urls)),
 
 	url(r'^$', views.index, name='showCrimeIndex'),
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

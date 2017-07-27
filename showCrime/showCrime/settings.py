@@ -148,8 +148,7 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
 		'NAME': 'oakcrime',
 		'USER': os.getenv('SHOWCRIME_DB_USER', 'rik'),
-		
-		'PASSWORD': DBPW, # os.getenv('SHOWCRIME_DB_PASS', 'oakcrime'),
+		'PASSWORD': DBPW, 
 		'HOST': os.getenv('SHOWCRIME_DB_HOST', 'localhost')
 
         # webfaction database specfics

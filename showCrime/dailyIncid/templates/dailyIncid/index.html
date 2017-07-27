@@ -10,6 +10,8 @@
 <ul>
 	<li><h3><a href="query/">Plot <em>longitudinal data</em></a></h3> All data (since 2007) for a specific OPD "beat" 
 	and one or two crime categories
+	</li>
+	
 	<li><h3>Plot recent incidents <em>near a geographic point on a map</em>:</h3>
 	<p>All incidents within the last six months and within a 0.5 kilometer radius of the point of interested are plotted
 	on a map.  "Major" crime incidents (<code>HOMOCIDE, SEX_RAPE, WEAPONS, ROBBERY, ASSAULT</code>) are plotted with red 
@@ -20,6 +22,13 @@
 		<li><h4><a href="nearheremz/">Incidents near a specific location (with known longitude/latitude)</a></h4></li>
 		</ul>
 	
+	</li>
+	<li>Or try out access to the data via our API:
+		<ul>
+		<li><h4><a href="beatAPI/03X/"><code>beatAPI/03X/</code></a></h4>crimes from specified beat (eg <code>03X</code>); restricted to last two years</li>
+		<li><h4><a href="crimeCatAPI/LARCENY_THEFT_VEHICLE_AUTO"><code>crimeCatAPI/LARCENY_THEFT_VEHICLE_AUTO</code></a></h4>crimes for some crime category (eg <code>LARCENY_THEFT_VEHICLE_AUTO</code>); restricted to last 6 months </li>
+		<li><h4><a href="nearHereAPI/-122.265944_37.828199"><code>nearHereAPI/-122.265944_37.828199</code></a></h4>crimes within 500m of this longitude_latitude; restricted to last 6 months</li>
+		</ul>
 	</li>
 </ul>
 
