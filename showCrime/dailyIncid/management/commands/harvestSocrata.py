@@ -16,11 +16,14 @@ import pickle # cPickle python2 only
 import csv 
 from datetime import datetime,timedelta,date
 import string 
+import subprocess
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib.gis.geos import Point
+
+from django.core.mail import send_mail
 
 from sodapy import Socrata
 
@@ -291,12 +294,32 @@ def mergeList(results,startDate,verboseFreq=None):
 				print('do_harvest: cant save new?! %d %s\n\t%s' % (incidIdx,e,socDict) )
 				continue
 						
-		if verboseFreq != None and incidIdx % verboseFreq == 0:
-			print('Idx=%d nadd=%d nupdate=%d nsame=%d tot=%d' % \
-				(incidIdx,nadd,nupdate,nsame,(nadd+nupdate+nsame)) )
-	
-	print('do_harvest: NAdd=%d NUpdate=%d NSame=%d NCrimeCat=%d NGeo=%d' % \
-		(nadd,nupdate,nsame,ncc,ngeo) )
+	if verboseFreq != None and incidIdx % verboseFreq == 0:
+		print('Idx=%d nadd=%d nupdate=%d nsame=%d tot=%d' % \
+			(incidIdx,nadd,nupdate,nsame,(nadd+nupdate+nsame)) )
+
+	nincid = OakCrime.objects.all().count()
+	rptMsg = 'do_harvest: NAdd=%d NUpdate=%d NSame=%d NCrimeCat=%d NGeo=%d NIncid=%d' % \
+	(nadd,nupdate,nsame,ncc,ngeo,nincid) 
+	print(rptMsg)
+
+	# grep INFO /home/rik/logs/user/error_django10*
+	# NB: only works with SINGLE string command?!
+	# requires shell=True
+	cmdArgs = ['grep -r INFO /home/rik/logs/user/error_django10*']
+	try:
+		infoLines = subprocess.check_output(cmdArgs,shell=True)
+	except Exception as e:
+		print( 'harvestSocrata: bad rc on grep?!',e)
+		infoLines = ''
+
+	mailMsg = rptMsg + '\n**\n' + str(infoLines)
+
+	send_mail('Socrata harvest', mailMsg, 'rik@electronicArtifacts.com',['rik@electronicArtifacts.com']\
+,
+	    fail_silently=False)
+
+
 
 
 def freqHist(tbl):
