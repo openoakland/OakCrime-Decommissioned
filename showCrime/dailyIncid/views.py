@@ -1,17 +1,27 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.template import Context, loader
 from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.db.models import Min, Max
+from django.db.models import Q
 from django.db.models.lookups import IExact
 from django.db import transaction
 from django.db import IntegrityError
 
-from .forms import *
-from .models import *
-from showCrime.settings import PlotPath, SiteURL
+from django.contrib.gis.geos import  Polygon
+
+from django.template import Context
 
 import logging
+import random
+
+import geojson 
+
+from showCrime.settings import PlotPath, SiteURL
+
+from .forms import *
+from .models import *
+
 logger = logging.getLogger(__name__)
 
 def index(request):
@@ -21,13 +31,16 @@ def testPage(request):
 	return HttpResponse("Hello, world. You're at dailyIncid test.")
 
 def need2login(request):
-	return render(request, 'dailyIncid/need2login.html', Context({}))
+	return render(request, 'dailyIncid/need2login.html', {})
 
 @login_required
 def getQuery(request):
 
+	userName = request.user.get_username()
+
 	# import pdb; pdb.set_trace()
 	if request.method == 'POST':
+		logger.info('user=%s getQuery-Post' % (userName))
 		qform = twoTypeQ(request.POST)
 		if qform.is_valid():
 			qryData = qform.cleaned_data
@@ -37,6 +50,7 @@ def getQuery(request):
 				qurl = '/dailyIncid/plots/%s+%s.png' % (qryData['beat'], qryData['crimeCat']) 
 			return HttpResponseRedirect(qurl)
 	else:
+		logger.info('user=%s getQuery-nonPost' % (userName))
 		qform = twoTypeQ()
 		
 	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': SiteURL})
@@ -64,6 +78,23 @@ MinYear = 2007
 MaxYear = 2017
 C4A_date_string = '%y%m%d_%H:%M:%S'
 
+
+OakMinLat = 37.72635305398124	# south
+OakMaxLat = 37.85354698750914	# north
+OakMinLng = -122.34998208964241	# west
+OakMaxLng = -122.11985846164134	# east
+	
+OakCenterLat = 37.7987417644
+OakCenterLng = -122.2378203971 
+
+#			   west				south			  east				 north
+OaklandBBox = [-122.34998208964241, 37.72635305398124, -122.11985846164134, 37.85354698750914]
+
+MCAR_lat = 37.828199
+MCAR_lng = -122.265944
+	
+FTVL_lat = 37.77499525
+FTVL_lng = -122.2242715
 
 def monthIdx(cdate):
 	mon = cdate.month+12*(cdate.year - MinYear) - 1
@@ -224,7 +255,10 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 	return response
 
 
+@login_required
 def otherUtil(request):
+	userName = request.user.get_username()
+	logger.info('user=%s otherUtil' % (userName))
 	return render(request, 'dailyIncid/otherUtil.html')
 
 
@@ -234,59 +268,15 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos import Point
 from django.contrib.gis.utils import LayerMapping
 
-# @transaction.atomic
-def add_geo(request):
-	'''Convert ylat + xlng attributes to django.contrib.gis.geos.Point
-	associate each incid with zip5
-	'''
-
-	begTime = datetime.now()
-	begTimeStr = begTime.strftime('%y%m%d_%H%M%S')
-	
-	userName = request.user.get_username()
-
-	logger.info('user=%s add_geo: Start=%s' % (userName,begTimeStr))
-	nmissPt = 0
-	nullPt = Point([])
-	rptInterval = 1000
-	for i,c in enumerate(OakCrime.objects.all().order_by('opd_rd')):
-
-		try:
-			# with transaction.atomic():
-			
-			# pnt X is longitude, Y is latitude
-			pnt = Point(c.xlng, c.ylat)
-			c.point = pnt
-			
-			if c.point==nullPt:
-				nmissPt += 1
-				c.zip = None
-				continue
-
-# 			zipgeo = Zip5Geo.objects.get(geom__contains=pnt)
-# 			c.zip = zipgeo.zcta5ce10
-
-			c.save()
-			
-			# print i, c.opd_rd,c.zip
-
-		except IntegrityError as e:
-			logger.error('user=%s add_geo Integrity?! %d %s %s' % (userName, i,c.opd_rd,e))
-			
-		except Exception as e:
-			logger.error('user=%s add_geo?! %d %s %s' % (userName,i,c.opd_rd,e))
-
-		if (i % rptInterval) == 0:
-			elapTime = datetime.now() - begTime
-			logger.info('user=%s add_geo: %d %s NMiss=%d' % userName, (i,elapTime.total_seconds(),nmissPt))
-				
-	return HttpResponse("You're at add_geo")
 
 @login_required
-def nearHereMZ(request):
+def nearHere(request):
+
+	userName = request.user.get_username()
 
 	# import pdb; pdb.set_trace()
 	if request.method == 'POST':
+		logger.info('user=%s nearHere-Post' % (userName))
 		qform = getLatLng(request.POST)
 		if not qform.is_valid():
 			return HttpResponse("Invalid lat long form?!")
@@ -317,8 +307,7 @@ def nearHereMZ(request):
 					
 		incidList = list(queryset)
 		
-		userName = request.user.get_username()
-		logger.info('user=%s NearHereMZ: NIncid=%d near (lat=%s,lng=%s)' % (userName, len(incidList), qryData['lat'], qryData['lng']))
+		logger.info('user=%s NearHere: NIncid=%d near (lat=%s,lng=%s)' % (userName, len(incidList), qryData['lat'], qryData['lng']))
 
 		context = {}
 		context['lat'] = qryData['lat']
@@ -326,9 +315,10 @@ def nearHereMZ(request):
 		context['nIncid'] = len(incidList)
 		context['incidList'] =  incidList
 			
-		return render(request, 'dailyIncid/nearHereListMZ.html', Context(context))
+		return render(request, 'dailyIncid/nearHereListMB.html', context)
 	
 	else:
+		logger.info('user=%s nearHereMZ-nonPost' % (userName))
 		qform = getLatLng()
 		
 	return render(request, 'dailyIncid/getLatLong.html', {'form': qform})
@@ -336,7 +326,10 @@ def nearHereMZ(request):
 @login_required
 def choosePlace(request,ptype):
 
+	userName = request.user.get_username()
+
 	if request.method == 'POST':
+		logger.info('user=%s choosePlace-Post' % (userName))
 		qform = getPlaceList(request.POST,ptype=ptype)
 		if not qform.is_valid():
 			return HttpResponse("Invalid placeList form?!")
@@ -371,7 +364,6 @@ def choosePlace(request,ptype):
 					
 		incidList = list(queryset)
 		
-		userName = request.user.get_username()
 		logger.info('username=%s choosePlace: Ptype=%s Choice=%s NIncid=%d near (xlng=%s,ylat=%s)' % \
 			(userName, ptype, tpchoice.name, len(incidList), xlng, ylat))
 
@@ -384,16 +376,617 @@ def choosePlace(request,ptype):
 		context['ptype'] = ptype
 		context['pdesc'] = tpchoice.desc
 		
-		return render(request, 'dailyIncid/nearHereListMZ.html', Context(context))
+		return render(request, 'dailyIncid/nearHereListMB.html', context)
 	
 	else:
+		logger.info('user=%s choosePlace-nonPost' % (userName))
 		# qform = getPlaceList()
 		qform = getPlaceList(ptype=ptype)
 		qs2 = TargetPlace.objects.filter(placeType=ptype)
 		qsl = [ (tp.ylat,tp.xlng,tp.name,tp.desc) for tp in list(qs2) ]
 	
 	return render(request, 'dailyIncid/getPlaceName.html', {'form': qform, 'ptype': ptype, 'qsl': qsl})
-						
+
+@login_required	
+def heatmap(request,mapType='general'):
+	'''browsable version of Oakland area's crimes with date range slider
+	170911
+	'''
+
+	userName = request.user.get_username()
+	logger.info('user=%s mapType=%s heatmap' % (userName,mapType))
+
+	nowDT = datetime.now()
+	minDate = nowDT - timedelta(days=90)
+	
+
+	begTime = datetime.now()
+	
+	if mapType == 'general':
+		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					exclude(xlng__isnull=True). \
+					exclude(ylat__isnull=True). \
+					order_by('cdateTime')
+
+	elif mapType=='gun':
+		# replicate query ala that for Scott Morris
+		# select opd_rd, nvictim, nhospital, weapon, "gswP", "cdateTime", addr from "dailyIncid_oakcrime" 
+		# where "cdateTime" > '2017-01-01'::date and weapon like 'gun%' and (nvictim>0 or nhospital>0 or "gswP")
+		# order by opd_rd
+		
+		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					exclude(xlng__isnull=True). \
+					exclude(ylat__isnull=True). \
+					filter( models.Q(weapon__contains='gun') | models.Q(gswP=True) )
+				
+	incidList = list(queryset)
+
+# 	ocoFirst = incidList[0]
+# 	ocoLast = incidList[-1]
+# 	print('heatmap',ocoFirst.opd_rd,ocoFirst.cdateTime,ocoLast.opd_rd,ocoLast.cdateTime)
+	
+	elapTime = datetime.now() - begTime
+	logger.info('username=%s heatmap %s : NIncid=%d  (%6.2f sec)' % (userName, mapType, len(incidList),elapTime.total_seconds()))
+
+	# In Django 1.8+, the template's render method takes a dictionary for
+	# the context parameter. Support for passing a Context instance is
+	# deprecated, and gives an error in Django 1.10+
+
+	context = {}
+	context['mapType'] = mapType
+	context['nincid'] = len(incidList)
+	context['cxlng'] = FTVL_lng
+	context['cylat'] = FTVL_lat
+	
+	# 2do: mapbox unifies heatmap with circles
+	context['heatmap'] = True
+	
+	# NB: javascript uses ZERO-based months!
+	context['minDate'] = [minDate.year,minDate.month-1,minDate.day]
+	context['maxDate'] = [nowDT.year,nowDT.month-1,nowDT.day]
+
+	context['minSlider'] = [minDate.year,minDate.month-1,minDate.day]
+	context['maxSlider'] = [nowDT.year,nowDT.month-1,nowDT.day]
+	
+	# dataArr =  [ [lat, lng, intensity], ... ]
+	# dataArr = [ [o.ylat,o.xlng,1] for o in incidList]
+	
+	gjFeatures = []
+	for o in incidList:
+		# 180129: mapbox needs points as geojson, (lng,lat order)
+		[jlat,jlng] = jitterCoord(o.ylat, o.xlng)
+		pt = geojson.Point( (jlng, jlat) )
+		f = geojson.Feature( geometry=pt, properties={"count": 1} )
+		f.properties['opd_rd'] = o.opd_rd
+		dtstr = o.cdateTime.strftime('%a,%b-%d-%y_%I:%M%p')
+		f.properties['cdateTime'] = dtstr
+		f.properties['crimeCat'] = o.crimeCat
+		if mapType == 'gun':
+			# if o.source.startswith("DLog"):
+			if o.source.find('SOC_') == -1:
+				f.properties['majorIncid'] = 'DLog'
+			if o.gswP:
+				f.properties['majorIncid'] = 'True'
+			else:
+				f.properties['majorIncid'] =' False'
+		else:
+			majorP = majorCrimeCatP(o)
+			
+			f.properties['majorIncid'] =  majorP
+			
+		gjFeatures.append(f)
+
+	gjCollection = geojson.FeatureCollection(gjFeatures)
+	rawgj = geojson.dumps(gjCollection)
+	
+	context['dataArr'] = rawgj
+
+	# MapZen bounding box coordinates in a 'southwest_lng,southwest_lat,northeast_lng,northeast_lat' format	
+	# MapBox bounding box coordinates in an array of LngLatLike objects in [sw, ne] order, or an array of
+	# numbers in [west, south, east, north] order.
+	
+	mapBound = OaklandBBox
+	context['mapBounds'] = mapBound
+	
+	if mapType == 'gun':
+		# for guns, restrict crimeCat to those mentioned
+		ccMention = set()
+		for oco in incidList:
+			cc = oco.crimeCat
+			ccbits = cc.split('_')
+			ccMention.add(ccbits[0])
+		ccatList = list(ccMention)
+		ccatList.remove('')
+		context['crimeCat'] = ccatList	
+
+	
+	return render(request, 'dailyIncid/heatmap.html', context)
+
+					
+@login_required	
+def hybridQual(request,mapType):
+	'''HYBRID qualified heatmap: accepts additional filter parameters
+	AND uses NIncid thresh to select between heatmap vs marker display
+	'''
+
+	nowDT = datetime.now()
+	minDate = nowDT - timedelta(days=90)
+		
+	NIncidForMarkers = 75
+		
+	userName = request.user.get_username()
+	
+	if mapType == 'general':
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					exclude(xlng__isnull=True). \
+					exclude(ylat__isnull=True). \
+					order_by('cdateTime')
+
+	elif mapType=='gun':
+		# replicate query ala that for Scott Morris
+		# select opd_rd, nvictim, nhospital, weapon, "gswP", "cdateTime", addr from "dailyIncid_oakcrime" 
+		# where "cdateTime" > '2017-01-01'::date and weapon like 'gun%' and (nvictim>0 or nhospital>0 or "gswP")
+		# order by opd_rd
+		
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					exclude(xlng__isnull=True). \
+					exclude(ylat__isnull=True). \
+					filter( models.Q(weapon__contains='gun') | models.Q(gswP=True) )
+					
+	logline = 'username=%s hybridQual %s: qs0=%d' % (userName, mapType, qs0.count())
+	logger.info(logline)
+
+# 	list0 = list(qs0)
+# 	ocoFirst = list0[0]
+# 	ocoLast = list0[-1]
+# 	print('hybrid',ocoFirst.opd_rd,ocoFirst.cdateTime,ocoLast.opd_rd,ocoLast.cdateTime)
+
+	ccatList = request.GET.getlist('crimeCat')
+
+	NTopLevelCC = 14
+	if len(ccatList) < NTopLevelCC:
+		
+		# NB: disjunction across separate crimeCat query sets!
+		qscc = OakCrime.objects.none()
+		for cc in ccatList:
+			# NB: __startswith converts to LIKE cc%
+			qs1 = qs0.filter(crimeCat__startswith=cc)
+			qscc = (qscc | qs1)
+			# print(cc,qs1.count(),qscc.count())
+	
+		logline = 'username=%s hybridQual: crimeCat="%s" postCC=%d' % (userName, ccatList, qscc.count())
+		logger.info(logline)
+		
+	elif mapType == 'gun':
+		# for guns, restrict crimeCat to those mentioned
+		ccMention = set()
+		for oco in qs0:
+			cc = oco.crimeCat
+			ccbits = cc.split('_')
+			ccMention.add(ccbits[0])
+		ccatList = list(ccMention)
+		ccatList.remove('')
+
+		qscc = OakCrime.objects.none()
+		for cc in ccatList:
+			# NB: __startswith converts to LIKE cc%
+			qs1 = qs0.filter(crimeCat__startswith=cc)
+			qscc = (qscc | qs1)
+			# print(cc,qs1.count(),qscc.count())
+	
+		logline = 'username=%s hybridQual: gun crimeCat="%s" postCC=%d' % (userName, ccatList, qscc.count())
+		logger.info(logline)
+				
+	else:
+		qscc = qs0
+		logline = 'username=%s hybridQual: No CC filter; postCC=%d' % (userName, qscc.count())
+		logger.info(logline)
+		
+		
+	# bounding box coordinates in a 'southwest_lng,southwest_lat,northeast_lng,northeast_lat' format	
+	mapboundStr = request.GET['mapBounds']
+	mapBound = eval(mapboundStr)
+
+	# bbox = xmin, ymin, xmax, ymax
+	poly = Polygon.from_bbox(mapBound)
+	
+	# HACK: better django might keep this manipulation over QuerySets?
+	ocoList = list(qscc)
+	
+	# returned as Y,M,D STRING, to avoid JS/Python (0 vs 1-index) month numbering
+	# JS display format = "MMM D YYYY"
+	selectDateFmt = "%b %d %Y"
+	dateDiffThresh = timedelta(days=2)
+
+	minSelectDateStr = request.GET['minDate']
+	maxSelectDateStr = request.GET['maxDate']
+	minSelectDate = datetime.strptime(minSelectDateStr,selectDateFmt)
+	maxSelectDate = datetime.strptime(maxSelectDateStr,selectDateFmt)
+	
+	# 2do: these queryset filters don't work?
+	# NB: django comparison requires just date!
+	# minSelectDate = datetime.date(minSelectDate)
+	# maxSelectDate = datetime.date(maxSelectDate)
+	# 	qs0 = qs0.filter(cdateTime__date__gt=minSelectDate)
+	#	qs0 = qs0.filter(cdateTime__date__lt=maxSelectDate)
+	
+	minDateChg = abs(minSelectDate - minDate) > dateDiffThresh
+	if minDateChg:
+		minDate = minSelectDate
+		
+	maxDateChg = abs(maxSelectDate - nowDT) > dateDiffThresh
+	if maxDateChg:
+		maxDate = maxSelectDate
+	else:
+		maxDate = nowDT
+
+	ocoList3 = []
+	for oco in ocoList:
+		dt = oco.cdateTime
+		if 	(not minDateChg or (minDateChg and dt > minSelectDate)) and \
+			(not maxDateChg or (maxDateChg and dt < maxSelectDate)): 
+			ocoList3.append(oco)
+			
+	logline = 'username=%s hybridQual: postDateFilter=%d %s (%s) - %s (%s)' % \
+		(userName, len(ocoList3),minSelectDateStr,minDateChg, maxSelectDateStr, maxDateChg)
+	logger.info(logline)
+
+	ocoList4 = []
+	for oco in ocoList3:
+		pt = oco.point
+		if pt==None:
+			logline = 'username=%s hybridQual: No point, DLog?! %s %s' % \
+				(userName, oco.opd_rd,oco.source)
+			logger.info(logline)
+			continue
+		if poly.contains(pt):
+			ocoList4.append(oco)
+			
+	incidList = ocoList4
+	nincid = len(incidList)
+	elapTime = datetime.now() - nowDT
+	logline = 'username=%s hybridQual: nincid=%d bbox=%s (%6.2f sec)' % (userName, nincid,mapBound,elapTime.total_seconds())
+	logger.info(logline)
+			
+	context = {}
+	context['mapType'] = mapType
+	context['qualified'] = True
+	context['nincid'] = nincid
+	context['crimeCat'] = ccatList
+	# NB: need to convert to list for javascript
+	context['mapBounds'] = list(mapBound)
+	
+	# NB: javascript uses ZERO-based months!
+	context['minDate'] = [minDate.year,minDate.month-1,minDate.day]
+	context['maxDate'] = [maxDate.year,maxDate.month-1,maxDate.day]
+	if minDateChg:
+		context['minSlider'] = [minSelectDate.year,minSelectDate.month-1,minSelectDate.day]
+	else:
+		context['minSlider'] = [minDate.year,minDate.month-1,minDate.day]
+	if maxDateChg:
+		context['maxSlider'] = [maxSelectDate.year,maxSelectDate.month-1,maxSelectDate.day]
+	else:
+		context['maxSlider'] = [nowDT.year,nowDT.month-1,nowDT.day]
+
+	# 2do: mapbox unifies heatmap with circles
+	
+	# dataArr =  [ [lat, lng, intensity], ... ]
+	# dataArr = [ [o.ylat,o.xlng,1] for o in ocoList4]
+	
+	# gjPoints = [ geojson.Point( (o.xlng, o.ylat) ) for o in ocoList4]
+	# gjFeatures = [ geojson.Feature( geometry=gjpt, properties={"count": 1} ) for gjpt in gjPoints ]
+
+	# 180130: extract only those incident details required for circle label; add as geojson properties
+	# incid.opd_rd, incid.cdateTime, incid.crimeCat
+	# also move major/minor crimeCat logic here (vs. javascript in heatmap.html)
+
+	gjFeatures = []
+	for o in ocoList4:
+		[jlat,jlng] = jitterCoord(o.ylat, o.xlng)
+		# 180129: mapbox needs points as geojson, (lng,lat order)
+		pt = geojson.Point( (jlng, jlat) )
+		f = geojson.Feature( geometry=pt, properties={"count": 1} )
+		f.properties['opd_rd'] = o.opd_rd
+		dtstr = o.cdateTime.strftime('%a,%b-%d-%y_%I:%M%p')
+		f.properties['cdateTime'] = dtstr
+		f.properties['crimeCat'] = o.crimeCat
+		if mapType == 'gun':
+			# if o.source.startswith("DLog"):
+			if o.source.find('SOC_') == -1:
+				f.properties['majorIncid'] = 'DLog'
+			if o.gswP:
+				f.properties['majorIncid'] = 'True'
+			else:
+				f.properties['majorIncid'] =' False'
+		else:
+			majorP = majorCrimeCatP(o)
+			f.properties['majorIncid'] =  majorP
+			
+		gjFeatures.append(f)
+	
+	gjCollection = geojson.FeatureCollection(gjFeatures)
+	rawgj = geojson.dumps(gjCollection)
+	
+	context['dataArr'] = rawgj
+	
+	return render(request, 'dailyIncid/heatmap.html', context)
+
+NCPCChair2Beat = {'rik': '09X',
+					'ncpc-03Y': '03Y',
+					'ncpc-rock': '12Y+13X',
+					'ncpc-glake': '14Y+16X'
+					}
+
+@login_required	
+def bldNCPCRpt(request):
+	'''produce report for NCPC of beat 
+	'''
+
+	nowDT = datetime.now()
+	minDate = nowDT - timedelta(days=60)
+				
+	userName = request.user.get_username()
+	
+	beat = NCPCChair2Beat[userName]
+	if beat.find('+') != -1:
+		beatList = beat.split('+')
+		beat0 = beatList[0]
+		beat1 = beatList[1]
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					filter( Q(beat=beat0) | Q(beat=beat1) ). \
+					order_by('cdateTime')
+		
+	else:
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					filter(beat=beat). \
+					order_by('cdateTime')
+	
+	incidList0 = list(qs0)		
+	nbeat = len(incidList0)	
+	logline = 'username=%s bldNCPCRpt Beat=%s N=%d' % (userName, beat,nbeat)
+	logger.info(logline)
+
+	# qs1 uses relaxed bbox around beat's incidents
+
+	xlngMin = ylatMin = 1000.
+	xlngMax = -1000.
+	ylatMax = 0.
+	
+	incid0_opd_rd_Dict = {} # dict for quick tests by second vicinity set
+	for incid in incidList0:
+		incid0_opd_rd_Dict[incid.opd_rd] = True
+		if incid.ylat == None:
+			continue
+		
+		if incid.ylat < ylatMin:
+			ylatMin = incid.ylat
+		if incid.ylat > ylatMax:
+			ylatMax = incid.ylat
+		
+		if incid.xlng < xlngMin:
+			xlngMin = incid.xlng
+		if incid.xlng > xlngMax:
+			xlngMax= incid.xlng
+	
+	# relax bbox
+	BBoxBorder = 1e-3
+	
+	# 	xmin = sw[0]
+	# 	ymin = ne[1]
+	# 	xmax = sw[1]
+	# 	ymax = ne[0]
+	xlngMin -= BBoxBorder
+	xlngMax += BBoxBorder
+	ylatMin -= BBoxBorder
+	ylatMax += BBoxBorder
+	
+	bbox = (xlngMin, ylatMin, xlngMax, ylatMax)
+	geom = Polygon.from_bbox(bbox)
+	
+	
+	qs1 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+				filter(cdateTime__lt=nowDT). \
+				filter(point__contained=geom). \
+				order_by('cdateTime')
+	incidList1 = list(qs1)		
+	nvicinity = len(incidList1)	
+	logline = 'username=%s bldNCPCRpt Beat=%s NVincinity=%d' % (userName, beat,nvicinity)
+	logger.info(logline)
+	
+	context = {}
+	
+	context['beat'] = beat
+	context['user'] = userName
+	context['nbeat'] = nbeat
+	context['nvicinity'] = nvicinity
+
+	maxDateDigits = nowDT.strftime('%y%m%d')
+	minDateDigits = minDate.strftime('%y%m%d')
+	maxDateStr = nowDT.strftime('%b %d %Y')
+	minDateStr = minDate.strftime('%b %d %Y')
+
+	context['minDateDigits'] = minDateDigits
+	context['maxDateDigits'] = maxDateDigits
+	
+	context['minDateStr'] = minDateStr
+	context['maxDateStr'] = maxDateStr
+
+	gjFeatures = []
+	for o in incidList1:
+		if o.ylat == None:
+			f = geojson.Feature( geometry=None, properties={"count": 1} )
+		else:
+			[jlat,jlng] = jitterCoord(o.ylat, o.xlng)
+			pt = geojson.Point( (jlng, jlat) )
+			f = geojson.Feature( geometry=pt, properties={"count": 1} )
+		f.properties['opd_rd'] = o.opd_rd
+		dtstr = o.cdateTime.strftime('%a,%b-%d-%y_%I:%M%p')
+		f.properties['cdateTime'] = dtstr
+		f.properties['crimeCat'] = o.crimeCat
+	
+		# NB: use major flag to distinguish beat from vicinity
+		if o.source.find('SOC_') == -1:
+			f.properties['majorIncid'] = 'DLog'
+		else:
+			# NB: mapbox get works on STRINGS
+			f.properties['majorIncid'] =  str(o.opd_rd in incid0_opd_rd_Dict)
+		
+		gjFeatures.append(f)
+
+	gjCollection = geojson.FeatureCollection(gjFeatures)
+	rawgj = geojson.dumps(gjCollection)
+	
+	context['dataArr'] = rawgj
+
+	# MapZen bounding box coordinates in a 'southwest_lng,southwest_lat,northeast_lng,northeast_lat' format	
+	# MapBox bounding box coordinates in an array of LngLatLike objects in [sw, ne] order, or an array of
+	# numbers in [west, south, east, north] order.
+	
+	context['mapBounds'] = list(bbox)
+	
+	return render(request, 'dailyIncid/ncpc.html', context)
+
+
+def bldNCPCcsv(incidList):
+	
+	outFields = ['opd_rd','cdateTime','dlogData','ctype','desc','beat','addr','crimeCat']
+	quoteFields = ['ctype', 'desc', 'addr']
+	
+	outs = ''
+	line = ''
+	for f in outFields:
+		line += '%s,' % f 
+	line = line[:-1]
+	line += '\n'
+	outs += line
+	
+	for incid in incidList:
+		line = ''
+		for f in outFields:
+			if f in quoteFields:
+				s = '"%s"' % getattr(incid, f)
+			else:
+				s = '%s' % getattr(incid, f)
+			if s == 'None':
+				s = ' '
+			line += '%s,' % s
+		line = line[:-1]
+		line += '\n'
+		outs += line
+	
+	return outs
+		
+		
+@login_required	
+def downloadNCPC(request, beat,minDateDigit,maxDateDigit):
+
+	userName = request.user.get_username()
+	
+	if beat != NCPCChair2Beat[userName]:
+		logline = 'username=%s downloadNCPC Wrong beat=%s ?!' % (userName, beat)
+		logger.info(logline)
+		need2login(request)
+	
+	minDate = datetime.strptime( minDateDigit, '%y%m%d')
+	maxDate = datetime.strptime( maxDateDigit, '%y%m%d')
+	
+	if beat.find('+') != -1:
+		beatList = beat.split('+')
+		beat0 = beatList[0]
+		beat1 = beatList[1]
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=maxDate). \
+					filter( Q(beat=beat0) | Q(beat=beat1) ). \
+					order_by('cdateTime')
+		
+	else:
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=maxDate). \
+					filter(beat=beat). \
+					order_by('cdateTime')
+				
+	incidList = list(qs0)
+
+	logline = 'username=%s downloadNCPC Beat=%s NIncid=%d' % (userName, beat,len(incidList))
+	logger.info(logline)
+				
+	rpt = bldNCPCcsv(incidList)
+
+	response = HttpResponse(rpt, content_type="text/csv")
+	response['Content-Disposition'] = 'attachment; filename="NCPC_%s_%s-%s.csv"' % (beat,minDateDigit,maxDateDigit)
+	return response
+
+@login_required	
+def incidRpt(request,opd_rd):
+	qs = OakCrime.objects.filter(opd_rd=opd_rd)
+	incidList = list(qs)
+
+	userName = request.user.get_username()
+	logline = 'username=%s incidRpt OPD_RD=%s NIncid=%d' % (userName, opd_rd,len(incidList))
+	logger.info(logline)
+
+	context = {}
+	context['incid'] = incidList[0]
+
+	return render(request, 'dailyIncid/incidRpt.html', context)
+	
+def majorCrimeCatP(incid):
+	'''distinguish major, minor and dailyLog-only incidents
+	'''
+	
+	majCC = ["HOMICIDE","SEX_RAPE","WEAPONS"]
+	majCCPrefix = ["ROBBERY","ASSAULT"]
+	
+	cc = incid.crimeCat
+	majorP = cc in majCC or \
+				any([cc.startswith(pre) for pre in majCCPrefix]) or \
+				incid.gswP or (incid.weapon and incid.weapon.find('gun') != -1)
+
+	# if incid.source.startswith("DLog"):
+	if incid.source.find('SOC_') == -1:
+		return 'DLog'
+	else:
+		# HACK: mapbox-gl-js match expression requires strings (:
+		majorPstr = str(bool(majorP))
+		return majorPstr
+
+def jitterCoord(ylat,xlng):
+	# viz overlapping markers
+	JitterScale = 3.0e-4;
+	jlat = ylat + JitterScale * (random.random() - 0.5);
+	jlng = xlng + JitterScale * (random.random() - 0.5);
+	return [jlat,jlng];
+
+		
+def docView(request):
+
+	userName = request.user.get_username()
+	logline = 'username=%s docView' % (userName)
+	
+	nincid = OakCrime.objects.count()
+	
+	# NB: filter absurd dates
+	nowDT = datetime.now()
+	maxDate =OakCrime.objects.filter(cdateTime__lt=nowDT).aggregate(Max('cdateTime'))['cdateTime__max']
+	
+	minDate =OakCrime.objects.all().aggregate(Min('cdateTime'))['cdateTime__min']
+	maxModDate = OakCrime.objects.all().aggregate(Max('lastModDateTime'))['lastModDateTime__max']
+	
+	maxDateStr = maxDate.strftime('%b %d %Y')
+	minDateStr = minDate.strftime('%b %d %Y')
+	maxModDateStr = maxModDate.strftime('%b %d %Y')
+	
+	return render(request, 'dailyIncid/doc.html', {'nincid': nincid, 
+													'maxDate': maxDateStr, 
+													'minDate': minDateStr,
+													'maxModDate': maxModDateStr})
+			
 from django.contrib import admin
 from django.contrib.gis.admin import GeoModelAdmin
 from django.contrib.gis.measure import D
@@ -409,8 +1002,8 @@ from datetime import datetime, timedelta
 
 # The example above would generate the following URL patterns:
 # 
-#     URL pattern: ^diAPI/$ Name: 'dailyIncid-list'
-#     URL pattern: ^diAPI/{pk}/$ Name: 'dailyIncid-detail'
+#	 URL pattern: ^diAPI/$ Name: 'dailyIncid-list'
+#	 URL pattern: ^diAPI/{pk}/$ Name: 'dailyIncid-detail'
 # 
 # class IncidViewSet(viewsets.ReadOnlyModelViewSet):
 # 	"""API endpoint for DailyIncidents
@@ -499,136 +1092,3 @@ class CrimeCatAPI(generics.ListAPIView):
 		logger.info('user=%s CrimeCatAPI cc=%s nresult=%d (%6.2f sec)' % (userName,crimeCat,nresult,elapTime.total_seconds()))
 
 		return queryset
-
-class NearBART(generics.ListAPIView):	
-
-	serializer_class = serializers.IncidSerializer
-	
-	def get_queryset(self):
-		# restrict to 3 months, near BART station
-		
-		# Centroid of MCAR's three entrances
-		# 37.828199, -122.265944 
-		# 37 degrees 49'41.5"N 122 degrees 15'57.4"W
-		MCAR_lat = 37.828199
-		MCAR_lng = -122.265944
-		MCAR_pt = Point(MCAR_lng, MCAR_lat)
-		closeRadius = 300
-
-
-		dateTimeArgString = self.kwargs['datetime']
-# 		dtbits = dateTimeArgString.split('-')
-# 		dty = int(dtbits[0])
-# 		dtm = int(dtbits[1])
-# 		dtd = int(dtbits[2])
-# 		dth = int(dtbits[3])
-# 		dtm = int(dtbits[4])
-# 		dateTimeArg = datetime(dty,dtm,dtd,dth,dtm)
-		
-		# tstDT = datetime(2017, 2, 10, 17, 00)
-		# minDate = tstDT - timedelta(days=90)
-		minDate = datetime.datetime(2016, 11, 12, 17, 0)
-
-		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
-					filter(point__distance_lte=(MCAR_pt, D(m=closeRadius))). \
-					order_by('cdateTime')
-
-		return queryset
-
-## Misc hacks
-
-def add_zip(request):
-	'''associate each incid with zip5
-	ASSUME points already added to incidents
-	'''
-
-	begTime = datetime.now()
-	begTimeStr = begTime.strftime('%y%m%d_%H%M%S')
-	
-	userName = request.user.get_username()
-	logger.info('userName=%s add_zip: Start=%s' % (userName, begTimeStr))
-	rptInterval = 1000
-	nnull = 0
-	for i,c in enumerate(OakCrime.objects.all()): # .order_by('opd_rd')):
-
-		if (i % rptInterval) == 0:
-			elapTime = datetime.now() - begTime
-			logger.info('userName=%s add_zip: %d %s NNull=%d' % (userName,i,elapTime.total_seconds(),nnull))
-
-		try:
-			pnt = c.point
-			if pnt==None:
-				nnull += 1
-				c.zip = ''
-				continue
-			
-			zipgeo = Zip5Geo.objects.get(geom__contains=pnt)
-			c.zip = zipgeo.zcta5ce10
-			
-			c.save()
-
-		except IntegrityError as e:
-			logger.error('userName=%s add_zip Integrity?! %d %s %s' % (userName,i,c.opd_rd,e))
-			
-		except Exception as e:
-			logger.error('userName=%s add_zip?! %d %s %s' % (userName,i,c.opd_rd,e))
-
-	
-	return HttpResponse("userName=%s add_zip complete NNullPoint=%d" % (userName,nnull))
-
-import csv
-def tstAllFile(request):
-
-	SeriousCrimeCatExact = ["HOMOCIDE","SEX_RAPE","WEAPONS"]
-	SeriousCrimeCatStarts = ["ROBBERY","ASSAULT"]
-		
-	locTbl = {} # locName-> (lat,lng)
-	bartStationFile = '/Data/sharedData/c4a_oakland/OAK_data/BART/bart-OAK-nincid.csv'
-	park4File = '/Data/sharedData/c4a_oakland/OAK_data/parks-dist4.csv'
-	
-	csvDictReader = csv.DictReader(open(park4File,"r"))
-	
-	for entry in csvDictReader:
-		# "Name","Entrance","NIncid","Lat","Lng"
-		name = entry['Name']+'_'+entry['Entrance']
-		loc = {'lng': entry['Lng'], 'lat': entry['Lat']}
-		locTbl[name] = loc
-	
-	closeRadius = 500
-	tstDT = datetime(2017, 2, 10, 17, 00)
-	minDate = tstDT - timedelta(days=180)
-	userName = request.user.get_username()
-	for loc,qryData in locTbl.items():
-		
-
-		srs_default = 4326 # WGS84
-		srs_10N = 26910 	# UTM zone 10N
-		closeRadius = 500
-	
-		pt = Point(float(qryData['lng']),float(qryData['lat']),srid=srs_default)
-
-		pt.transform(srs_10N)
-		
-		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
-					filter(point__distance_lte=(pt, D(m=closeRadius))). \
-					order_by('cdateTime')
-		incidList = list(queryset)
-		nserious = 0
-		for incid in incidList:
-			if incid.crimeCat == None or len(incid.crimeCat)==0:
-				continue
-			for cc in SeriousCrimeCatExact:
-				if incid.crimeCat == cc:
-					nserious += 1
-					continue
-			for ccPrefix in SeriousCrimeCatStarts:
-				if incid.crimeCat.startswith(ccPrefix):
-					nserious += 1
-					continue
-			
-		logger.info('userName=%s tstAllBART: %s NIncid=%d NSerious=%d near (lat=%s,lng=%s)' % \
-				(userName, loc,len(incidList),nserious, qryData['lat'], qryData['lng']))
-		
-	return HttpResponse('tstAllBART %d locations' % (len(locTbl)))
-
-
