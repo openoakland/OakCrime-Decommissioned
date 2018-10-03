@@ -92,12 +92,6 @@ def getOneLog(inf,dataDir,outXML=False,verbose=False):
 	
 	fndList.append(currDict)
 
-	# print('getOneLog: NRcd=',len(fndList))
-
-# 	for i,info in enumerate(fndList):
-# 		cid = info['REPORT #:']  if ('REPORT #:' in info) else '??'
-# 		print(i,cid,info)
-	
 	return fndList
 
 def collectAllDailyLogs(dataDir):
@@ -209,7 +203,7 @@ def rptDiff(sameVal,diffVal):
 		print('\t%s: %s\n\t%s: %s' % (k,diffVal[k][0],k,diffVal[k][1]))
 		
 def mergeDailyLogs(allData):
-	'''collapose multiple days' logs allData: froot -> [ { TU->V } ] into
+	'''collapose multiple days logs allData: froot -> [ { TU->V } ] into
 	incidTbl: cid* -> {froot, TU -> V}
 	NB: cid from rptno field; random int suffix added if not unique! 
 	'''
@@ -256,9 +250,6 @@ def mergeDailyLogs(allData):
 					nextIdx += 1
 				incidTbl[cid] = newData
 			else:
-				# initial field detritus from parse
-				# {'fileIdx': 0, 'froot': '(13-14Jul16)'}
-				# print(newData)
 				ndrop += 1
 					
 	print('* mergeDailyLogs: NIncid=%d/%d NDup=%d NIdent=%d NDrop=%d NMissCID=%d' % \
@@ -407,15 +398,7 @@ def regularizeIncidTbl(incidTbl):
 				
 				newIncidInfo['reg_beat'] = normBeat(beatFnd)
 				
-			
-			## augment existing fields with regularized 'reg_' versions
-			# NB: fields not regularized
-			# sgt
-			# suspect: 0,1,multiple
-			# custody: 0,1
-			# victim: parens; "victims"
-			
-			# loss: comma "and" & sep; victim ref, "v1"; 
+            # loss: comma "and" & sep; victim ref, "v1"; 
 			# reg_loss: list of items
 			if fld=='loss':
 				if v == 'none' or v == "n/a" or v == 'unk' or v == 'unknown' or v == 'no loss':
@@ -890,18 +873,6 @@ def makeGConnection():
 
 	return gconn
 
-# def makeMZConnection():
-# 
-# 	myMZapiKey = 'mapzen-QutHoCK'
-# 	
-# 	try:
-# 		mzServer = MapzenAPI(myMZapiKey)
-# 	except Exception as e:
-# 		print('makeMZConnection: unable to connect',e)
-# 		return None
-# 	
-# 	return mzServer
-
 def makeMBConnection():
 
 	myMBaccessToken = 'pk.eyJ1IjoicmlrYmVsZXciLCJhIjoiY2pieTZwNnB4MzR5YjMybWtld3FzODFvZyJ9.w0Sqg1pkABegUuQhBTPKwQ';
@@ -957,30 +928,14 @@ def OBS_addGeoCode1(dlogTbl,mbconn,mzconn,gconn,verbose=None):
 		loc2 = loc2.replace('block ',' ')
 		loc2 = loc2.replace('of ',' ')
 
-		# mapbox
-		# Use of the Geocoding API is rate-limited by access token?. These limits vary by plan.
-		# Pay-as-you-go: 600 requests per minute
-				
 		try:
 			
-			# https://www.mapbox.com/api-documentation/?language=Python#response-object
-			# The {proximity} parameter biases search results within 5 miles of a
-			# specific location given in {longitude},{latitude} coordinates. Results
-			# will not be filtered by location or ordered by distance, but location
-			# will be considered along with textual relevance and other criteria
-			# when scoring and sorting results.
-
 			response = mbconn.forward(loc2, lon=MZDefaultOaklandCoord[0], lat=MZDefaultOaklandCoord[1])
 		
 		except Exception as e:
 			print(('addGeoCode MB: %d %s "%s" "%s" ERROR: %s ' % (i,dlogCID,loc,loc2,e)))
 			nMBmiss += 1
 
-
-		# relevance: A numerical score from 0 (least relevant) to 0.99 (most relevant)
-		# measuring how well each returned feature matches the query. You can
-		# use the relevance property to remove results which don't fully match
-		# the query.
 
 		gj = response.geojson()
 		flist = gj['features']
@@ -1260,79 +1215,6 @@ if __name__ == '__main__':
 
 	dataDir = '/Data/c4a-Data/OAK_data/dailyLog/'
 	
-	## 171027: Re-engineer for regular use
-	
-	# ASSUME: 
-	# maintain previous archive of (regularized, geotagged) DLogs as JSON file
-	# process incremental new dlogs
-	# produce new, complete archive and NewDLog.json for use by harvestDLog
-
-# 	runDate = '171027'
-# 	lastArchiveDate = '171023'
-# 	inPDFDir = dataDir + '2017/October 2017/'
-# 	verbose = 100
-# 	restartSpot = 2
-
-# 	runDate = '171205'
-# 	lastArchiveDate = '171027'
-# 	inPDFDir = dataDir + '2017/OctNov17/'
-# 	verbose = 100
-# 	restartSpot = 1
-
-# 	runDate = '171212'
-# 	lastArchiveDate = '171205'
-# 	inPDFDir = dataDir + '2017/December17_171112/'
-# 	verbose = 100
-# 	restartSpot = 0
-
-# 	runDate = '171231'
-# 	lastArchiveDate = '171212'
-# 	inPDFDir = dataDir + '2017/December17_171231/'
-# 	verbose = 100
-# 	restartSpot = 0
-
-# 	runDate = '180109'
-# 	lastArchiveDate = '171231'
-# 	inPDFDir = dataDir + '2018/Jan18-180109/'
-# 	verbose = 100
-# 	restartSpot = 0
-
-# 	runDate = '180117'
-# 	lastArchiveDate = '180109'
-# 	inPDFDir = dataDir + '2018/Jan18-180117/'
-# 	verbose = 1
-#	restartSpot = 1
-
-# 	runDate = '180131'
-# 	lastArchiveDate = '180117'
-# 	inPDFDir = dataDir + '2018/Jan18-180131/'
-# 	verbose = 1
-# 	restartSpot = 0
-
-# 	runDate = '180314'
-# 	lastArchiveDate = '180131'
-# 	inPDFDir = dataDir + '2018/JanFebMar18_180314/'
-# 	verbose = 1
-# 	restartSpot = 0
-	
-# 	runDate = '180412'
-# 	lastArchiveDate = '180314'
-# 	inPDFDir = dataDir + '2018/MarApr18_180412/'
-# 	verbose = 1
-# 	restartSpot = 0
-
-# 	runDate = '180518'
-# 	lastArchiveDate = '180412'
-# 	inPDFDir = dataDir + '2018/AprMay_180518/'
-# 	verbose = 1
-# 	restartSpot = 0
-
-# 	runDate = '180702'
-# 	lastArchiveDate = '180518'
-# 	inPDFDir = dataDir + '2018/MayJun_180702/'
-# 	verbose = 1
-# 	restartSpot = 0
-
 	runDate = '180915'
 	lastArchiveDate = '180702'
 	inPDFDir = dataDir + '2018/JulSept_180915/'
