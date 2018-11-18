@@ -1,0 +1,43 @@
+version: "3"
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: python3 manage.py runserver 0.0.0.0:8000
+    container_name: oakcrime.app
+    environment:
+      - DATABASE_URL=postgis://oakcrime:oakcrime@oakcrime.db:5432/oakcrime?connect_timeout=60
+      - DEBUG=true
+      - LOG_FILE_PATH=/logs/showCrime
+      - PLOT_PATH=/plots
+      - PUBLIC_ROOT=/public/showCrime
+      - SITE_URL=http://localhost:8000
+      - SECRET_KEY="Change me in the real world"
+    image: open-oakland/oakcrime
+    ports:
+      - 8000:8000
+    restart: always
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app/showCrime
+      - logs:/logs
+      - public:/public
+  db:
+    container_name: oakcrime.db
+    environment:
+      - POSTGRES_USER=oakcrime
+      - POSTGRES_PASSWORD=oakcrime
+      - POSTGRES_DB=oakcrime
+    image: mdillon/postgis:11
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: always
+volumes:
+  db-data:
+  logs:
+  plots:
+  public:

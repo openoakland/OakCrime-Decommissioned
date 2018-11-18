@@ -1,37 +1,38 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from django.db.models import Min, Max
-from django.db.models import Q
-from django.db.models.lookups import IExact
-from django.db import transaction
-from django.db import IntegrityError
-
-from django.contrib.gis.geos import  Polygon
-
-from django.template import Context
-
 import logging
 import random
+from datetime import date, datetime, timedelta
 
-import geojson 
+import geojson
+import matplotlib.dates as mdates
+import pylab as p
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.measure import D
+from django.db.models import Max, Min, Q
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from rest_framework import generics
 
-from showCrime.settings import PlotPath, SiteURL
-
+from dailyIncid import serializers
 from .forms import *
 from .models import *
 
 logger = logging.getLogger(__name__)
 
+
 def index(request):
- 	return render(request, 'dailyIncid/index.html')
+	return render(request, 'dailyIncid/index.html')
+
 
 def testPage(request):
 	return HttpResponse("Hello, world. You're at dailyIncid test.")
 
+
 def need2login(request):
 	return render(request, 'dailyIncid/need2login.html', {})
+
 
 @login_required
 def getQuery(request):
@@ -52,25 +53,10 @@ def getQuery(request):
 	else:
 		logger.info('user=%s getQuery-nonPost' % (userName))
 		qform = twoTypeQ()
-		
-	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': SiteURL})
-	   
-import os
 
-import matplotlib
+	# TODO Get rid of SITE_URL
+	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': settings.SITE_URL})
 
-# Force matplotlib to not use any Xwindows backend.
-# changed in webapps/django/lib/python2.7/matplotlib/mpl-data/matplotlibrc
-
-matplotlib.use('Agg')
-
-import pylab as p
-
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.dates import DateFormatter
-from datetime import datetime,timedelta,date
-import matplotlib.dates as mdates
 
 
 # 2do:  reconcile djOakData code with c4a
@@ -243,7 +229,7 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 	f1.autofmt_xdate()
 	
 	figDPI=200
-	fullPath = PlotPath+fname+'_'+runTime+'.png'
+	fullPath = settings.PLOT_PATH+fname+'_'+runTime+'.png'
 	userName = request.user.get_username()
 	logger.info('user=%s plotting %d/%d (%6.2f sec) to %s' % (userName,totBeat,totCity,qryTime.total_seconds(),fullPath))
 	f1.savefig(fullPath,dpi=figDPI)
@@ -261,12 +247,6 @@ def otherUtil(request):
 	logger.info('user=%s otherUtil' % (userName))
 	return render(request, 'dailyIncid/otherUtil.html')
 
-
-## GeoDjango
-
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos import Point
-from django.contrib.gis.utils import LayerMapping
 
 
 @login_required
@@ -986,37 +966,8 @@ def docView(request):
 													'maxDate': maxDateStr, 
 													'minDate': minDateStr,
 													'maxModDate': maxModDateStr})
-			
-from django.contrib import admin
-from django.contrib.gis.admin import GeoModelAdmin
-from django.contrib.gis.measure import D
 
-from rest_framework import viewsets, generics
-from dailyIncid import serializers
 
-from datetime import datetime, timedelta
-
-# ViewSet classes are almost the same thing as View classes, except that
-# they provide operations such as read, or update, and not method
-# handlers such as get or put.
-
-# The example above would generate the following URL patterns:
-# 
-#	 URL pattern: ^diAPI/$ Name: 'dailyIncid-list'
-#	 URL pattern: ^diAPI/{pk}/$ Name: 'dailyIncid-detail'
-# 
-# class IncidViewSet(viewsets.ReadOnlyModelViewSet):
-# 	"""API endpoint for DailyIncidents
-# 	"""
-# 
-# 	serializer_class = serializers.IncidSerializer
-# 
-# 	minDate = datetime.now() - timedelta(days=730)
-# 	queryset = OakCrime.objects.filter(cdateTime__gt=minDate).order_by('opd_rd')
-
-# The simplest way to filter the queryset of any view that subclasses
-# GenericAPIView is to override the .get_queryset() method.
-	
 class BeatAPI(generics.ListAPIView):
 	'''API view for crimes from specified beat 
 		restricted to last two years 
