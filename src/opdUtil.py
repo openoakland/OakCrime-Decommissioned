@@ -8,6 +8,7 @@ import csv
 import math
 import string
 
+
 def loadCSVTbl(csvf,keyTbl,keyname):
 	'''create tbl -> key -> attrib for all rows in csvf
 		using all attributes with header row names matching keys in keyTbl
@@ -104,5 +105,3 @@ def bldRatioPhrase(normFreq,ratio):
 		# p = '%5.1f (%+6.2f s.d.) times the' % (ratio,normFreq)
 		p = '%5.1f times' % (ratio)
 	return p
-		
-

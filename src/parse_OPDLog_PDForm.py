@@ -1,3 +1,5 @@
+# TODO Is this file still needed? If so, the requirements should be added to requirements.txt.
+
 from collections import defaultdict
 import _pickle as cPickle
 import datetime
@@ -15,6 +17,7 @@ import re
 # from mapzen.api import MapzenAPI
 import googlemaps
 import mapbox
+
 
 def cmpx(o1,o2):
 	if o1 < o2:

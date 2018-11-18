@@ -3,6 +3,8 @@ Created on Nov 15, 2016
 
 @author: rik
 '''
+import datetime
+import re
 
 MinYear = 2007
 MaxYear = 2016
@@ -28,7 +30,7 @@ C4A_time_string = '%H:%M:%S'
 C4A_dateTime_string2 = C4A_date_string+'_'+C4A_time_string
 
 Socrata_date_string = '%Y-%m-%dT%H:%M:%S' # 2013-12-04T19:00:00
-DefaultDate = datetime(1999,1,1)
+DefaultDate = datetime.datetime(1999,1,1)
 DefaultYear = 1999
 
 CrimeLexTbl = {# categories

@@ -4,26 +4,19 @@
 # @version 0.1
 # @date 161115
 
-from collections import defaultdict
-import cPickle
-import csv
-from datetime import datetime,timedelta,date
-from dateutil.relativedelta import *
-import json	
-import math
-import matplotlib.pyplot as p
+import json
 import os
-import random
-import re
 import sqlite3 as sqlite
-import string
 import sys
+from collections import defaultdict
+from datetime import date, datetime, timedelta
 
-# OPData modules
+from dateutil.relativedelta import *
 
 import crimeCat
-from opdUtil import *
 from opdConstant import *
+from opdUtil import *
+
 
 def bld_OPDCrimeTypeTbl():
 	opd_file = DataDir+'OPD_crime.csv'
