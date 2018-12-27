@@ -121,11 +121,14 @@ def socrata2OakCrime(socDict,startDate):
 		newOC.point = None
 		newOC.xlng = newOC.ylat = None
 			
+	# 2do ASAP: attempt to geotag missing addresses, eg "IFO address"
+	
 	if newOC.ctype != '' or newOC.desc != '':
 		newOC.crimeCat = classify(newOC.ctype,newOC.desc)
 	else:
 		newOC.crimeCat = ''
 
+	# 2do: Retrain to produce pseudo-UCR, pseudo-PC
 	newOC.ucr = ''
 	newOC.statute = ''
 		
@@ -143,10 +146,10 @@ def socrata2OakCrime(socDict,startDate):
 	
 	return newOC
 
-def mergeIncid(matchObjList,newOC):
-	'''match newOC against all previous matchObj with same opd_rd
+def mergeIncid2List(matchObjList,newOC):
+	'''match newOC against LIST of all previous matchObj with same opd_rd
 	Require exact date+time match
-	returns number of updated objects, or None if newOC is to be added 
+	returns SINGLE BEST updated object (already saved), or None if no changes
 
 	ASSUME they share same opd_rd (because of query forming matchObjList in mergeList()
 	updates beat, address, ctype, desc, crimeCat, ucr, statute if these were blank previously
@@ -156,75 +159,146 @@ def mergeIncid(matchObjList,newOC):
 	similar to merge code in opdata.applyPatch() 
 	'''
 	
-	# ASSUME all matchObj share same cdateTime
-	prevObj0 = matchObjList[0]
-
-	# requre cdateTime match
-	if prevObj0.cdateTime != newOC.cdateTime:
-		return None
-	
-	# update missing addr, beat, point (shared across all incidents)
-	upAddr = False
-	upPoint = False
-	upBeat = False
-	if (prevObj0.addr == '' and newOC.addr != ''):
-		upAddr = True
-		
-	if (prevObj0.point == None and newOC.point != None):
-		upPoint = True
-		
-	if prevObj0.beat=='' and newOC.beat != '':
-		upBeat = True
-
-	otherUp = []
 	nup = 0
+	bestMatch = None
+	minNUpdate = int(1e6)
+	
 	for prevObj in matchObjList:
 
-		if upAddr:
-			prevObj.addr = newOC.addr
-		if upPoint:
-			prevObj.point = newOC.point
+		updates = []
 
-		if upBeat:
+		if prevObj.cdateTime != newOC.cdateTime:
+			continue
+
+		if prevObj.addr == '' and newOC.addr != '':
+			prevObj.addr = newOC.addr
+			updates.append('addr')
+
+		if prevObj.beat == '' and newOC.beat != '':
 			prevObj.beat = newOC.beat
+			updates.append('beat')
+
+		if prevObj.point == '' and newOC.point != '':
+			prevObj.point = newOC.point
+			updates.append('point')
 		
 		# NB: CType+Desc the only guaranteed commonality with new data
 					
 		if prevObj.ctype == '' and newOC.ctype != '':
 			prevObj.ctype = newOC.ctype
-			otherUp.append('ctype')
+			updates.append('ctype')
 
 		if prevObj.desc == '' and newOC.desc != '':
 			prevObj.desc = newOC.desc
-			otherUp.append('desc')
+			updates.append('desc')
 			
 		# NB: only update this incident UCR, statute, CC if ctype and desc match
 		if (prevObj.ctype == newOC.ctype and prevObj.desc == newOC.desc):			
 			
 			if prevObj.ucr == '' and newOC.ucr != '':
 				prevObj.ucr = newOC.ucr
-				otherUp.append('ucr')
+				updates.append('ucr')
 				
 			if prevObj.statute == '' and newOC.statute != '':
 				prevObj.statute = newOC.statute
-				otherUp.append('stat')
+				updates.append('stat')
 	
 			if prevObj.crimeCat == '' and newOC.crimeCat != '':
 				prevObj.crimeCat = newOC.crimeCat
-				otherUp.append('cc')
+				updates.append('cc')
 
-		if upAddr or upPoint or upBeat or len(otherUp)>0:
-			# import pdb; pdb.set_trace()
-			# cf. 
-			# print(upAddr,upPoint,upBeat,otherUp )
+		# prefer CLOSEST matching, requiring fewest updates
+		if  len(updates) > 0 and len(updates) < minNUpdate:
 			
-			prevObj.source += '+' + newOC.source
+			minNUpdate = len(updates)
+			bestMatch = prevObj
+	
+	# NB: minUpdate might still have initialized value 
+	#	if all matchObjList have different cdateTime than newOC
+	if minNUpdate == int(1e6) or minNUpdate == 0:
+		return None
+	else:
+		bestMatch.source += '+' + newOC.source
+		try:
+			bestMatch.save()
+		except Exception as e:
+			print('mergeIncid2List: cant save?! cid=%s bestIdx=%s' % \
+				(newOC.opd_rd,bestMatch.idx))
+			return None
+		return bestMatch
+
+def mergeIncidSingle(prevObj,newOC):
+	'''match newOC against SINGLE prevObj with same opd_rd
+	ASSUME exact date+time match
+	returns  updated object (already saved), or None if no changes
+
+	updates beat, address, ctype, desc, crimeCat, ucr, statute if these were blank previously
+	adds newOC.source to end of matching previous object
+	then SAVES matching, updated previous object
+	
+	similar to merge code in opdata.applyPatch() 
+	'''
+
+	if prevObj.cdateTime != newOC.cdateTime:
+		return None
+	
+	updates = []
+
+	if prevObj.addr == '' and newOC.addr != '':
+		prevObj.addr = newOC.addr
+		updates.append('addr')
+
+	if prevObj.beat == '' and newOC.beat != '':
+		prevObj.beat = newOC.beat
+		updates.append('beat')
+
+	if prevObj.point == '' and newOC.point != '':
+		prevObj.point = newOC.point
+		updates.append('point')
+	
+	# NB: CType+Desc the only guaranteed commonality with new data
+				
+	if prevObj.ctype == '' and newOC.ctype != '':
+		prevObj.ctype = newOC.ctype
+		updates.append('ctype')
+
+	if prevObj.desc == '' and newOC.desc != '':
+		prevObj.desc = newOC.desc
+		updates.append('desc')
+		
+	# NB: only update this incident UCR, statute, CC if ctype and desc match
+	if (prevObj.ctype == newOC.ctype and prevObj.desc == newOC.desc):			
+		
+		if prevObj.ucr == '' and newOC.ucr != '':
+			prevObj.ucr = newOC.ucr
+			updates.append('ucr')
+			
+		if prevObj.statute == '' and newOC.statute != '':
+			prevObj.statute = newOC.statute
+			updates.append('stat')
+
+		if prevObj.crimeCat == '' and newOC.crimeCat != '':
+			prevObj.crimeCat = newOC.crimeCat
+			updates.append('cc')
+
+	if len(updates)>0:
+		# import pdb; pdb.set_trace()
+		# print(updates )
+		
+		prevObj.source += '+' + newOC.source
+
+		try:
 			prevObj.save()
-			nup += 1
-			
-	return nup
+		except Exception as e:
+			print('mergeIncidSingle: cant save?! cid=%s prevIdx=%s' % \
+				(newOC.opd_rd,prevObj.idx))
+			return None
 
-def mergeList(results,startDate,verboseFreq=None):
+		return prevObj
+	else:
+		return None
+
+def mergeList(results,startDate,verboseFreq=None,rptAll=False):
 		
 # 	histDay = 45
 # 	now = datetime.now()
@@ -232,18 +306,25 @@ def mergeList(results,startDate,verboseFreq=None):
 # 	hdayStr = hday.strftime(DateOnlyStrFormat)
 
 	nadd = 0
+	ndup = 0
 	nupdate = 0
 	nsame = 0
 	ncc = 0
 	ngeo = 0
-	print('do_harvest: NIncid=%d' % (len(results)) )
+	
+	rptLines = []
+		
+	rptMsg = 'mergeList: NIncid=%d' % (len(results)) 
+	print(rptMsg)
+	rptLines.append(rptMsg)
+
 	for incidIdx, socDict in enumerate(results):
 		# socDict is a dictionary of IncidKeys
 		
 		currSum = nadd + nupdate
 		
 		cid = socDict['casenumber']
-
+			
 		# HACK; to remove Socrata microseconds?!
 		dtstr = socDict['datetime']
 		rpos = dtstr.rfind('.')
@@ -269,58 +350,58 @@ def mergeList(results,startDate,verboseFreq=None):
 			matchObjList = list(qs)
 			
 			if len(matchObjList) > 1:
-				print('do_harvest: non-unique match?',cid,len(matchObjList)			 )
+				
+# 				rptMsg = 'mergeList: non-unique match? %s %d' % (cid,len(matchObjList))
+# 				print(rptMsg)
+# 				rptLines.append(rptMsg)
+				
+				result = mergeIncid2List(matchObjList,newOC)
 			
-			result = mergeIncid(matchObjList,newOC)
+			else:	
+				match0 = matchObjList[0]
+		
+				result = mergeIncidSingle(match0,newOC)
+			
 			if result==None:
-				# no match; add newOC as new incident
-				try:
-					newOC.save()
-					nadd += 1
-				except Exception as e:
-					print('do_harvest: cant save merge?! %d %s\n\t%s' % (incidIdx,e,socDict) )
-					continue
-			elif result==0:
 				nsame += 1
 			else:
-				nupdate += result
+				nupdate += 1
+				if rptAll:
+					rptMsg = 'mergeList: update %d %s' % (incidIdx,cid)
+					print(rptMsg)
+					rptLines.append(rptMsg)
 				
 		else:
 			# add if not already present
 			try:
 				newOC.save()
 				nadd += 1
+				if rptAll:
+					rptMsg = 'mergeList: new added %d %s' % (incidIdx,cid)
+					print(rptMsg)
+					rptLines.append(rptMsg)
 			except Exception as e:
-				print('do_harvest: cant save new?! %d %s\n\t%s' % (incidIdx,e,socDict) )
+				rptMsg = 'mergeList: cant save new?! %d %s %s\n\t%s' % (incidIdx,cid,e,socDict)
+				print(rptMsg)
+				rptLines.append(rptMsg)
 				continue
 						
-	if verboseFreq != None and incidIdx % verboseFreq == 0:
-		print('Idx=%d nadd=%d nupdate=%d nsame=%d tot=%d' % \
-			(incidIdx,nadd,nupdate,nsame,(nadd+nupdate+nsame)) )
+		if verboseFreq != None and incidIdx % verboseFreq == 0:
+			# NB: not added to rptLines
+			print('Idx=%d CID=%s nadd=%d nupdate=%d nsame=%d tot=%d' % \
+				(incidIdx, cid, nadd,nupdate,nsame,(nadd+nupdate+nsame)) )
+			
+			# stop after verboseFreq, for profiling
+# 			if incidIdx > 0:
+# 				break
 
 	nincid = OakCrime.objects.all().count()
-	rptMsg = 'do_harvest: NAdd=%d NUpdate=%d NSame=%d NCrimeCat=%d NGeo=%d NIncid=%d' % \
-	(nadd,nupdate,nsame,ncc,ngeo,nincid) 
+	rptMsg = 'mergeList: NAdd=%d NDupCID=%d NUpdate=%d NSame=%d NCrimeCat=%d NGeo=%d NIncid=%d' % \
+		(nadd,ndup,nupdate,nsame,ncc,ngeo,nincid) 
 	print(rptMsg)
-
-	# grep INFO /home/rik/logs/user/error_django10*
-	# NB: only works with SINGLE string command?!
-	# requires shell=True
-	cmdArgs = ['grep -r INFO /home/rik/logs/user/error_django10*']
-	try:
-		infoLines = subprocess.check_output(cmdArgs,shell=True)
-	except Exception as e:
-		print( 'harvestSocrata: bad rc on grep?!',e)
-		infoLines = ''
-
-	mailMsg = rptMsg + '\n**\n' + str(infoLines)
-
-	send_mail('Socrata harvest', mailMsg, 'rik@electronicArtifacts.com',['rik@electronicArtifacts.com']\
-,
-	    fail_silently=False)
-
-
-
+	rptLines.append(rptMsg)
+	
+	return rptLines
 
 def freqHist(tbl):
 	"Assuming values are frequencies, returns sorted list of (val,freq) items in descending freq order"
@@ -339,23 +420,37 @@ class Command(BaseCommand):
 		parser.add_argument('startDate', nargs='?', default='noStartSpecified') 
 
 	def handle(self, *args, **options):
-		DefaultNDays = 7
+		DefaultNDays = 90
 		
 		# TEST: preharvest of Socrata
 # 		pf = '/Data/sharedData/c4a_oakland/OAK_data/socrata/fullSocrata_170618.pkl'
 # 		results = cPickle.load(open(pf,'rb'))
 
-		startDate = options['startDate']
 		
-		if startDate=='noStartSpecified':
-			nowDT = datetime.now()
-			minDateTime = nowDT - timedelta(days=DefaultNDays)
-		else:
-			minDateTime = datetime.strptime(startDate,DateOnlyStrFormat)
+		nowDT = datetime.now()
+		minDateTime = nowDT - timedelta(days=DefaultNDays)
 
-		results = harvestSince(minDateTime,qryLimit=20000)	
-		mergeList(results,startDate,verboseFreq=1000)
+		rptLines = []
+		rptMsg = 'harvestSocrata: full date range from %s' % (minDateTime) 
+		print(rptMsg)
+		rptLines.append(rptMsg)
 
+		results = harvestSince(minDateTime,qryLimit=20000)
+		nowString = nowDT.strftime('%y%m%d')
+		# mrgRptLines = mergeList(results,nowString,rptAll=True,verboseFreq=1000)
+		mrgRptLines = mergeList(results,nowString,rptAll=True)
+		
+		rptLines += mrgRptLines
+
+		elapTime = datetime.now() - nowDT
+		rptMsg = 'harvestSocrata: Completed %s sec' % (elapTime.total_seconds())
+		print(rptMsg)
+		rptLines.append(rptMsg)
+
+		fullRpt = '\n'.join(rptLines)
+
+		send_mail('Socrata harvest', fullRpt, 'rik@electronicArtifacts.com', \
+				['rik@electronicArtifacts.com'], fail_silently=False)
 
 # if __name__ == "__main__":
 # 	do_harvest()		

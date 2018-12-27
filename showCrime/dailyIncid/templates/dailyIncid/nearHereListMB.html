@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} NearHere (MB) {% endblock %}
+{% block prescripts %}
+
+<script src='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.css' rel='stylesheet' />
+    
+{% endblock %}
+
+{% block content %}
+
+	<p>NearHere (mz): ({{ lat }},{{ lng }}) N={{nIncid}}; 
+		<img type="image/png" height=15 src="{% static  'marker-icon-red.png' %}" alt="redIcon"/> : Homocide, Rape, Robbery, Assault, Weapons; 
+		<img type="image/png" height=15 src="{% static  'marker-icon-green.png' %}" alt="greenIcon"/> : Other 
+	</p>	
+
+	{% if ptype %}
+	<p> <b>{{ptype}}:</b> {{pdesc}} </p>
+	{% endif %}
+		
+    <div id="map"></div>
+    
+    <!-- the code inside your <style> tag below the #map declaration. -->
+    <style>
+		.redMarker {
+		  background-image: url('{% static 'marker-icon-red.png' %}');
+		  background-size: cover;
+		  width: 20px;
+		  height: 20px;
+		  border-radius: 50%;
+		  cursor: pointer;
+		}
+		.greenMarker {
+		  background-image: url('{% static 'marker-icon-green.png' %}');
+		  background-size: cover;
+		  width: 20px;
+		  height: 20px;
+		  border-radius: 50%;
+		  cursor: pointer;
+		}
+    </style>
+    
+    <script>
+    
+    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+		var mapmargin = 100;
+		$('#map').css("height", ($(window).height() - mapmargin));
+		$(window).on("resize", resize);
+		resize();
+		function resize(){
+		
+		    if($(window).width()>=980){
+		        $('#map').css("height", ($(window).height() - mapmargin));    
+		        $('#map').css("margin-top",50);
+		    }else{
+		        $('#map').css("height", ($(window).height() - (mapmargin+12)));    
+		        $('#map').css("margin-top",10);
+		    }
+		
+		}
+ 
+		mapboxgl.accessToken = 'pk.eyJ1IjoicmlrYmVsZXciLCJhIjoiY2pieTZwNnB4MzR5YjMybWtld3FzODFvZyJ9.w0Sqg1pkABegUuQhBTPKwQ';
+		var map = new mapboxgl.Map({
+			container: 'map',
+			style: 'mapbox://styles/mapbox/streets-v10'
+		});
+		
+		var initZoomLevel = 15;
+      	map.setZoom(initZoomLevel);
+      	
+      	map.setCenter([{{ lng }}, {{ lat }}]);
+
+		// var OakBBox = new mapboxgl.LngLatBounds(
+		//   new mapboxgl.LngLat(-122.34998208964241, 37.72635305398124),
+		//   new mapboxgl.LngLat(-122.11985846164134, 37.85354698750914) );
+		// 
+		// var OakBBox2 = [[-122.34998208964241, 37.72635305398124], [-122.11985846164134, 37.85354698750914]];
+		//
+      	// map.setMaxBounds(OakBBox2);
+				
+      	// NB: mapbox.marker requires lng,lat  order!
+      	
+		var ctr = new mapboxgl.Marker()
+					.setLngLat( [{{ lng }}, {{ lat }}])
+					.addTo(map);
+
+		var popupOptions = {maxWidth: 500};
+		{% for incid in incidList %}
+			var icon = document.createElement('div');
+			// 2do: use shared MAJOR_CRIME predicate
+			if ("{{incid.crimeCat}}"=="HOMOCIDE" || 
+				"{{incid.crimeCat}}"=="SEX_RAPE" ||
+				"{{incid.crimeCat}}"=="WEAPONS" ||
+				"{{incid.crimeCat}}".startsWith("ROBBERY") || 
+				"{{incid.crimeCat}}".startsWith("ASSAULT") ) 
+				icon.className = 'redMarker';
+			else 
+				icon.className = 'greenMarker';
+	
+			var popTxt = "{{ incid.opd_rd }}" + " " + "{{ incid.cdateTime }}" + " " + "{{ incid.crimeCat }}";
+
+			var popup = new mapboxgl.Popup().setText(popTxt);			
+			
+			// console.log(popTxt+" "+icon);
+
+			m = new mapboxgl.Marker(icon)
+					.setLngLat( [{{ incid.xlng }}, {{ incid.ylat }}])
+					.setPopup(popup);
+			m.addTo(map);
+			
+		{% endfor %}
+
+		
+			
+
+    </script>
+
+    
+{% endblock %}

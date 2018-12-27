@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} DailyIncidents {% endblock %}
+
+{% block content %}
+
+<h1 align=center id="faq">Frequently Asked Questions (FAQ)</h1>
+<ol style="list-style-type: decimal">
+
+  <li><p><em>Provinance: Where did this data come from?</em></p>
+
+    <p>All data provided by OakCrime.org comes directly from OPD
+      sources.  <b>Since 2014</b> the bulk of the data was has been
+      harvested daily from the
+      OPD's <a href="ftp://crimewatchdata.oaklandnet.com/">FTP
+      site</a>.  Beginning in mid-2017, OakCrime.org switched to use
+      of the application program interface (API) provided
+      by <a href="https://data.oaklandnet.com/Public-Safety/CrimeWatch-Maps-Past-90-Days/ym6k-rx7a">Oakland's
+      primary public data repository</a>.  Because the OPD resources
+      provide data for only the previous 90 days, OakCrime.org's
+      retention of older incidents makes it the only source
+      for <em>historical</em> data beyond 90 days.</p>
+
+    <p>Note that OPD publishes the following caution concerning
+      addresses in these data sources:
+      <blockquote>
+        Be advised that the exact address of each crime has been
+        substituted with the block address to protect the privacy of the
+        victim.
+        </blockquote>
+    </p>
+
+    <p>In addition to this daily incident data, OPD provides daily
+      "patrol logs" concerning major incidents (i.e., those considered
+      to be "Part 1" crimes by the
+      FBI; <a href="http://www2.oaklandnet.com/oakca1/groups/police/documents/webcontent/oak060339.pdf">details
+      here</a>.)  These are PDF
+      documents <a href="https://app.box.com/v/2016OPDDailyLogs">published
+      via Box.com</a> The script for parsing these PDFs to capture
+      their data is posted as part of
+      the <a href="https://github.com/rbelew/OakCrime/blob/master/src/parse_OPDLog_PDForm.py">OakCrime
+      github repository</a>.  Shared incident numbers (a.k.a. RD
+      number, case number) are used to merge the additional data
+      provided in the patrol logs to daily incident logs.</p>   
+
+    
+    <p>Note that OPD publishes the following caution concerning
+      patrol logs:
+      <blockquote>
+      Information is still preliminary at this time the investigation
+      continues. Until an investigator can review the incident details
+      are subject to change. No further information is available. The
+      Oakland Police Department is committed to transparency. However,
+      a complete investigative process requires information be limited
+      in order to maintain the integrity of the investigation. For
+      this reason, only those preliminary details that do not
+      compromise the investigation can be released at this
+      time. Additional information will be released as soon as
+      practical.
+      </blockquote>
+      
+
+    <p><b>Data from 2007-2014:</b> Early collaboration with OPD and
+    Oakland's IT Department provided a retrospective corpus of crime
+    incident data going back to 2007 to
+    2011. <a href="http://rikiwiki.electronicartifacts.com/opd-crime-statistics/other-older-posts/combined-opd_usc-dataset">Further
+    details regarding early stages of the OakCrime corpus construction
+    are available here.</a></p>
+
+    <p>Augmenting early primary data, additional data from several
+    sources has been used to provide additional details about
+    incidents, in particular the California statute penal code (PC)
+    and Uniform Crime Reporting (UCR) code under which the incident
+    has been charged and reported. Early versions of the OakCrime data
+    set relied on data from Urban Strategies (a non-profit that worked
+    with OPD on a contract ending in 2011) to add some PC and UCR
+    attributes. More recently, PC and UCR data has been found in OPD
+    responses to public record requests (specifically, PRR#5885,
+    PRR#6180, PRR#6933, PRR#7680, PRR#10437).</p>
+
+<ul>
+<!-- <li><p><strong>¡ 2do: Incorporate M. Mason data !</strong></p></li> -->
+<!-- <li><p><strong>¡ 2do: Retrain UCR, PC classifiers !</strong></p></li> -->
+  </ul></li>
+  
+  <li><p><em>How is OakCrime different than CrimeMapper?</em></p>
+  <p>The <a href="https://www.crimemapping.com/map/agency/265">CrimeMapping</em> interface to OPD crime incident data is  provided by <a href="omegagroup.com">The Omega Group</a> (acquired by <a href="tritech.com">TriTech.com</a> in February, 2016) as part of a suite of &quot;CrimeView&quot; analytic tools sold to "hundreds" of police departments across the country (their homepage used to list  370  agencies), including OPD. One product is designed for use by top-level police captains, a second version for operational use by crime analysts within OPD, another version for use by city council members and other trusted users, etc.  </p>
+  <p>The citizen-facing CrimeMapping facility is a loss-leader product, provided at low cost to police deparments who have been asked to provide <em>citizens</em> with a subset of the other data used by the other Omega products.  Because the Omega products have been designed for sale to many different police departments, the details of OPD's reporting is regularized to fit into the demands of Omega's larger market.  Their <a href="https://www.crimemapping.com/FAQ">FAQ page</a> says:  "The content on CrimeMapping.com is a representation of crime and is not all-inclusive." That is, there is currently no real penalty to Omega for dropping or mis-reporting OPD's data. On two previous occassions (June, 2013, <a href="its-showcrimel">details reported here</a>; and March, 2014 <a href="CrimeMapping_eval2">details reported here</a> ), a comparison was made between the data provided via CrimeMapping facility and via OpenOakland's data source. Summarizing important differences:</p>
+<ul>
+<li><p>CrimeMapping currently goes back six months; OakCrime data goes back to 2007.</p></li>
+<li><p>As of the March, 2014 analysis, CrimeMapping is dropping 70% of the data OPD reports elsewhere!</p></li>
+<li><p>OakCrime incidents have been classified into a
+<b>OPDCrimeCat</b> ontology that supports semantically useful
+hierarcic queries (see below)</p></li>
+<li><p>In the data they do report, CM also <em>loses information</em> regarding crime naming specifics that OPD provides and the crime categories preserve.</p></li>
+</ul>
+The current CrimeMapping interface does do support download of their tabular format, and so a direct comparison is no longer possible.
+</li>
+
+<li><p><em>How is the OPD Crime Classification useful?</em></p>
+<p>A careful ontology of the varieties of crime generally, and those most relevant to the situation in Oakland, is an important project for future data analysis, but no such standard currently exists. Inspired by sources such as the <a href="https://www.unodc.org/unodc/en/data-and-analysis/statistics/iccs.html">International Classification Of Crime For Statistical Purposes (ICCS)</a>, a classification of OPD crime incidents called <strong>OPDCrimeCat</strong> has been developed.</p>
+<p>OPD provides two text fields describing each incident, it's <em>CrimeType</em> and its <em>Description</em>. The current OPD Crime Category system is an attempt to map all of the various <em>CrimeTypes</em> and <em>Descriptions</em> values used over the years into a consistent hierarchy of 14 top level crime classes and 57 more refined sub-classes that allow queries at varying levels of specificity.</p>
+  <p>There are typically about 40 different <em>CrimeTypes</em> and 250 <em>Descriptions</em> mentioned across any 90 days. In part because there is no support for data entry by officers, the input of the <em>Description</em> field can vary, eg, from:
+	<ul>
+	  <li><code>BATTERY ON PEACE OFFICER/EMERGENCY PERSONNEL/ETC</code>, to: </li>
+	  <li><code>BATTERY ON PEACE OFFICER/EMERGENCY PERSONAL/ETC W/O INJURY</code></li>
+	</ul>
+On top of this noise, there is often a clear hierarchy among a set of <em>Descriptions</em>, eg:
+<ul>
+<li><code>BURGLARY-AUTO</code></li>
+<li><code>BURGLARY-COMMERCIAL</code></li>
+<li><code>BURGLARY-OTHER</code></li>
+<li><code>BURGLARY-RESIDENTIAL</code></li>
+<li><code>BURGLARY-UNSPECIFIED</code>.</li>
+</ul>
+Other crime incident <em>Descriptions</em> are semantically related, eg:
+<ul>
+<li><code>CHILD_ABUSE</code></li>
+<li><code>CRUELTY_TO_CHILD_WITH_POSSIBLE_INJURY_OR_DEATH</code></li>
+<li><code>INFLICT_INJURY_UPON_CHILD</code></li>
+<li><code>WILLFUL_CRUELTY_TO_CHILD</code></li>
+</ul>
+<p>A simple but transparent routine for classifying incidents into the OPDCrimeCat based on <em>CrimeType</em> and <em>Description</em> attributes (cf. <code>harvestSocrata.classify()</code>) has also been developed.</p>
+
+<!-- <p><strong>¡2do: replace <code>forms.CrimeCatChoices</code> with query against <code>dailyIncid_crimeCat</code></strong></p> -->
+<!-- <p><strong>¡2do: Summarize top-level crime cat across all years</strong></p> -->
+<!-- <p><strong>¡2do: Analyze drift in CrimeType, Description usage across time</strong></p> -->
+<!-- <p><strong>¡2do: Update CrimeMapping analysis</strong></p></li> -->
+
+{% endblock %}

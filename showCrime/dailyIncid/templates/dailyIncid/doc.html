@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} Documentation {% endblock %}
+
+{% block content %}
+
+<h1 align=center>Documentation</h1>
+
+<ul>
+  <li><h2><a href="/dailyIncid/interface">Interface</h2></a></li>
+  <li><h2><a href="/dailyIncid/faq">Frequently asked questions (FAQ)</a></h2>
+  <!-- <li><h2><a href="/dailyIncid/install">Installation</a></h2> -->
+</ul>
+
+<p align=right><em>Total Incidents = {{nincid}}  ({{minDate}} -- {{maxDate}}); <br>last harvest {{maxModDate}}</em></p>
+
+{% endblock %}

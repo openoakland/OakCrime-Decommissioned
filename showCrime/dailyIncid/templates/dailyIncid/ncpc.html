@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% load startswith %}
+
+{% block title %} NCPC {% endblock %}
+{% block prescripts %}
+    <meta charset="utf-8">
+
+	<script src='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.js'></script>
+	<link href='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.css' rel='stylesheet' />
+
+
+	<script>
+		// function definitions
+		
+		function timestamp(str){ return new Date(str).getTime(); }
+		
+		function toBBoxStr(lngLatBounds) {
+			// convert mapbox LngLatBounds 
+			// replacing leaflet's map.getBounds().toBBoxString()
+			// bounding box coordinates in [southwest_lng,southwest_lat,northeast_lng,northeast_lat] format	
+	
+			var outStr = `[ ${lngLatBounds["_sw"]["lng"]}, ${lngLatBounds["_sw"]["lat"]}, ${lngLatBounds["_ne"]["lng"]}, ${lngLatBounds["_ne"]["lat"]} ]`;
+			return outStr;	
+		};
+			    
+    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+		var mapmargin = 100;
+		$('#map').css("height", ($(window).height() - mapmargin));
+		$(window).on("resize", resize);
+		resize();
+		function resize(){
+		
+		    if($(window).width()>=980){
+		        $('#map').css("height", ($(window).height() - mapmargin));    
+		        $('#map').css("margin-top",50);
+		    }else{
+		        $('#map').css("height", ($(window).height() - (mapmargin+12)));    
+		        $('#map').css("margin-top",10);
+		    }
+		
+		}
+		    	
+	</script>
+
+    <style>
+        height: 100%;
+        width: 100%;
+        /* position: absolute; */
+        html,body{margin: 0; padding: 0;}
+      
+
+ 	.flex-fullPage-container {
+	    display: flex;
+        height: 100%;
+        width: 100%;
+ 		flex-direction: column;
+	}
+	
+	.flex-hdr {
+		height: 5%;
+	}
+
+
+	.flex-legend {
+		height: 20px;
+	}
+
+	.flex-download {
+		height: 20px; 
+	}
+
+	.flex-map {
+	    height: 500px;  /* HACK!  Why doesn't this work?!  70%; */
+	}
+
+	.flex-trlr {
+		height: 5%;
+	}
+
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+	<div class="flex-fullPage-container">
+	<div class="flex-hdr">
+		<h3 align=center>NCPC Report Beat {{beat}}</h3>
+		<p align=center> {{minDateStr}} -- {{maxDateStr}}</p>
+	</div>
+
+    <div id="legend" class="flex-legend">
+    	<p align=center>
+     		<img type="image/png" height=20 src="{% static 'marker-icon-red.png' %}"> Incidents within Beat {{beat}}
+    		<img type="image/png" height=20 src="{% static 'marker-icon-black.png' %}"> Other incidents in vicinity
+    		<img type="image/png" height=20 src="{% static 'marker-icon-yellow.png' %}"> Patrol log report only
+		</p>
+    </div>
+		
+	<div class="flex-download">
+
+	    <form id="downloadForm" action="/dailyIncid/downloadNCPC/{{beat}}_{{minDateDigits}}_{{maxDateDigits}}/">
+
+			<p align=center><button type="submit" style="color:blue; font-size:14px">Download beat data</button>
+			  </p>
+	    </form>
+
+	</div>
+
+ 		
+    <div id="map" class="flex-map">
+      
+    <script>
+
+
+		var OakCenterLat = 37.7987417644
+		var OakCenterLng = -122.2378203971 
+		
+      	mapboxgl.accessToken = 'pk.eyJ1IjoicmlrYmVsZXciLCJhIjoiY2pieTZwNnB4MzR5YjMybWtld3FzODFvZyJ9.w0Sqg1pkABegUuQhBTPKwQ';
+		var map = new mapboxgl.Map({
+			container: 'map',
+			center: [OakCenterLng,OakCenterLat],
+			zoom: 11,
+			style: 'mapbox://styles/mapbox/streets-v10'
+		});
+		// map.setMinZoom(12);
+		map.setMaxZoom(14);
+      	
+		var mapbds = {{mapBounds}};
+ 		// Mapbox: an array of LngLatLike objects in [sw, ne] order, or 
+ 		//	an array of numbers in [west, south, east, north] order.
+ 		//               west       south         east       north
+ 		mapBBoxMB1 = [ [ mapbds[0], mapbds[1] ], [mapbds[2], mapbds[3]] ];
+ 		
+ 		console.log('\n mapbds: ' + mapBBoxMB1 + ' zoom:'+ map.getZoom() + '\n');
+ 
+ 		var vicinBBox = [ [ mapbds[0], mapbds[1] ], // sw
+ 		 				  [ mapbds[2], mapbds[1] ], // se
+ 		 				  [ mapbds[2], mapbds[3] ], // ne
+ 		 				  [ mapbds[0], mapbds[3] ], // nw
+ 		 				  [ mapbds[0], mapbds[1] ], // sw
+ 						  ]; 
+ 		
+       	map.fitBounds(mapBBoxMB1);
+       	var fitBnds = map.getBounds();
+       	console.log('\n fitBounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() + '\n');
+      			
+  		console.log('\ninitial map bounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() +'\n');    	
+ 		
+		var incidFeatureColl = {{dataArr|safe}}
+		
+		map.on('load', function() {
+		    // Add a geojson point source.
+		    // Heatmap layers also work with a vector tile source.
+		    map.addSource("incidFreq", {
+		        "type": "geojson",
+		        "data": incidFeatureColl
+		    });
+		
+			// while property FUNCTIONS currently remain available, 
+			// they will ultimately be deprecated and replaced by property EXPRESSIONS
+			// Mapbox GL JS EXPRESSIONS uses a Lisp-like syntax, 
+			// represented using JSON arrays. Expressions follow this format:
+			// [expression_name, argument_0, argument_1, ...]
+			// https://www.mapbox.com/mapbox-gl-js/style-spec/#expressions
+								    		    
+		   map.addLayer({
+		        "id": "incidMarker",
+		        "type": "circle",
+		        "source": "incidFreq",
+		        			
+		        "paint": {
+		        	"circle-radius": ["match", ['get', 'majorIncid'], 'DLog', 5,       'True', 5,     3 ], 			
+		        	"circle-color":  ["match", ['get', 'majorIncid'], 'DLog', "yellow", 'True', "red", "black" ], 
+		        			        			        
+		        } // eo-paint
+		        
+		    }, 'waterway-label');
+		    			
+		    			
+			// Draw vicinity BBox as lines
+			
+		    map.addLayer({
+		        "id": "vicinityBBox",
+		        "type": "line",
+		        "source": {
+		            "type": "geojson",
+		            "data": {
+		                "type": "Feature",
+		                "properties": {},
+		                "geometry": {
+		                    "type": "Polygon",
+		                    "coordinates": [ vicinBBox ],
+		                }
+		            }
+		        },
+		        "layout": {
+		            "line-join": "round",
+		            "line-cap": "round"
+		        },
+		        "paint": {
+		            "line-color": "#888",
+		            "line-width": 3
+		        }
+		    });
+
+			console.log("eo-onLoad");
+		    
+		}); // eo-onLoad
+		
+		map.resize();
+		map.setZoom(12);
+		map.on('click', 'incidMarker', function(e) {
+			var url = `/dailyIncid/incidRpt/${e.features[0].properties.opd_rd}`;
+			var lbl = `<a href="${url}"><b>Incid#: ${e.features[0].properties.opd_rd}</b></a> ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`
+			
+		  new mapboxgl.Popup()
+		    
+		    .setLngLat(e.features[0].geometry.coordinates)
+		    .setHTML(lbl)
+		    .addTo(map);
+		});
+
+		map.on('moveend', function() {
+
+			console.log('\n moveEnd bounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() + '\n');
+			});
+
+    </script>
+	    
+    </div> <!-- eo-map -->
+    
+ 	<div class="flex-trlr">
+		<p>NCPC: Beat {{beat}} {{mapBounds}}  N={{nbeat}} NVicinity={{nvicinity}} User={{user}}
+		</p>
+		
+	</div>
+    
+	</div> <!-- eo-flex-fullPage-container -->
+
+    
+{% endblock %}

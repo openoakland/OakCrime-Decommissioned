@@ -1,0 +1,609 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% load startswith %}
+
+{% block title %} Heatmap {% endblock %}
+{% block prescripts %}
+    <meta charset="utf-8">
+
+	<script src='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.js'></script>
+	<link href='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.css' rel='stylesheet' />
+
+    <link rel="stylesheet" href="{% static 'css/nouislider.css' %}" type="text/css" />
+    
+    
+    <script src="{% static 'js/moment.js' %}"></script>
+    <script src="{% static 'js/nouislider.min.js' %}"></script>
+
+	<script>
+		// function definitions
+		
+		function timestamp(str){ return new Date(str).getTime(); }
+		
+		function toBBoxStr(lngLatBounds) {
+			// convert mapbox LngLatBounds 
+			// replacing leaflet's map.getBounds().toBBoxString()
+			// bounding box coordinates in [southwest_lng,southwest_lat,northeast_lng,northeast_lat] format	
+	
+			var outStr = `[ ${lngLatBounds["_sw"]["lng"]}, ${lngLatBounds["_sw"]["lat"]}, ${lngLatBounds["_ne"]["lng"]}, ${lngLatBounds["_ne"]["lat"]} ]`;
+			return outStr;	
+		};
+		
+		// initially  show ALL crimeTypes as included
+		function initcrimeCat() {
+	  		checkboxes = document.getElementsByName('crimeCat');
+	  		for(var i=0, n=checkboxes.length;i<n;i++) {
+	    		checkboxes[i].checked = true;
+	  		}
+	  		toggleCheck = document.getElementsByName('toggleAllcrimeCat');
+	    	toggleCheck[0].checked = true;
+		}
+
+		function togglecrimeCat(source) {
+	  		checkboxes = document.getElementsByName('crimeCat');
+	  		for(var i=0, n=checkboxes.length;i<n;i++) {
+	    		checkboxes[i].checked = source.checked;
+	  		}
+		}
+	    
+    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+		var mapmargin = 100;
+		$('#map').css("height", ($(window).height() - mapmargin));
+		$(window).on("resize", resize);
+		resize();
+		function resize(){
+		
+		    if($(window).width()>=980){
+		        $('#map').css("height", ($(window).height() - mapmargin));    
+		        $('#map').css("margin-top",50);
+		    }else{
+		        $('#map').css("height", ($(window).height() - (mapmargin+12)));    
+		        $('#map').css("margin-top",10);
+		    }
+		
+		}
+		      
+		// https://stackoverflow.com/questions/22948096/get-the-bounding-box-of-the-visible-leaflet-map
+		function updateBounds() {
+			// NB: need to use sessionStorage to maintain mapBounds from map.on('moveend')
+			var bb = sessionStorage.getItem('mapBounds');
+			var input = document.createElement("input");
+			input.type = "hidden";
+		    input.name = "mapBounds";
+		    input.value = bb;
+		    $('#crimeCatForm').append(input);                           
+			
+			// NB: passing same displayFmt string; using datetime.strptime() to convert
+			var displayFmt = "MMM D YYYY";
+			var minDateStr = sessionStorage.getItem('minDate');		
+			var input = document.createElement("input");
+			input.type = "hidden";
+		    input.name = "minDate";
+		    input.value = minDateStr;
+		    $('#crimeCatForm').append(input); 
+		                              
+			var maxDateStr = sessionStorage.getItem('maxDate');
+			var input = document.createElement("input");
+			input.type = "hidden";
+		    input.name = "maxDate";
+		    input.value = maxDateStr;
+		    $('#crimeCatForm').append(input);                           
+
+			// var input = document.createElement("input");
+			// input.type = "hidden";
+			// input.name = "mapType";
+			// input.value = {{mapType}};
+			// $('#crimeCatForm').append(input);                           
+
+			console.log ('\n updateBounds: mapType=' + '{{mapType}}' + ' bb=' + bb +" minDate="+minDateStr+" maxDate="+maxDateStr+"\n");  
+			
+		}	
+
+		// jitterCoord moved to views.heatmap(), hybridQual()
+		// because hard to get between geojson and mapbox ?!
+				
+// 		function jitterCoord(ylat,xlng)	{
+// 			// viz overlapping markers
+// 			var JitterScale = 3.0e-4;
+// 			var jlat = ylat + JitterScale * (Math.random() - 0.5);
+// 			var jlng = xlng + JitterScale * (Math.random() - 0.5);
+// 			return [jlat,jlng];
+// 		}
+		    	
+	</script>
+
+    <style>
+        height: 100%;
+        width: 100%;
+        /* position: absolute; */
+        html,body{margin: 0; padding: 0;}
+      
+
+	.flex-fullPage-container {
+	    display: flex;
+        height: 100%;
+        width: 100%;
+ 		flex-direction: column;
+	}
+	
+	.flex-hdr {
+		height: 10%; 
+	}
+
+	.flex-dateSelect-container {
+	    /* background-color: red; */
+	    flex-direction: column;
+	    height: 20%;
+	    width: 80%;
+	    align-self: flex-end;
+	}
+	
+	.flex-dateSelect {
+	    height: 15%;
+	}
+
+	.flex-spacer {
+		height: 20px; 
+	}
+
+	.flex-legend {
+		height: 50px; 
+	}
+	.flex-crimeCatMap-container {
+	    display: flex;
+		flex-direction: row;
+	    height: 70%;
+	}
+
+	.flex-crimeCat {
+	    width: 20%;
+	}
+	
+	.flex-map {
+	    width: 80%;
+	}
+
+	.flex-trlr {
+		height: 10%; 
+	}
+
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+	<div class="flex-fullPage-container">
+	<div class="flex-hdr">
+	{% if mapType == 'gun' %}
+		<h2 align=center style="color:goldenrod">Gun-related crimes</h2>
+	{% endif %}
+	
+	<h4 align=center><em>Zoom map, select crime categories and date range of interest, then hit <b style="color: blue">Update</b></em></h4>
+	</div>
+	
+    <div id="legend" class="flex-legend">
+    	<p align=center>
+    	{% if mapType == "gun" %}
+
+    		<img type="image/png" height=20 src="{% static 'marker-icon-red.png' %}"> Gun shot wound
+    		<img type="image/png" height=20 src="{% static 'marker-icon-black.png' %}"> Other gun-related
+
+    	{% else %}
+     		<img type="image/png" height=20 src="{% static 'marker-icon-red.png' %}"> Major incidents (homicide, rape, assault, robbery, weapons) 
+    		<img type="image/png" height=20 src="{% static 'marker-icon-black.png' %}"> Other incidents
+    		<img type="image/png" height=20 src="{% static 'marker-icon-yellow.png' %}"> Patrol log report only
+
+    	{% endif %}
+		</p>
+    </div>
+	
+
+	<div id="dateSelect" class="flex-dateSelect-container">
+	
+	<div class="flex-dateHdr"><h3 align=center>Date range</h3></div>
+	
+	<div class="flex-dateSelect" id="dateSlider">
+	
+	<script>
+	
+		
+		var dateSlider = document.getElementById('dateSlider');
+
+		var minDateList = {{minDate}}; // YMD order
+		var maxDateList = {{maxDate}};	
+		var minSliderList = {{minSlider}};
+		var maxSliderList = {{maxSlider}};	
+			
+		// NB: noUiSlider uses TIMES, spec. Unix timestamp = millisec since 1/1/70
+		var minDateTime = new Date(minDateList[0],minDateList[1],minDateList[2]).getTime();
+		var maxDateTime = new Date(maxDateList[0],maxDateList[1],maxDateList[2]).getTime();
+		var minSlider = new Date(minSliderList[0],minSliderList[1],minSliderList[2]).getTime();
+		var maxSlider = new Date(maxSliderList[0],maxSliderList[1],maxSliderList[2]).getTime();
+
+		var dateFmt = "MMM D YYYY";
+		// console.log("\ndates min: "+ moment(minDateTime).format("MMM D YY") + " max: " + moment(maxDateTime).format("MMM D YY"));
+				
+		noUiSlider.create(dateSlider, {
+			orientation: "horizontal",
+			
+			// Two more timestamps indicate the handle starting positions.
+		    start: [ minSlider, maxSlider ],
+		    connect: [true, true, true],
+					
+			// Create two timestamps to define a range.
+		    range: {
+		        'min': minDateTime,
+		        'max': maxDateTime
+		    },
+		    
+			// Steps of one day
+		    step: 24 * 60 * 60 * 1000,
+		    
+		    format: {to: function ( value )   { return moment(value).format(dateFmt); },
+					 from: function ( value ) { return parseInt(value);} }, 
+					 
+			tooltips: [ true, true ],
+
+		});
+		
+		dateSlider.noUiSlider.on('update', function(values, handle) {
+			// NB: need to use sessionStorage to maintain min/maxDate for form's submit update() function
+			sessionStorage.setItem('minDate', values[0]);
+			sessionStorage.setItem('maxDate', values[1]);
+			});
+		
+
+		var estart = document.getElementById('dateValStart');
+		var eend = document.getElementById('dateValEnd');
+		var dateValues = [estart, eend ];
+	
+	</script>
+	
+	</div> <!-- eo-dateSlider -->
+	
+	</div> <!-- eo-dateSelect-container -->
+
+	<div class="flex-spacer">
+	</div>
+		
+	<div class="flex-crimeCatMap-container">
+
+	<div id="crimeCatSelect" class="flex-crimeCat">
+		
+	    <h3>Crime Categories</h3>
+	    <form id="crimeCatForm" action="/dailyIncid/hybridQual/{{mapType}}/" onsubmit="updateBounds()">
+	       <fieldset>
+			  <input type="checkbox" name="toggleAllcrimeCat" onClick="togglecrimeCat(this)" /> Toggle All<br/>
+			  
+			  <div>
+			    <input type="checkbox" id="ARSON" name="crimeCat" value="ARSON">
+			    <label for="ARSON">ARSON</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="ASSAULT" name="crimeCat" value="ASSAULT">
+			    <label for="ASSAULT">ASSAULT</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="DOM-VIOL" name="crimeCat" value="DOM-VIOL">
+			    <label for="DOM-VIOL">DOM. VIOLENCE</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="HOMICIDE" name="crimeCat" value="HOMICIDE">
+			    <label for="HOMICIDE">HOMICIDE</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="KIDNAPPING" name="crimeCat" value="KIDNAPPING">
+			    <label for="KIDNAPPING">KIDNAPPING</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="LARCENY" name="crimeCat" value="LARCENY">
+			    <label for="LARCENY">LARCENY</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="MENTAL-ILLNESS" name="crimeCat" value="MENTAL-ILLNESS">
+			    <label for="MENTAL-ILLNESS">MENTAL ILLNESS</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="OTHER" name="crimeCat" value="OTHER">
+			    <label for="OTHER">OTHER</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="QUALITY" name="crimeCat" value="QUALITY">
+			    <label for="QUALITY">QUALITY</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="ROBBERY" name="crimeCat" value="ROBBERY">
+			    <label for="ROBBERY">ROBBERY</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="SEX" name="crimeCat" value="SEX">
+			    <label for="SEX">SEX</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="TRAFFIC" name="crimeCat" value="TRAFFIC">
+			    <label for="TRAFFIC">TRAFFIC</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="VANDALISM" name="crimeCat" value="VANDALISM">
+			    <label for="VANDALISM">VANDALISM</label>
+			  </div>
+	
+			  <div>
+			    <input type="checkbox" id="WEAPONS" name="crimeCat" value="WEAPONS">
+			    <label for="WEAPONS">WEAPONS</label>
+			  </div>
+			  
+			  <div>
+      			<button type="submit" style="color:blue; font-size:20px">Update selection</button>
+      			
+    		  </div>
+			  
+		  </fieldset>   
+	    </form>
+	    <script>	
+	    // Start with all CrimeCat checked; if qualified restrict to those in crimeCat	
+	    {% if qualified or mapType == "gun" %}
+	    	{% for ct in crimeCat %}
+	    		document.getElementById("{{ct}}").checked = true;
+	    	{% endfor %}
+	    {% else %} 
+	    	initcrimeCat(); 
+	    {% endif %}
+	    	    
+	    </script>
+	</div> 
+		
+    <div id="map" class="flex-map">
+ 
+    <!-- the code inside your <style> tag below the #map declaration. -->
+     <style>
+		.redMarker {
+		  background-image: url('{% static 'marker-icon-red.png' %}');
+		  background-size: cover;
+		  width: 20px;
+		  height: 20px;
+		  border-radius: 50%;
+		  cursor: pointer;
+		}
+		.greenMarker {
+		  background-image: url('{% static 'marker-icon-green.png' %}');
+		  background-size: cover;
+		  width: 20px;
+		  height: 20px;
+		  border-radius: 50%;
+		  cursor: pointer;
+		}
+    </style>
+     
+    <script>
+ 
+
+      	mapboxgl.accessToken = 'pk.eyJ1IjoicmlrYmVsZXciLCJhIjoiY2pieTZwNnB4MzR5YjMybWtld3FzODFvZyJ9.w0Sqg1pkABegUuQhBTPKwQ';
+		var map = new mapboxgl.Map({
+			container: 'map',
+			style: 'mapbox://styles/mapbox/streets-v10'
+		});
+		map.setMinZoom(10);
+		map.setMaxZoom(14);
+      	
+		var mapbds = {{mapBounds}};
+ 		// Mapbox: an array of LngLatLike objects in [sw, ne] order, or 
+ 		//	an array of numbers in [west, south, east, north] order.
+ 		mapBBoxMB = [ [ mapbds[0], mapbds[1] ], [mapbds[2], mapbds[3]] ];
+ 		
+ 		console.log('\n mapbds: ' + mapBBoxMB + ' zoom:'+ map.getZoom() + '\n');
+ 		
+       	map.fitBounds(mapBBoxMB);
+       	console.log('\n fitBounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() + '\n');
+      	
+		map.on('moveend', function() {
+			// NB: need to use sessionStorage to maintain mapBounds for form's submit update() function
+			// bounding box coordinates in a 'southwest_lng,southwest_lat,northeast_lng,northeast_lat' format
+			sessionStorage.setItem('mapBounds', toBBoxStr(map.getBounds()) );
+
+			console.log('\n moveEnd bounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() + '\n');
+			});
+
+		var NIncidForMarkers = 50;
+		
+		var jsnincid = {{nincid}};
+
+		{% if not qualified %}
+
+			// initial view centered on Fruitvale, zoomed to include all Oakland
+			var initZoomLevel = 11;
+      		map.setZoom(initZoomLevel);
+      	
+      		map.setCenter([{{ cxlng }}, {{ cylat }}]);
+      		
+			// var currBBox = map.getBounds();
+			// var bbstr = toBBoxStr(currBBox);
+			sessionStorage.setItem('mapBounds', toBBoxStr(map.getBounds()) );
+
+   			console.log('\ninitial map bounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() +'\n');    	
+ 
+ 		{% else %} // qualified
+ 
+ 			map.fitBounds( mapBBoxMB );
+
+			console.log('\nfit qual bounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() + '\n');
+
+      	{% endif %} // eo-qualified
+									
+			var incidFeatureColl = {{dataArr|safe}}
+			
+			map.on('load', function() {
+			    // Add a geojson point source.
+			    // Heatmap layers also work with a vector tile source.
+			    map.addSource("incidFreq", {
+			        "type": "geojson",
+			        "data": incidFeatureColl
+			    });
+			
+				// while property FUNCTIONS currently remain available, 
+				// they will ultimately be deprecated and replaced by property EXPRESSIONS
+				// Mapbox GL JS EXPRESSIONS uses a Lisp-like syntax, 
+				// represented using JSON arrays. Expressions follow this format:
+				// [expression_name, argument_0, argument_1, ...]
+				// https://www.mapbox.com/mapbox-gl-js/style-spec/#expressions
+				
+				// https://www.mapbox.com/help/make-a-heatmap-with-mapbox-gl-js/
+				map.addLayer({
+				  id: 'incidHeat',
+				  type: 'heatmap',
+				  source: 'incidFreq',
+				  maxzoom: 14,
+				  paint: {
+				    
+				    // increase intensity as zoom level increases
+				    'heatmap-intensity': 
+				    
+				    	{% if mapType == "gun" %}
+				    	["interpolate", ["exponential", 2], ["zoom"], 0,2, 14,4 ], 
+				    	{% else %}
+				    	["interpolate", ["exponential", 2], ["zoom"], 0,0.25, 14,2 ], 
+				    	{% endif %}
+				    	
+				    // earthquake example
+					// Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+		            // Begin color ramp at 0-stop with a 0-transparancy color
+		            // to create a blur-like effect.
+		            "heatmap-color": [
+		                "interpolate",
+		                ["exponential", 2], // ["linear"],
+		                ["heatmap-density"],
+		                
+		                
+		                // 0, "rgba(33,102,172,0)",
+		                // 0.2, "rgb(103,169,207)",
+		                // 0.4, "rgb(209,229,240)",
+		                // 0.6, "rgb(253,219,199)",
+		                // 0.8, "rgb(239,138,98)",
+		                // 1, "rgb(178,24,43)"
+		                
+		                // http://colorbrewer2.org/?type=sequential&scheme=YlOrRd&n=6
+		                // 0.0, 'rgba(255,255,178,0)',
+		                // 0.2, 'rgb(254,217,118)',
+		                // 0.4, 'rgb(254,178,76)',
+		                // 0.6, 'rgb(253,141,60)',
+		                // 0.8, 'rgb(240,59,32)',
+		                // 1.0, 'rgb(189,0,38)'
+		                
+		                // http://colorbrewer2.org/?type=sequential&scheme=YlOrRd&n=8
+		                0.0, 	'rgba(255,255,204,0)',
+		                0.2,	'rgb(255,237,160)',
+		                0.4,	'rgb(254,217,118)',
+		                0.6,	'rgb(254,178,76)',
+		                0.7,	'rgb(253,141,60)',
+		                0.8,	'rgb(252,78,42)',
+		                0.9,	'rgb(227,26,28)',
+		                1.0,	'rgb(177,0,38)'
+		                
+		            ],
+            
+				    // increase radius as zoom increases
+				    'heatmap-radius':  
+				    	["interpolate", ["linear"], ["zoom"], 10,2, 14,30 ], 
+				    
+				    // decrease opacity to transition into the circle layer
+				    'heatmap-opacity': 
+					    ["interpolate",
+				                ["linear"],
+				                ["zoom"],
+				                13, 1,
+				                14, 0
+				        ],    
+				    
+				  } // eo-paint
+				  
+				}, 'waterway-label');	
+						    		    
+			   map.addLayer({
+			        "id": "incidMarker",
+			        "type": "circle",
+			        "source": "incidFreq",
+			        "minzoom": 13,
+			        			
+			        "paint": {
+			        	"circle-radius": ["match", ['get', 'majorIncid'], 'DLog', 8,       'True', 8,     3 ], 			
+			        	"circle-color":  ["match", ['get', 'majorIncid'], 'DLog', "yellow", 'True', "red", "black" ], 
+			        	
+			            // Transition from heatmap to circle layer by zoom level
+			            "circle-opacity": [
+			                "interpolate",
+			                ["linear"],
+			                ["zoom"],
+			                13, 0,
+			                14, 1
+			            ],
+			            // "circle-stroke-color": "white",
+			            // "circle-stroke-width": 1,
+			        			        
+			        } // eo-paint
+			        
+			    }, 'waterway-label');
+			    
+			// var msource = map.getSource("incidFreq");
+			// var mlayer = map.getLayer("incidHeat");
+			
+			console.log("eo-onLoad");
+			    
+			}); // eo-onLoad
+			
+
+			map.on('click', 'incidMarker', function(e) {
+				var lbl = `<b>Incid#:</b> ${e.features[0].properties.opd_rd} ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`
+				
+			  new mapboxgl.Popup()
+			  	// mapzen version
+			  	// var popTxt = "{{ incid.opd_rd }}" + " " + "{{ incid.cdateTime }}" + " " + "{{ incid.crimeCat }}";				
+			    
+			    .setLngLat(e.features[0].geometry.coordinates)
+			    .setHTML(lbl)
+			    .addTo(map);
+			});
+
+    </script>
+	    
+    </div> <!-- eo-map -->
+    
+    <div class="flex-legend">
+    
+    </div>
+    
+	</div> <!-- eo-flex-crimeCatMap-container -->
+
+	<div class="flex-trlr">
+		{% if qualified %}
+		<p><small>N={{nincid}}
+		dateRange={{minDate}}-{{maxDate}}
+		crimeCat={{crimeCat}}
+		ZoomRegion={{mapBounds}}
+		</small></p>
+		{% else %}
+		<p>Heatmap initial query: ({{ cylat }},{{ cxlng }}) N={{nincid}}
+		</p>
+
+		{% endif %}
+		
+	</div>
+		
+	</div> <!-- eo-flex-container -->
+
+    
+{% endblock %}

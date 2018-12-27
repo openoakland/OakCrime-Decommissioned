@@ -1,26 +1,44 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from django.db.models import Min, Max
-from django.db.models import Q
+# django 2.0
+# from django.core.urlresolvers import reverse
+from django.urls import reverse
+
+from django.db.models import Min, Max, Q
 from django.db.models.lookups import IExact
-from django.db import transaction
-from django.db import IntegrityError
-
-from django.contrib.gis.geos import  Polygon
-
+# from django.db import transaction
+# from django.db import IntegrityError
 from django.template import Context
 
+from django.contrib.gis.geos import  Polygon
+# from django.contrib import admin
+# from django.contrib.gis.admin import GeoModelAdmin
+from django.contrib.gis.measure import D
+
+from rest_framework import generics # viewsets
+
+# from datetime import datetime, timedelta
+
 import logging
+import pytz
 import random
 
 import geojson 
 
-from showCrime.settings import PlotPath, SiteURL
+from showCrime.settings import PLOT_PATH, SITE_URL
 
 from .forms import *
 from .models import *
+from dailyIncid import serializers
+
+def awareDT(naiveDT):
+	utc=pytz.UTC
+	return utc.localize(naiveDT)
+
+def rikNoLogin(cbfn): 
+	# print('rikNoLogin cbfn',cbfn)
+	return cbfn
+login_required = rikNoLogin
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +50,7 @@ def testPage(request):
 
 def need2login(request):
 	return render(request, 'dailyIncid/need2login.html', {})
+
 
 @login_required
 def getQuery(request):
@@ -53,7 +72,7 @@ def getQuery(request):
 		logger.info('user=%s getQuery-nonPost' % (userName))
 		qform = twoTypeQ()
 		
-	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': SiteURL})
+	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': SITE_URL})
 	   
 import os
 
@@ -74,8 +93,8 @@ import matplotlib.dates as mdates
 
 
 # 2do:  reconcile djOakData code with c4a
-MinYear = 2007
-MaxYear = 2017
+MinYear = 2014
+MaxYear = 2018
 C4A_date_string = '%y%m%d_%H:%M:%S'
 
 
@@ -106,7 +125,8 @@ def monthIdx1(dateStr):
 	return mon	
 
 def plotResults(request,beat,crimeCat,crimeCat2=None):
- 
+	userName = request.user.get_username()
+
 	## build data vectors
 	
 	# 2do precompute, cache city-wide stats for all crimeCat
@@ -142,10 +162,14 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 	# WebFaction
 	qryStr = 'SELECT idx, "cdateTime", beat FROM "dailyIncid_oakcrime" where "crimeCat" ~ %s'
 
-	begQTime = datetime.now()
+	begQTime = awareDT(datetime.now())
+
 	for c in OakCrime.objects.raw(qryStr,[startsCC]):
 	# for c in OakCrime.objects.raw(qryStrBAD):
 		cd = c.cdateTime
+		if cd.year < MinYear or cd.year > MaxYear:
+			logger.info('user=%s plotResults: date out of range?! OPD_RD=%s %s' % (userName,c.opd_rd,c.cdateTime))
+			continue
 		cb = c.beat
 		mi = monthIdx(cd)
 		if mi < 0 or mi > len(cityFreq):
@@ -176,7 +200,7 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 			if beat==cb:
 				beatFreq2[mi] += 1
 				
-	qryTime = datetime.now()-begQTime
+	qryTime = awareDT(datetime.now())-begQTime
 		
 	NGoodBeats = 57 # cf opd.GoodBeats
 	avgFreq = [float(cityFreq[m])/NGoodBeats for m in range(nbins)]
@@ -216,13 +240,16 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 		totCity2 = sum(cityFreq2)
 		avgFreq2 = [float(cityFreq2[m])/NGoodBeats for m in range(nbins)]
 
+		# 180914: modify legends
 		ax.plot(dates,beatFreq,'b',label=('%s - Beat %s' % (crimeCat, beat)))
-		ax.plot(dates,avgFreq,'b:',label='%s - BeatAvg (OPD total/57)' % (crimeCat))
+		ax.plot(dates,avgFreq,'b:',label='%s - Citywide average' % (crimeCat))
 
 		ax.plot(dates,beatFreq2,'g',label=('%s - Beat %s' % (crimeCat2, beat)))
-		ax.plot(dates,avgFreq2,'g:',label='%s - BeatAvg' % (crimeCat2))
-				
-	runTime = str(datetime.now())
+		ax.plot(dates,avgFreq2,'g:',label='%s - Citywide average' % (crimeCat2))
+		
+	begQTime = awareDT(datetime.now())
+		
+	runTime = str(begQTime)
 	runTime = runTime[:runTime.index(' ')] # HACK: drop time
 	
 	plotName = fname.replace('+',' ')
@@ -234,24 +261,31 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 	p.title(lbl,fontsize=10)
 	p.legend(loc='upper left',fontsize=8)
 
-	annote = 'ElectronicArtifacts.com'+' - '+runTime+\
-		'\nOpenOakland.org -- a CodeForAmerica Brigade'
-	p.text(0.65, 0.93,annote, \
+	# 180914: modify annotation
+	annote = 'OpenOakland.org'+' - '+runTime
+	p.text(0.7, 0.95,annote, \
 				  horizontalalignment='left',verticalalignment='bottom', transform = ax.transAxes, \
 				  fontsize=6 )
 	
 	f1.autofmt_xdate()
 	
 	figDPI=200
-	fullPath = PlotPath+fname+'_'+runTime+'.png'
-	userName = request.user.get_username()
+	fullPath = PLOT_PATH+fname+'_'+runTime+'.png'
 	logger.info('user=%s plotting %d/%d (%6.2f sec) to %s' % (userName,totBeat,totCity,qryTime.total_seconds(),fullPath))
-	f1.savefig(fullPath,dpi=figDPI)
+	
+	# 2do: 181218  fix plot file permission
+	# f1.savefig(fullPath,dpi=figDPI)
 
 	canvas = FigureCanvas(f1)
-	response = HttpResponse(content_type='image/png')
 
-	canvas.print_png(response)
+	# 180914: error "fname must be a PathLike or file handle"
+	# https://stackoverflow.com/a/1109442/1079688
+	import io
+	buf = io.BytesIO()
+	f1.savefig(buf, format='png')
+	# matplotlib.pyplot.close(f1)
+	response = HttpResponse(buf.getvalue(), content_type='image/png')
+	
 	return response
 
 
@@ -291,7 +325,7 @@ def nearHere(request):
 		pt.transform(srs_10N)
 		
 		# tstDT = datetime(2017, 2, 10, 17, 00)
-		nowDT = datetime.now()
+		nowDT = awareDT(datetime.now())
 		
 		minDate = nowDT - timedelta(days=180)
 		
@@ -348,7 +382,7 @@ def choosePlace(request,ptype):
 		pt.transform(srs_10N)
 		
 		# tstDT = datetime(2017, 2, 10, 17, 00)
-		nowDT = datetime.now()
+		nowDT = awareDT(datetime.now())
 		
 		minDate = nowDT - timedelta(days=180)
 		
@@ -396,11 +430,10 @@ def heatmap(request,mapType='general'):
 	userName = request.user.get_username()
 	logger.info('user=%s mapType=%s heatmap' % (userName,mapType))
 
-	nowDT = datetime.now()
+	nowDT = awareDT(datetime.now())
 	minDate = nowDT - timedelta(days=90)
-	
 
-	begTime = datetime.now()
+	begTime = nowDT
 	
 	if mapType == 'general':
 		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
@@ -427,7 +460,7 @@ def heatmap(request,mapType='general'):
 # 	ocoLast = incidList[-1]
 # 	print('heatmap',ocoFirst.opd_rd,ocoFirst.cdateTime,ocoLast.opd_rd,ocoLast.cdateTime)
 	
-	elapTime = datetime.now() - begTime
+	elapTime = awareDT(datetime.now()) - begTime
 	logger.info('username=%s heatmap %s : NIncid=%d  (%6.2f sec)' % (userName, mapType, len(incidList),elapTime.total_seconds()))
 
 	# In Django 1.8+, the template's render method takes a dictionary for
@@ -498,7 +531,8 @@ def heatmap(request,mapType='general'):
 			ccbits = cc.split('_')
 			ccMention.add(ccbits[0])
 		ccatList = list(ccMention)
-		ccatList.remove('')
+		if '' in ccatList:
+			ccatList.remove('')
 		context['crimeCat'] = ccatList	
 
 	
@@ -511,7 +545,7 @@ def hybridQual(request,mapType):
 	AND uses NIncid thresh to select between heatmap vs marker display
 	'''
 
-	nowDT = datetime.now()
+	nowDT = awareDT(datetime.now())
 	minDate = nowDT - timedelta(days=90)
 		
 	NIncidForMarkers = 75
@@ -604,8 +638,8 @@ def hybridQual(request,mapType):
 
 	minSelectDateStr = request.GET['minDate']
 	maxSelectDateStr = request.GET['maxDate']
-	minSelectDate = datetime.strptime(minSelectDateStr,selectDateFmt)
-	maxSelectDate = datetime.strptime(maxSelectDateStr,selectDateFmt)
+	minSelectDate = awareDT(datetime.strptime(minSelectDateStr,selectDateFmt))
+	maxSelectDate = awareDT(datetime.strptime(maxSelectDateStr,selectDateFmt))
 	
 	# 2do: these queryset filters don't work?
 	# NB: django comparison requires just date!
@@ -648,7 +682,7 @@ def hybridQual(request,mapType):
 			
 	incidList = ocoList4
 	nincid = len(incidList)
-	elapTime = datetime.now() - nowDT
+	elapTime = awareDT(datetime.now()) - nowDT
 	logline = 'username=%s hybridQual: nincid=%d bbox=%s (%6.2f sec)' % (userName, nincid,mapBound,elapTime.total_seconds())
 	logger.info(logline)
 			
@@ -718,7 +752,11 @@ def hybridQual(request,mapType):
 NCPCChair2Beat = {'rik': '09X',
 					'ncpc-03Y': '03Y',
 					'ncpc-rock': '12Y+13X',
-					'ncpc-glake': '14Y+16X'
+					'ncpc-glake': '14Y+16X',
+					'ncpc-21XY': '21X+21Y',
+					'ncpc-13Y': '13Y',
+				  	'rdsmith': '15X',
+					'ncpc-11X': '11X',
 					}
 
 @login_required	
@@ -726,10 +764,15 @@ def bldNCPCRpt(request):
 	'''produce report for NCPC of beat 
 	'''
 
-	nowDT = datetime.now()
+	nowDT = awareDT(datetime.now())
 	minDate = nowDT - timedelta(days=60)
 				
 	userName = request.user.get_username()
+
+	if userName not in NCPCChair2Beat:
+		logline = 'username=%s bldNCPCRpt No beat ?!' % (userName)
+		logger.info(logline)
+		need2login(request)
 	
 	beat = NCPCChair2Beat[userName]
 	if beat.find('+') != -1:
@@ -888,13 +931,13 @@ def downloadNCPC(request, beat,minDateDigit,maxDateDigit):
 
 	userName = request.user.get_username()
 	
-	if beat != NCPCChair2Beat[userName]:
+	if userName not in NCPCChair2Beat or beat != NCPCChair2Beat[userName]:
 		logline = 'username=%s downloadNCPC Wrong beat=%s ?!' % (userName, beat)
 		logger.info(logline)
 		need2login(request)
 	
-	minDate = datetime.strptime( minDateDigit, '%y%m%d')
-	maxDate = datetime.strptime( maxDateDigit, '%y%m%d')
+	minDate = awareDT(datetime.strptime( minDateDigit, '%y%m%d'))
+	maxDate = awareDT(datetime.strptime( maxDateDigit, '%y%m%d'))
 	
 	if beat.find('+') != -1:
 		beatList = beat.split('+')
@@ -972,7 +1015,7 @@ def docView(request):
 	nincid = OakCrime.objects.count()
 	
 	# NB: filter absurd dates
-	nowDT = datetime.now()
+	nowDT =  awareDT(datetime.now())
 	maxDate =OakCrime.objects.filter(cdateTime__lt=nowDT).aggregate(Max('cdateTime'))['cdateTime__max']
 	
 	minDate =OakCrime.objects.all().aggregate(Min('cdateTime'))['cdateTime__min']
@@ -987,14 +1030,6 @@ def docView(request):
 													'minDate': minDateStr,
 													'maxModDate': maxModDateStr})
 			
-from django.contrib import admin
-from django.contrib.gis.admin import GeoModelAdmin
-from django.contrib.gis.measure import D
-
-from rest_framework import viewsets, generics
-from dailyIncid import serializers
-
-from datetime import datetime, timedelta
 
 # ViewSet classes are almost the same thing as View classes, except that
 # they provide operations such as read, or update, and not method
@@ -1026,15 +1061,16 @@ class BeatAPI(generics.ListAPIView):
 	
 	def get_queryset(self):
 		# restrict to last two years
-		begTime = datetime.now()
-		minDate = datetime.now() - timedelta(days=730)
+		nowDT = awareDT(datetime.now())
+
+		minDate = nowDT - timedelta(days=730)
 		beat = self.kwargs['beat']
 		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
 						filter(beat__iexact=beat). \
 						order_by('opd_rd')
 		
 		nresult = len(queryset)
-		elapTime = datetime.now() - begTime
+		elapTime = awareDT(datetime.now()) - nowDT
 		userName = self.request.user.get_username()
 		logger.info('user=%s BeatListAPI %s nresult=%d (%6.2f sec) ' % (userName,beat,nresult,elapTime.total_seconds()))
 
@@ -1055,15 +1091,15 @@ class NearHereAPI(generics.ListAPIView):
 		pt = Point(float(lngStr), float(latStr))
 		
 		closeRadius = 500
-		begTime = datetime.now()
-		minDate = datetime.now() - timedelta(days=180)
+		begTime = awareDT(datetime.now())
+		minDate = begTime - timedelta(days=180)
 
 		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
 					filter(point__distance_lte=(pt, D(m=closeRadius))). \
 					order_by('cdateTime')
 
 		nresult = len(queryset)
-		elapTime = datetime.now() - begTime
+		elapTime = awareDT(datetime.now()) - begTime
 		userName = self.request.user.get_username()
 		logger.info('user=%s NearHereAPI lng=%s lat=%s nresult=%d (%6.2f sec)' % (userName,lngStr,latStr,nresult,elapTime.total_seconds()))
 
@@ -1078,16 +1114,16 @@ class CrimeCatAPI(generics.ListAPIView):
 	def get_queryset(self):
 
 		crimeCat = self.kwargs['cc']
-		begTime = datetime.now()
+		begTime = awareDT(datetime.now())
 		# restrict to last two years
-		minDate = datetime.now() - timedelta(days=180)
+		minDate = begTime - timedelta(days=180)
 
 		queryset = OakCrime.objects.filter(cdateTime__gt=minDate). \
 						filter(crimeCat__iexact=crimeCat). \
 						order_by('opd_rd')
 
 		nresult = len(queryset)
-		elapTime = datetime.now() - begTime
+		elapTime = awareDT(datetime.now()) - begTime
 		userName = self.request.user.get_username()
 		logger.info('user=%s CrimeCatAPI cc=%s nresult=%d (%6.2f sec)' % (userName,crimeCat,nresult,elapTime.total_seconds()))
 

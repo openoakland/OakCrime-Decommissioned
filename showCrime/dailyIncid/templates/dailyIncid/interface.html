@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %} DailyIncidents {% endblock %}
+
+{% block content %}
+
+<h1 align=center>Interface</h1>
+
+<p>If you don't yet have a login to OakCrime.org, send a request to 
+<a href="mailto:info@oakcrime.org?subject=LoginRequest">info@oakcrime.org</a>.  
+Please include which beat / NCPC you live in (cf. <a href="http://mapgis.oaklandnet.com/PoliceDistricts/">OPD District & Beat Locator</a>), 
+and a description of your intended use of the facility, so we can plan accordingly. 
+</p>
+
+<p>With a valid login, you will see the home splash page shown below:</p>
+
+<p align=center>  <img style="border:2px solid black" width=500 src="{% static 'dailyIncidSplash.png' %}" alt="home splash page" />:</p>
+<p>There are currently four starting points for analysis of OPD incident data:</p>
+
+<h2 id="heatmap">Heatmap overview</h2>
+
+<p  align=center>  <img style="border:2px solid black" width=500 src="{% static 'heatmapExample.png' %}" alt="Heatmap overview" />:</p>
+<p>The central map shows a heatmap of crime across all of Oakland during the 
+last 90 days.  You should (depending on your web browser client's
+capabilities) be able to shift and zoom in and out on this map to capture
+a region as you wish.
+</p><p>
+<p  align=center>  <img style="border:2px solid black" width=500 src="{% static 'heatmapExample-select.png' %}" alt="Heatmap overview" />:</p>
+The figure above shows the date sliders at the top have been slid to 
+select a narrower date range.  Similarly, some of the crime category buttons along the
+left side have been selected.  After 
+zooming in and setting date and crime categories, hit the blue <b>Update selection</b>
+button and a new map will be repopulated according to these constraints.
+The result is shown in the figure below.
+<p  align=center>  <img style="border:2px solid black" width=500 src="{% static 'heatmapExample-update.png' %}" alt="Heatmap overview" />:</p>
+</p><p>
+<p  align=center>  <img style="border:2px solid black" width=500 src="{% static 'heatmapExample-zoom.png' %}" alt="Heatmap overview" />:</p>
+If you zoom in close enough, the heatmap dissolves into a set of individual 
+points that each correspond to specific incidents.  
+Major crimes (homicide, rape, robbery, assault or weapons charges) are 
+plotted with red pins, all other crimes use green pins. 
+Yellow dots correspond to incidents described only in Patrol logs, but 
+not in the standard incident reporting.
+Clicking any incident marker pops up its details (incident number, date and time, and crime category).</p>
+The highlighted blue incident number is
+a hot link that goes to an incident-specific report page.
+</p>
+
+<h2 id="gun">Gun-related crimes</h2>
+<p>
+This view shows only crimes involving guns, as reported in the patrol logs,
+but otherwise follows the same basic operation as the heatmap.
+</p>
+
+<h2 id="longitudinal-crime-types-analysis">Longitudinal crime types analysis</h2>
+<p>This workflow begins with the longitudinal plot query page:</p>
+
+<p  align=center>  <img style="border:2px solid black" width=500 src="{% static 'dailyIncidLongPlotQry.png' %}" alt="Longitudinal plot query page" />:</p>
+<p>This form asks a user to specify a Beat of interest, then either one or two Crime Categories. All incidents since 2007 are included in the resulting plot.</p>
+<p>The figure below shows the result of a query concerning beat 07X, and <code>COURT</code> (blue lines) and <code>HOMICIDE</code> (green lines) crime types:</p>
+<p align=center>  <img style="border:2px solid black" width=500 src="{% static '07X_COURT_HOMICIDE.png' %}" alt="Plot-07X+COURT+HOMICIDE" />:</p>
+<p>As part of the title, the total number of (both beat and all-Oakland) incidents is shown for each crime type. Then, for each Crime Category, both:</p>
+<ul>
+<li>the absolute number of incidents <em>per month</em> (solid line), and</li>
+<li>the city-wide average across all beats (dotted line)</li>
+</ul>
+<p>are plotted.</p>
+<!-- <p><strong>¡2do: Perform smarter &quot;average&quot; based on population, area, ...!</strong></p> -->
+
+<!-- <h6 id="implementation-notes">Implementation notes:</h6> -->
+<!-- <ul> -->
+<!-- <li><p><code>url(r'^query/$', views.getQuery, name='query')</code></p></li> -->
+<!-- <li><p><code>url(r'^plots/(?P&lt;beat&gt;\w+)\+(?P&lt;crimeCat&gt;[\w_-]+)\+(?P&lt;crimeCat2&gt;[\w_-]+).png$', views.plotResults, name='plotResult2' ),</code></p></li> -->
+<!-- </ul> -->
+
+<h2 id="geographic-analysis-of-recent-crimes">Geographic analysis of recent crimes</h2>
+<p>A second workflow allows investigation of crime incidents based on their location. Results near pre-computed <em>BART stops</em> can be used to plot nearby crimes. The plot below shows incidents <em>during the previous six months</em> near the Macarthur BART station.
+
+<p align=center><img style="border:2px solid black" width=500 src="{% static 'nearMacarthur_170502.png' %}" alt="near-macarthur" />:</p>
+  The total number of crimes appears in the plot title. Major crimes (homicide, rape, robbery, assault or weapons charges) are plotted with red pins, all other crimes use green pins. Mousing over any incident marker pops up its details (incident number, date and time, and crime category).</p>
+<p>A similar analysis is available for some (District 4) Oakland parks.</p>
+
+<!-- <h6 id="implementation-notes-1">Implementation notes:</h6> -->
+<!-- <ul> -->
+<!-- <li><p><code>url(r'nearherelistmz/$', views.nearHereListMZ, name='nearherelistmz')</code></p> -->
+<!-- <ol style="list-style-type: decimal"> -->
+<!-- <li><p><code>getLatLong.html</code></p></li> -->
+<!-- <li><p>Perform query</p> -->
+<!-- <pre><code>queryset = OakCrime.objects.filter(cdate__gt=minDate). \ -->
+<!-- filter(point__distance_lte=(pt, D(m=closeRadius))). \ -->
+<!-- order_by(&#39;cdate&#39;)</code></pre></li> -->
+<!-- <li><p><code>nearHereListMZ.html</code></p></li> -->
+<!-- </ol></li> -->
+<!-- <li><code>url(r'nearbartmz/$', views.nearbartmz, name='nearbartmz')</code> -->
+<!-- <ul> -->
+<!-- <li><code>nearBARTmz2.html</code></li> -->
+<!-- </ul></li> -->
+<!-- </ul> -->
+
+<h2 id="api">API</h2>
+<p>Three API endpoints have been defined, mirroring query patterns of the interface. All queries begin with the same <code>oakcrime.org/dailyIncid</code> prefix, followed by one of three different strings:</p>
+<ol style="list-style-type: decimal">
+<li><p>For crimes relating to a specific beat, eg: <code>beatAPI/03X/</code></p>
+<p>restricted to the last two years.</p></li>
+<li><p>For crimes of a certain category, eg: <code>crimeCatAPI/LARCENY_THEFT_VEHICLE_AUTO</code></p>
+<p>restricted to last 6 months</p></li>
+<li><p>For crimes within 500m of some longitude_latitude, eg: <code>nearHereAPI/-122.265944_37.828199</code></p>
+<p>restricted to last 6 months. Note that longitude is provided first, and separated by an underbar(_) from latitude.</p></li>
+</ol>
+<p>The default result is an HTML page. JSON output can be returned instead by adding the suffix <code>?format=json</code> to the query, eg <code>oakcrime.org/dailyIncid/beatAPI/07X/?format=json</code>.</p>
+
+
+<h2 id="ncpc">NCPC reports</h2>
+
+<p>Users that have been identified as the contact representative for their local NCPC
+can access a report in preparation for their regular meeting.  An example is shown
+in this figure:</p>
+<p align=center><img style="border:2px solid black" width=500 src="{% static 'ncpc-report.png' %}" alt="ncpc-report" />:</p>
+<p>
+The report heading lists the dates for your beat that are included.  
+In the map, incidents that OPD has assigned to your beat(s) are shown in large red circles.  
+A relaxed "bounding box" around these incidents is shown as a gray rectangle.  
+This region defines a larger set of other incidents in the vicinity of your beat.  
+These other adjacent incidents are marked with smaller black dots.
+(Black dots within the beat seem to suggest incidents with incorrect beat assignment by OPD.)
+</p>
+<p>
+
+Yellow dots correspond to incidents described only in Patrol logs, but 
+not in the standard incident reporting.
+</p>
+<p>
+Clicking on any dot will pop-up date and crime type information particular to that incident.  
+The highlighted blue incident number is a hot link that goes to an incident-specific report page.
+</p>
+<p>
+Above the map is a blue "Download beat data" button. 
+Clicking it will download A CSV file to your computer.  
+It containing all incidents associated with your beat (but not those only in the vicinity) 
+during the time period.
+</p>
+
+{% endblock %}

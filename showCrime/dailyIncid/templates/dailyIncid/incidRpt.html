@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% load startswith %}
+
+{% block title %} Incident Report #{{incid.opd_rd}} {% endblock %}
+{% block prescripts %}
+    <meta charset="utf-8">
+
+	<script src='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.js'></script>
+	<link href='https://api.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.css' rel='stylesheet' />
+
+
+	<script>
+		// function definitions
+		
+		function timestamp(str){ return new Date(str).getTime(); }
+		
+		function toBBoxStr(lngLatBounds) {
+			// convert mapbox LngLatBounds 
+			// replacing leaflet's map.getBounds().toBBoxString()
+			// bounding box coordinates in [southwest_lng,southwest_lat,northeast_lng,northeast_lat] format	
+	
+			var outStr = `[ ${lngLatBounds["_sw"]["lng"]}, ${lngLatBounds["_sw"]["lat"]}, ${lngLatBounds["_ne"]["lng"]}, ${lngLatBounds["_ne"]["lat"]} ]`;
+			return outStr;	
+		};
+			    
+    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+		var mapmargin = 100;
+		$('#map').css("height", ($(window).height() - mapmargin));
+		$(window).on("resize", resize);
+		resize();
+		function resize(){
+		
+		    if($(window).width()>=980){
+		        $('#map').css("height", ($(window).height() - mapmargin));    
+		        $('#map').css("margin-top",50);
+		    }else{
+		        $('#map').css("height", ($(window).height() - (mapmargin+12)));    
+		        $('#map').css("margin-top",10);
+		    }
+		
+		}
+		    	
+	</script>
+	<style>
+		.map {
+		    height: 500px; 
+		}
+	</style>
+{% endblock %}
+
+{% block content %}
+
+	<h2 align=center>Incident Report #{{incid.opd_rd}}</h2>
+	<dl>
+		<dt>Date/time</dt><dd>{{incid.cdateTime}}</dd>
+		<dt>Daily log</dt><dd>{{incid.dlogData}}</dd>
+		<dt>Type</dt><dd>{{incid.ctype}}</dd>
+		<dt>Description</dt><dd>{{incid.desc}}</dd>
+		<dt>Beat</dt><dd>{{incid.beat}}</dd>
+		<dt>Address</dt><dd>{{incid.addr}}</dd>
+		<dt>Crime category</dt><dd>{{incid.crimeCat}}</dd>
+	</dl>
+
+    <form id="downloadForm" action="/dailyIncid/need2login/">
+
+		<p align=center>Do you have 
+			<button type="submit" style="color:blue">information to share</button>
+			about this incident you wish to pass along to OPD?
+		  </p>
+    </form>
+
+	{% if incid.xlng != None %}
+
+ 		
+    <div id="map" class="map">
+      
+    <script>
+	
+      	mapboxgl.accessToken = 'pk.eyJ1IjoicmlrYmVsZXciLCJhIjoiY2pieTZwNnB4MzR5YjMybWtld3FzODFvZyJ9.w0Sqg1pkABegUuQhBTPKwQ';
+		var map = new mapboxgl.Map({
+			container: 'map',
+			center: [{{incid.xlng}},{{incid.ylat}}],
+			zoom: 14,
+			style: 'mapbox://styles/mapbox/streets-v10'
+		});
+
+       	var fitBnds = map.getBounds();
+       	console.log('\n fitBounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() + '\n');
+      			
+  		console.log('\ninitial map bounds: ' + toBBoxStr(map.getBounds()) + ' zoom:'+ map.getZoom() +'\n');    	
+ 				
+		map.on('load', function() {
+								    		    
+		   map.addLayer({
+		        "id": "incidMarker",
+		        "type": "circle",
+		        "source": {"type": "geojson",
+            			   "data": {
+				                "type": "FeatureCollection",
+				                "features": [{
+				                    "type": "Feature",
+				                    "geometry": {
+				                        "type": "Point",
+				                        "coordinates": [{{incid.xlng}}, {{incid.ylat}} ]
+				                    },
+				                    "properties": {
+				                        "title": "{{incid.opd_rd}}"
+				                    }
+				                }, ]
+				            },
+				           },
+		        			
+		        "paint": {
+		        	"circle-radius": 8, 			
+		        	"circle-color":  "red", 
+		        			        			        
+		        } // eo-paint
+		        
+		    }, 'waterway-label');
+		    			
+		    			
+			console.log("eo-onLoad");
+		    
+		}); // eo-onLoad
+		
+
+    </script>
+	    
+    </div> <!-- eo-map -->
+    
+    {% endif %}
+     
+{% endblock %}
