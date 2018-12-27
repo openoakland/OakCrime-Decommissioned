@@ -1,4 +1,4 @@
-Django==2.0.6
+Django==1.11.17
 django-environ==0.4.5
 djangorestframework==3.9.0
 geojson==2.4.1
