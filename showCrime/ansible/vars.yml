@@ -1,0 +1,40 @@
+# following https://github.com/technivore/ansible-django
+---
+project_name: showCrime
+install_root: /django
+wsgi_module: showCrime.wsgi
+pythonpath: "{{ install_root }}/{{ project_name }}/showCrime/dailyIncid"
+project_repo: git@github.com:rbelew/OakCrime.git
+ssh_private_key: ~/.ssh/id_rsa
+static_root: "{{ install_root }}/{{ project_name }}/static"
+server_name: oakcrime.aws.openoakland.org
+
+# apt packages, you should not need to change this unless you have packages
+# listed in your requirements.txt that depend on system packages.
+system_packages:
+  - git
+  - postgresql
+  - postgresql-server-dev-all
+  - python-pip
+  - python-dev
+  - python-psycopg2
+
+# <eo-ansible-django>
+
+django_dir:  {{ install_root }}
+settings_dir: # = settings:
+initial_data: # = fixtures:
+cache_table:
+command:
+database: djdb10
+pythonpath:
+
+DEBUG: True
+EMAIL_HOST: 
+EMAIL_HOST_USER:
+EMAIL_PW: 
+SERVER_EMAIL: 
+SITE_URL: http://localhost:8000
+
+POSTGRES_DB: oakcrime
+DATABASE_URL: postgis://oakcrime:oakcrime@oakcrime.db:5432/oakcrime?connect_timeout=60

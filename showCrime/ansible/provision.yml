@@ -1,0 +1,32 @@
+# following https://github.com/technivore/ansible-django
+---
+- hosts: servers
+  vars_files:
+    - OC-vars.yml
+    - OC-secureVars.yml
+  gather_facts: false
+  become: yes
+
+  tasks:
+    - name: Install system packages
+      apt: pkg={{ item }} update-cache=yes
+      with_items: "{{ system_packages }}"
+
+    - name: Save ssh key to server
+      copy: src={{ ssh_private_key }} dest=/root/.ssh/id_rsa mode=600
+
+    - name: Create directory for app
+      file: path={{ install_root }}/{{ project_name }} state=directory
+
+    - name: make sure postgresql server is running
+      service: name=postgresql state=started
+
+    - name: create database
+      become_user: postgres
+      postgresql_db: name={{ POSTGRES_DB }}
+
+    - name: create database user
+      become_user: postgres
+      postgresql_user: db={{ POSTGRES_DB }} name={{ DB_USER }} password={{ DB_PW }} priv=ALL
+
+- include: deploy.yml
