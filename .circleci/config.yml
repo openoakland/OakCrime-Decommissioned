@@ -1,0 +1,34 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-oakcrime-{{ checksum "showCrime/requirements.txt" }}
+            - v1-oakcrime-
+      - run:
+          name: create virtualenv and install dependencies
+          command: |
+            virtualenv venv
+            source venv/bin/activate
+            pip install -r showCrime/requirements.dev.txt
+            pip install -r showCrime/requirements.txt
+      - save_cache:
+          key: v1-oakcrime-{{ checksum "showCrime/requirements.txt" }}
+          paths:
+            - venv
+      - run:
+          name: lint python files
+          command: |
+            source venv/bin/activate
+            make lint
+
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build

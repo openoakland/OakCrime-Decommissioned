@@ -28,17 +28,14 @@ from django.conf import settings
 urlpatterns = [
     url(r'^dailyIncid/', include('dailyIncid.urls')),
     # url(r'^', include(router.urls)),
-
-	url(r'^$', views.index, name='showCrimeIndex'),
-	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-	
-    url(r'^admin/', admin.site.urls),    
+    url(r'^$', views.index, name='showCrimeIndex'),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^admin/', admin.site.urls),
 ]
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
-		# For django versions before 2.0:
-		url(r'^__debug__/', include(debug_toolbar.urls)),
+        # For django versions before 2.0:
+        url(r'^__debug__/', include(debug_toolbar.urls)),
         # path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
-

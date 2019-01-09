@@ -71,7 +71,7 @@ if DEBUG:
 	STATICFILES_DIRS = [ ]
 	INTERNAL_IPS = ['127.0.0.1' ] # for debug_toolbar
 else:
-	STATICFILES_DIRS = [ env(STATICFILES_DIRS), ]
+	STATICFILES_DIRS = [ env('STATICFILES_DIRS'), ]
 	INTERNAL_IPS = []
 
 
