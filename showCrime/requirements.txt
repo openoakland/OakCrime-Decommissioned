@@ -1,13 +1,13 @@
+boxsdk==2.0.0
 Django==1.11.17
 django-environ==0.4.5
 djangorestframework==3.9.0
+editdistance==0.4
 geojson==2.4.1
+googlemaps==3.0.2
+mapbox==0.17.2
 matplotlib==2.2.3
 numpy==1.15.4
 psycopg2-binary==2.7.6.1
 python-dateutil==2.7.5
 pytz==2018.7
-boxsdk==2.0.0
-editdistance==0.4
-googlemaps==3.0.2
-mapbox==0.17.2
