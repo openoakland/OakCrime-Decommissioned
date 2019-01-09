@@ -141,10 +141,6 @@ USE_I18N = True
 
 USE_L10N = True
 
-# https://docs.djangoproject.com/en/2.1/topics/i18n/timezones/#database
-# ... if you’re using PostgreSQL, you can switch between USE_TZ = False and USE_TZ = True freely.
-# The database connection’s time zone will be set to TIME_ZONE or UTC respectively, so that Django obtains correct datetimes in all cases.
-# You don’t need to perform any data conversions
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)

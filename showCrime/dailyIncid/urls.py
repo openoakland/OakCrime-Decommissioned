@@ -45,6 +45,4 @@ urlpatterns = [
     url(r'beatAPI/(?P<beat>.+)/$', views.BeatAPI.as_view(), name='beatlist'),
     url(r'nearHereAPI/(?P<lng>.+)_(?P<lat>.+)/$', views.NearHereAPI.as_view(), name='nearhereapi'),
     url(r'crimeCatAPI/(?P<cc>.+)/$', views.CrimeCatAPI.as_view(), name='crimecatapi'),
-
-    url(r'^testPage$', views.testPage, name='testPage'),
 ]

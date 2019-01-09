@@ -48,7 +48,6 @@ Not sure what this does.
 
 - urlpatterns = patterns('',
 - url(r'^$', views.index, name='index'),
-- url(r'^testPage$', views.testPage, name='testPage'),
 - url(r'^tstImage.JPG$', views.showImage, name='showImage'),
 - url(r'^query/$', views.getQuery, name='query'),
 - url(r'^plots/(?P<beat>\w+)\+(?P<crimeCat>[\w_-]+).png$', views.plotResults, name='plotResults' ),
@@ -60,8 +59,6 @@ Not sure what this does.
 Contains request handling for application. For example:
 
 def index(request):
-
-def testPage(request):
 
 def showImage(request):
 
