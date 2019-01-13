@@ -48,42 +48,6 @@ docker start showCrimeDB
 
 ### Loading OPD data
 
-First retrieve a csv file from http://data.openoakland.org/dataset/crime-reports in csv file format
-
-Then use the dropSource4django.py script (in showCrime/etc/) to convert to another csv file suitable for use in our db. You will need to edit the file paths in this script to reflect where you currently have the data. 
-
-```bash
-# Connect via psql to docker-contained db.
-psql -h localhost -U oakCrime # You will be prompted for password.
-
-# Then, inside the psql session
-\copy crime_main_oakcrime FROM OPD_FILENAME DELIMITER ',' CSV HEADER
-update crime_main_oakcrime SET latlong = ST_SetSRID(ST_MakePoint(long, lat), 4326)
-```
-
-
-### Run dev server:
-
-```bash
-./manage.py runserver
-# visit localhost:8000 to view site
-```
-
-### Example Distance Queries
-
-See the geodjango project for more: https://docs.djangoproject.com/en/1.10/ref/contrib/gis/
-
-```bash
-./manage.py shell
-```
-
-In the shell:
-```python
-from crime_main.models import OakCrime
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.measure import D
-
-pnt = GEOSGeometry('POINT(-122.251646 37.843534)', srid=4326)
-
-recs = OakCrime.objects.filter(latlong__distance_lte=(pnt, D(km=1)))
-```
+Older OakCrime datasets in (CSV, JSON and sqlite formats) remain
+available http://data.openoakland.org/dataset/crime-reports in csv
+file formats, but these have not been updated since late 2016.
