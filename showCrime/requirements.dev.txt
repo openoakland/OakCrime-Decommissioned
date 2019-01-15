@@ -1,2 +1,2 @@
-django-debug-toolbar
-pylint
+django-debug-toolbar==1.11
+pylint==2.2.2
