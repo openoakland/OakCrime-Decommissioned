@@ -240,12 +240,6 @@ CRON_CLASSES = [
 	'django_cron.cron.FailedRunsNotificationCronJob',
 ]
 
-# Email config, ala https://docs.webfaction.com/software/django/getting-started.html?highlight=django%2520email#configuring-django-to-send-email-messages
-ADMIN = ((env('ADMIN_USER'),env('ADMIN_EMAIL')))
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD  = env('EMAIL_PW')
-SERVER_EMAIL = env('SERVER_EMAIL')
 SITE_URL = env('SITE_URL')
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
@@ -255,25 +249,3 @@ DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 LOG_FILE_PATH = os.path.join(root, "logs") 
 PLOT_PATH = os.path.join(root, "plots") 
-
-###################
-# echo settings
-
-import django
-print('settings: django version',django.__version__)
-print('settings: DEBUG',DEBUG)
-
-import socket
-HostName = socket.gethostname()
-print('settings: HostName', HostName)
-print('settings: root', root)
-print('settings: STATIC_URL', STATIC_URL)
-print('settings: SITE_URL', SITE_URL)
-print('settings: STATICFILES_DIRS', STATICFILES_DIRS)
-print('settings: MEDIA_ROOT', MEDIA_ROOT)
-print('settings: LOG_FILE_PATH', LOG_FILE_PATH)
-print('settings: PLOT_PATH', PLOT_PATH)
-print('settings: database hosted at %s:%s' % (DATABASES['default']["HOST"],DATABASES['default']["NAME"]))
-print('settings: DEBUG',DEBUG)
-
-
