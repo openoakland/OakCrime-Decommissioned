@@ -51,3 +51,14 @@ docker start showCrimeDB
 Older OakCrime datasets in (CSV, JSON and sqlite formats) remain
 available http://data.openoakland.org/dataset/crime-reports in csv
 file formats, but these have not been updated since late 2016.
+
+### Environment Variables for Dev
+```
+export DATABASE_URL=postgis://oakCrime:oakCrime@localhost:5432/postgres?connect_timeout=60
+export DEBUG=true
+export LOG_FILE_PATH=/logs/showCrime
+export PLOT_PATH=/plots
+export PUBLIC_ROOT=/public/showCrime
+export SITE_URL=http://localhost:8000
+export SECRET_KEY="Change me in the real world"
+```

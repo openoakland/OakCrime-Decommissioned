@@ -8,6 +8,7 @@ __date__ = "181217"
 __version__ = "0.3"
 
 import environ
+import dj_database_url
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 root = environ.Path(__file__) - 2
@@ -102,14 +103,7 @@ WSGI_APPLICATION = 'showCrime.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-	'default': {
-			# LOCAL DATABASE
-		'ENGINE': 'django.contrib.gis.db.backends.postgis',
- 		'NAME': env('DB_NAME'),
- 		'USER': env('DB_USER'),
- 		'PASSWORD': env('DB_PW'),
- 		'HOST': env('DB_HOST')		
-	},
+	'default': dj_database_url.config()
 }
 
 # Password validation
@@ -241,11 +235,11 @@ CRON_CLASSES = [
 ]
 
 # Email config, ala https://docs.webfaction.com/software/django/getting-started.html?highlight=django%2520email#configuring-django-to-send-email-messages
-ADMIN = ((env('ADMIN_USER'),env('ADMIN_EMAIL')))
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD  = env('EMAIL_PW')
-SERVER_EMAIL = env('SERVER_EMAIL')
+#ADMIN = ((env('ADMIN_USER'),env('ADMIN_EMAIL')))
+#EMAIL_HOST = env('EMAIL_HOST')
+#EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD  = env('EMAIL_PW')
+#SERVER_EMAIL = env('SERVER_EMAIL')
 SITE_URL = env('SITE_URL')
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
