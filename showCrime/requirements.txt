@@ -4,7 +4,9 @@ django-environ==0.4.5
 djangorestframework==3.9.0
 editdistance==0.4
 geojson==2.4.1
+gevent==1.4.0
 googlemaps==3.0.2
+gunicorn==19.9.0
 mapbox==0.17.2
 matplotlib==2.2.3
 numpy==1.15.4
