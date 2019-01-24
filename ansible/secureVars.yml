@@ -9,10 +9,7 @@ EMAIL_PW:
 SERVER_EMAIL: 
 GoogleMapAPIKey: 
 BoxEnterpriseID: 
-BoxHarvestBotUserID: 
-BoxHarvestBotEmail: 
-BoxDevpToken: 
-BoxClientID: 
+BoxClientID:
 BoxClientSecret: 
 BoxPublicKeyID: 
 BoxRSAFile: 

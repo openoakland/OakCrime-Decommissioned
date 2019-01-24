@@ -142,9 +142,6 @@ environment:
   
   GoogleMapAPIKey=
   BoxEnterpriseID=
-  BoxHarvestBotUserID=
-  BoxHarvestBotEmail=
-  BoxDevpToken=
   BoxClientID=
   BoxClientSecret=
   BoxPublicKeyID=
