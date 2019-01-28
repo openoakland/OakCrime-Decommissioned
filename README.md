@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/rbelew/OakCrime.svg?style=svg)](https://circleci.com/gh/rbelew/OakCrime)
+[![CircleCI](https://circleci.com/gh/openoakland/OakCrime.svg?style=svg)](https://circleci.com/gh/openoakland/OakCrime)
 
 OakCrime
 ========
