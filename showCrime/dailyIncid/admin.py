@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import OakCrime
-
 from django.contrib.gis.admin import GeoModelAdmin
+
+from .models import OakCrime
 
 # admin.site.register(OakCrime)
 

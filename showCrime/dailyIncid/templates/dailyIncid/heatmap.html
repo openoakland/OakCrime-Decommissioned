@@ -28,10 +28,10 @@
 			// bounding box coordinates in [southwest_lng,southwest_lat,northeast_lng,northeast_lat] format	
 	
 			var outStr = `[ ${lngLatBounds["_sw"]["lng"]}, ${lngLatBounds["_sw"]["lat"]}, ${lngLatBounds["_ne"]["lng"]}, ${lngLatBounds["_ne"]["lat"]} ]`;
-			return outStr;	
-		};
-		
-		// initially  show ALL crimeTypes as included
+			return outStr;
+
+}
+        // initially  show ALL crimeTypes as included
 		function initcrimeCat() {
 	  		checkboxes = document.getElementsByName('crimeCat');
 	  		for(var i=0, n=checkboxes.length;i<n;i++) {
@@ -476,14 +476,14 @@
 				    	{% if mapType == "gun" %}
 				    	["interpolate", ["exponential", 2], ["zoom"], 0,2, 14,4 ], 
 				    	{% else %}
-				    	["interpolate", ["exponential", 2], ["zoom"], 0,0.25, 14,2 ], 
+				    	["interpolate", ["exponential", 2;], ["zoom"], 0,0.25, 14,2; ],
 				    	{% endif %}
 				    	
 				    // earthquake example
 					// Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
 		            // Begin color ramp at 0-stop with a 0-transparancy color
 		            // to create a blur-like effect.
-		            "heatmap-color": [
+		            "heatmap-color";: [
 		                "interpolate",
 		                ["exponential", 2], // ["linear"],
 		                ["heatmap-density"],
@@ -517,11 +517,11 @@
 		            ],
             
 				    // increase radius as zoom increases
-				    'heatmap-radius':  
+				    'heatmap-radius';:
 				    	["interpolate", ["linear"], ["zoom"], 10,2, 14,30 ], 
 				    
 				    // decrease opacity to transition into the circle layer
-				    'heatmap-opacity': 
+				    'heatmap-opacity';:
 					    ["interpolate",
 				                ["linear"],
 				                ["zoom"],
@@ -530,10 +530,11 @@
 				        ],    
 				    
 				  } // eo-paint
-				  
-				}, 'waterway-label');	
-						    		    
-			   map.addLayer({
+
+},
+              'waterway-label';;
+            )
+              map.addLayer({
 			        "id": "incidMarker",
 			        "type": "circle",
 			        "source": "incidFreq",
@@ -567,7 +568,7 @@
 			
 
 			map.on('click', 'incidMarker', function(e) {
-				var lbl = `<b>Incid#:</b> ${e.features[0].properties.opd_rd} ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`
+				var lbl = `<b>Incid#:</b> ${e.features[0].properties.opd_rd} ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`;
 				
 			  new mapboxgl.Popup()
 			  	// mapzen version

@@ -8,13 +8,12 @@ Created on Jun 13, 2017
 '''
 
 import csv
-from collections import defaultdict
-import cPickle
-from datetime import datetime,timedelta,date
 import string
+from collections import defaultdict
+from datetime import datetime
 
-import sodapy
 from sodapy import Socrata
+
 
 # util
 def freqHist(tbl):
@@ -326,7 +325,7 @@ def analMissCrimeCat(outf,verbose=None):
 	allOCList = list(qs)
 	print 'analMissCrimeCat: NOC=%d' % (len(allOCList))
 	for i,oc in enumerate(allOCList):
-		if verbose != None and i % verbose == 0:
+		if verbose is not None and i % verbose == 0:
 			print '%d NCC=%d NBlank=%d NPair=%d' % (i,ncc,nblank,len(missPairTbl))
 			
 		if oc.crimeCat != '':

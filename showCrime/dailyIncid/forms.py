@@ -112,7 +112,7 @@ class twoTypeQ(forms.Form):
 	crimeCat2 = forms.ChoiceField(choices=secondCatChoice,required=False)  
 	
 	def __unicode__(self):
-		if not(self.crimeCat2 == None or self.crimeCat2 == ''):
+		if not(self.crimeCat2 is None or self.crimeCat2 == ''):
 			return '%s+%s+%s' % (self.beat,self.crimeCat,self.crimeCat2)
 		else:
 			return '%s+%s' % (self.beat,self.crimeCat)
@@ -158,6 +158,3 @@ class getPlaceList(forms.Form):
 
 	def __unicode__(self):
 		return '%s' % (self.placeList)
-
-
-		

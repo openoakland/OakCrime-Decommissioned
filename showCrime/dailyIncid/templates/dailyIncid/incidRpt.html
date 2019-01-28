@@ -23,10 +23,10 @@
 			// bounding box coordinates in [southwest_lng,southwest_lat,northeast_lng,northeast_lat] format	
 	
 			var outStr = `[ ${lngLatBounds["_sw"]["lng"]}, ${lngLatBounds["_sw"]["lat"]}, ${lngLatBounds["_ne"]["lng"]}, ${lngLatBounds["_ne"]["lat"]} ]`;
-			return outStr;	
-		};
-			    
-    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+			return outStr;
+
+}
+        // http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
 		var mapmargin = 100;
 		$('#map').css("height", ($(window).height() - mapmargin));
 		$(window).on("resize", resize);
@@ -72,7 +72,7 @@
 		  </p>
     </form>
 
-	{% if incid.xlng != None %}
+	{% if incid.xlng is not None %}
 
  		
     <div id="map" class="map">

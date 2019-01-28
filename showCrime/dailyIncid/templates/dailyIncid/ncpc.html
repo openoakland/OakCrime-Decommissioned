@@ -23,10 +23,10 @@
 			// bounding box coordinates in [southwest_lng,southwest_lat,northeast_lng,northeast_lat] format	
 	
 			var outStr = `[ ${lngLatBounds["_sw"]["lng"]}, ${lngLatBounds["_sw"]["lat"]}, ${lngLatBounds["_ne"]["lng"]}, ${lngLatBounds["_ne"]["lat"]} ]`;
-			return outStr;	
-		};
-			    
-    	// http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
+			return outStr;
+
+}
+        // http://gis.stackexchange.com/questions/62491/sizing-leaflet-map-inside-bootstrap
 		var mapmargin = 100;
 		$('#map').css("height", ($(window).height() - mapmargin));
 		$(window).on("resize", resize);
@@ -116,8 +116,8 @@
     <script>
 
 
-		var OakCenterLat = 37.7987417644
-		var OakCenterLng = -122.2378203971 
+		var OakCenterLat = 37.7987417644;
+		var OakCenterLng = -122.2378203971;
 		
       	mapboxgl.accessToken = 'pk.eyJ1IjoicmlrYmVsZXciLCJhIjoiY2pieTZwNnB4MzR5YjMybWtld3FzODFvZyJ9.w0Sqg1pkABegUuQhBTPKwQ';
 		var map = new mapboxgl.Map({
@@ -215,7 +215,7 @@
 		map.setZoom(12);
 		map.on('click', 'incidMarker', function(e) {
 			var url = `/dailyIncid/incidRpt/${e.features[0].properties.opd_rd}`;
-			var lbl = `<a href="${url}"><b>Incid#: ${e.features[0].properties.opd_rd}</b></a> ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`
+			var lbl = `<a href="${url}"><b>Incid#: ${e.features[0].properties.opd_rd}</b></a> ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`;
 			
 		  new mapboxgl.Popup()
 		    
