@@ -4,28 +4,34 @@ jobs:
   build:
     docker:
       - image: circleci/python:3.6
+    working_directory: ~/project/showCrime
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-oakcrime-{{ checksum "showCrime/requirements.txt" }}
-            - v1-oakcrime-
+      - checkout:
+          path: ~/project
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: create virtualenv and install dependencies
+          name: Build Docker image
           command: |
-            virtualenv venv
-            source venv/bin/activate
-            pip install -r showCrime/requirements.dev.txt
-            pip install -r showCrime/requirements.txt
-      - save_cache:
-          key: v1-oakcrime-{{ checksum "showCrime/requirements.txt" }}
-          paths:
-            - venv
+            make docker.pull
+            make docker.build
       - run:
-          name: lint python files
+          name: Code quality
           command: |
-            source venv/bin/activate
-            make lint
+            docker-compose -f docker-compose.yml -f docker-compose.ci.yml run app "make quality"
+      - run:
+          name: Migration testing
+          command: |
+            docker-compose -f docker-compose.yml -f docker-compose.ci.yml run app "./wait-for-it.sh db:5432 -- make detect_missing_migrations"
+            docker-compose -f docker-compose.yml -f docker-compose.ci.yml run app "./wait-for-it.sh db:5432 -- make migrate"
+      - run:
+          name: Build static files
+          command: |
+            docker-compose -f docker-compose.yml -f docker-compose.ci.yml run app "./wait-for-it.sh db:5432 -- make static"
+      - run:
+          name: Python testing
+          command: |
+            docker-compose -f docker-compose.yml -f docker-compose.ci.yml run app "./wait-for-it.sh db:5432 -- make test"
 
   ansible-test:
     docker:
