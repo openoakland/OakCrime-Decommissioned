@@ -312,7 +312,7 @@ def updateBoxIDTbl(boxIDTbl,lastUpdate):
 			
 		yrModDT = dateutil.parser.parse(yrInfo.modified_at)
 		
-		if prevYrModDT != None and not (yrModDT > prevYrModDT and yrModDT > lastUpdate):
+		if prevYrModDT is not None and not (yrModDT > prevYrModDT and yrModDT > lastUpdate):
 			print('updateBoxIDTbl: skipping year %s %s %s yrModDT=%s prevYrModDT=%s lastUpdate=%s' % \
 				(yrf.id,yrf.type,yrf.name,yrModDT,prevYrModDT,lastUpdate))
 			continue
@@ -335,7 +335,7 @@ def updateBoxIDTbl(boxIDTbl,lastUpdate):
 				prevMonModDT = None
 			monModDT = dateutil.parser.parse(monInfo.modified_at)
 				
-			if prevMonModDT != None and not (monModDT > prevMonModDT and monModDT > lastUpdate):
+			if prevMonModDT is not None and not (monModDT > prevMonModDT and monModDT > lastUpdate):
 				print('updateBoxIDTbl: skipping month %s %s %s monModDT=%s prevMonModDT=%s lastUpdate=%s' % \
 					(monf.id,monf.type,monf.name,monModDT,prevMonModDT,lastUpdate))
 				continue
