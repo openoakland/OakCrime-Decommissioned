@@ -302,13 +302,19 @@ def updateBoxIDTbl(boxIDTbl,lastUpdate):
 		# NB: '_' used to separate key bits; make sure it isn't already there
 		ykey = yrf.name.strip().lower().replace('_','#')
 		yrInfo = CurrBoxClient.folder(folder_id=yrf.id).get(fields=['modified_at'])
-		if ykey not in boxIDTbl['root']['kids']:
+		if ykey in boxIDTbl:
+			prevYrModDT = dateutil.parser.parse(boxIDTbl[ykey]['mdate'])
+		else:
+			assert ykey not in boxIDTbl['root']['kids'], "updateBoxIDTbl: inconsistent ykey?! %s" % (ykey)
 			boxIDTbl['root']['kids'].append(ykey)	
-		if ykey not in boxIDTbl:
 			boxIDTbl[ykey] = {'id': yrf.id,'mdate': yrInfo.modified_at,'kids': []}
+			prevYrModDT = None
+			
 		yrModDT = dateutil.parser.parse(yrInfo.modified_at)
-		prevYrModDT = dateutil.parser.parse(boxIDTbl[ykey]['mdate'])
-		if not (yrModDT > prevYrModDT and yrModDT > lastUpdate):
+		
+		if prevYrModDT is not None and not (yrModDT > prevYrModDT and yrModDT > lastUpdate):
+			print('updateBoxIDTbl: skipping year %s %s %s yrModDT=%s prevYrModDT=%s lastUpdate=%s' % \
+				(yrf.id,yrf.type,yrf.name,yrModDT,prevYrModDT,lastUpdate))
 			continue
 		
 		print('updateBoxIDTbl: updating year folder %s %s modified %s' % (yrf.id,yrf.name,yrInfo.modified_at))
@@ -320,13 +326,18 @@ def updateBoxIDTbl(boxIDTbl,lastUpdate):
 				continue
 			mkey = ykey + '_' + monf.name.strip().lower().replace('_','#')
 			monInfo = CurrBoxClient.folder(folder_id=monf.id).get(fields=['modified_at'])
+
+			if mkey in boxIDTbl:
+				prevMonModDT = dateutil.parser.parse(boxIDTbl[mkey]['mdate'])
 			if mkey not in boxIDTbl[ykey]['kids']:
 				boxIDTbl[ykey]['kids'].append(mkey)				
-			if mkey not in boxIDTbl:
 				boxIDTbl[mkey] = {'id': monf.id,'mdate': monInfo.modified_at,'kids': []}
+				prevMonModDT = None
 			monModDT = dateutil.parser.parse(monInfo.modified_at)
-			prevMonModDT = dateutil.parser.parse(boxIDTbl[mkey]['mdate'])
-			if not (monModDT > prevMonModDT and monModDT > lastUpdate):
+				
+			if prevMonModDT is not None and not (monModDT > prevMonModDT and monModDT > lastUpdate):
+				print('updateBoxIDTbl: skipping month %s %s %s monModDT=%s prevMonModDT=%s lastUpdate=%s' % \
+					(monf.id,monf.type,monf.name,monModDT,prevMonModDT,lastUpdate))
 				continue
 			
 			print('updateBoxIDTbl: updating month folder %s %s modified %s' % (monf.id,monf.name,monInfo.modified_at))		
@@ -340,11 +351,6 @@ def updateBoxIDTbl(boxIDTbl,lastUpdate):
 				dkey = mkey + '_' + dayf.name.strip().lower().replace('_','#')
 				dayInfo = CurrBoxClient.file(file_id=dayf.id).get(fields=['modified_at'])
 				
-# 				if dkey not in boxIDTbl[mkey]['kids']:
-# 					boxIDTbl[mkey]['kids'].append(dkey)	
-# 				if dkey not in boxIDTbl:
-# 					boxIDTbl[dkey] = {'id': dayf.id,'mdate': dayInfo.modified_at} # NB, no kids for files
-
 				if dkey in boxIDTbl:
 					# ASSUME day is in month parent iff it's also in boxIDTbl itself
 					prevDayModDT = dateutil.parser.parse(boxIDTbl[dkey]['mdate'])
@@ -371,6 +377,7 @@ class Command(BaseCommand):
 
 		verbose = None
 		checkPoint = True
+		boxCheckDT = datetime.strptime("181231", "%y%m%d")
 
 # 		import logging
 # 		logging.basicConfig(level=logging.WARNING)
@@ -386,10 +393,16 @@ class Command(BaseCommand):
 		lastDLogOC = OakCrime.objects.filter(source__contains='DLog_').latest('lastModDateTime')
 		lastDLogDT = lastDLogOC.lastModDateTime
 		
-		# NB: HarvestOverlapBuffer to avoid missing any in the gap!
-		HarvestOverlapBuffer = 2
-		lastDLogDT -= timedelta(days=HarvestOverlapBuffer)
-		lastDLogDate = lastDLogDT.date()
+		if boxCheckDT != None:
+			print('harvestPatrolLog: %s using boxCheckDT=%s lastDLogDT=%s' % (dateStr,boxCheckDT, lastDLogDT))
+			lastDLogDT = awareDT(boxCheckDT)
+			lastDLogDate = boxCheckDT.date()
+		else:
+			# NB: HarvestOverlapBuffer to avoid missing any in the gap!
+			HarvestOverlapBuffer = 2
+			lastDLogDT -= timedelta(days=HarvestOverlapBuffer)
+			lastDLogDate = lastDLogDT.date()
+			print('harvestPatrolLog: %s using lastDLogDT=%s' % (dateStr, lastDLogDT))
 
 		print('harvestPatrolLog: %s DB last updated with PatrolLogs %s' % (dateStr,lastDLogDate))
 
