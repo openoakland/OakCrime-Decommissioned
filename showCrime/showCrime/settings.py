@@ -1,3 +1,12 @@
+"""
+django app for https://OakCrime.org
+"""
+
+__author__ = "rik@electronicArtifacts.com"
+__credits__ = ["clinton.blackburn@gmail.com","actionspeakslouder@gmail.com"]
+__date__ = "190128"
+__version__ = "0.1.0-alpha"
+
 import os
 
 import environ
@@ -224,3 +233,23 @@ PLOT_PATH = os.path.join(project_root, 'plots')
 SERVER_EMAIL = env('SERVER_EMAIL')
 EMAIL_CONFIG = env.email_url('EMAIL_URL')
 vars().update(EMAIL_CONFIG)
+
+###################
+# echo settings
+#
+# import django
+# print('settings: django version',django.__version__)
+# print('settings: DEBUG',DEBUG)
+#
+# import socket
+# HostName = socket.gethostname()
+# print('settings: HostName', HostName)
+# print('settings: root', root)
+# print('settings: STATIC_URL', STATIC_URL)
+# print('settings: SITE_URL', SITE_URL)
+# print('settings: STATICFILES_DIRS', STATICFILES_DIRS)
+# print('settings: MEDIA_ROOT', MEDIA_ROOT)
+# print('settings: LOG_FILE_PATH', LOG_FILE_PATH)
+# print('settings: PLOT_PATH', PLOT_PATH)
+# print('settings: database hosted at %s:%s' % (DATABASES['default']["HOST"],DATABASES['default']["NAME"]))
+# print('settings: DEBUG',DEBUG)
