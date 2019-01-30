@@ -14,6 +14,12 @@ solved it. Please make sure that the code passes our code style (via `make
 lint`) and you include automated unit tests for your changes.
 
 
+### Reviewing pull requests
+
+All pull requests must be reviewed by the @openoakland/oakcrime-reviewers team
+before they can be merged.
+
+
 ## Continuous integration
 
 OakCrime practices continuous integration. Every pull request is tested by our
