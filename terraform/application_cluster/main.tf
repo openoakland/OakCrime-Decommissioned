@@ -1,20 +1,7 @@
-variable "application_name" {}
-variable "db_name" {}
-variable "db_username" {}
-variable "db_password" {}
-variable "environment" {}
-
-variable "health_check_path" {
-  default = "/health/"
+data "aws_elastic_beanstalk_solution_stack" "docker" {
+  most_recent = true
+  name_regex = "^64bit Amazon Linux (.*) running Docker (.*)$"
 }
-
-variable "instance_type" {
-  default = "t3.micro"
-}
-
-variable "route_53_zone_id" {}
-variable "secret_key" {}
-variable "ssl_cert_arn" {}
 
 resource "aws_security_group" "application-load-balancer" {
   name = "${var.application_name}-${var.environment}-load-balancer"
@@ -82,7 +69,7 @@ resource "aws_db_instance" "database" {
   engine                    = "postgres"
   engine_version            = "10.5"
   instance_class            = "db.t2.micro"
-  deletion_protection       = "true"
+  deletion_protection       = "${var.deletion_protection}"
   identifier                = "${var.application_name}-${var.environment}"
   final_snapshot_identifier = "${var.application_name}-${var.environment}-final"
   name                      = "${var.db_name}"
@@ -112,7 +99,7 @@ resource "aws_elastic_beanstalk_application" "application" {
 resource "aws_elastic_beanstalk_environment" "environment" {
   name                = "${var.application_name}-${var.environment}"
   application         = "${var.application_name}"
-  solution_stack_name = "64bit Amazon Linux 2018.03 v2.12.5 running Docker 18.06.1-ce"
+  solution_stack_name = "${data.aws_elastic_beanstalk_solution_stack.docker.name}"
 
   // NOTE: See https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html for more settings.
   // NOTE: The RDS settings do not work!

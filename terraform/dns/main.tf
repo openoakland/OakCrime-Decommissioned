@@ -1,13 +1,13 @@
-variable "domain" {}
+variable "zone" {}
 
 // Create a DNS zone for the application's domain
 resource "aws_route53_zone" "zone" {
-  name = "${var.domain}"
+  name = "${var.zone}"
 }
 
 // Create an SSL/TLS certificate for the domain
 resource "aws_acm_certificate" "cert" {
-  domain_name       = "${var.domain}"
+  domain_name       = "${var.zone}"
   validation_method = "DNS"
 }
 
