@@ -1,50 +1,63 @@
 # ShowCrime: Visualizing Oakland Police Department Daily Incident data
 
-## Working on showCrime (django app)
+# showCrime django app
 
-### Setup a virtualenv for python dependencies:
 
-```bash
-python3 -m venv showCrime/oakcrime_venv
-```
+## Setup
 
-### Activate the virtualenv to start work:
+We use [Docker Compose](https://docs.docker.com/compose/) to ease development.
+Each component (django app, http server, and database) are each in their own
+container.
 
-```bash
-source showCrime/oakcrime_venv/bin/activate
-cd showCrime
-```
+All instructions assume you're running from the `showCrime` directory.
 
-### Install dependencies:
-```bash
-pip install -r requirements.txt
-# install system packages. for ubuntu:
-sudo apt-get install python3-tk
-sudo apt-get install libpq-dev
-sudo apt-get install libgdal-dev
-```
+    cd showCrime
 
-### Start local postgres database:
+Start the containers.
 
-Uses docker:
+    make local.up
 
-```bash
-# initial run, creates container named showCrimeDB
-docker run --name showCrimeDB -e POSTGRES_PASSWORD=oakCrime -e POSTGRES_USER=oakCrime -p 5432:5432 -d mdillon/postgis
-# stop the container
-docker stop showCrimeDB
-# start the container 
-docker start showCrimeDB
-```
+Open your web browser to [localhost:8000](http://localhost:8000).
 
-### Extra setup steps:
+### Make commands
 
-```bash
-# run database migrations
-./manage.py migrate
-# create yourself an admin user to login with
-./manage.py createsuperuser
-```
+
+#### make docker.build
+
+Build/rebuild the container images.
+
+#### make docker.pull
+
+Pull the latest container images from the Docker registry.
+
+
+#### make local.down
+
+Stop and remove the containers.
+
+
+#### make local.restart
+
+Restart the containers.
+
+
+#### make local.shell
+
+Open a shell in the application container.
+
+
+#### make local.up
+
+Start the containers.
+
+
+### Extra setup steps
+
+Create an admin user to login with.
+
+    make local.shell
+    ./manage.py createsuperuser
+
 
 ### Loading OPD data
 

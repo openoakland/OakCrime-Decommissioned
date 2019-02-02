@@ -20,8 +20,19 @@ Primary bits involve:
 
 We assume you already have these installed:
 
+- [Docker Compose](https://docs.docker.com/compose/) v1.x
+- [Docker](https://www.docker.com/) v18.x
+- [Make](https://www.gnu.org/software/make/)
+- [Postgres](https://www.postgresql.org/) v10.x
 - [Python](https://www.python.org/) 3.6+
-- [Postgres](https://www.postgresql.org/)
+
+_MacOS users: you'll find most of these tools in [Homebrew](https://brew.sh)._
+
+
+## Setup
+
+The main project is the django application. Please follow the instructions in
+[showCrime/README](showCrime/README.md).
 
 
 ## Continuous integration
