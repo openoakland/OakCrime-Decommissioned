@@ -15,14 +15,9 @@ RUN apt-get update && \
         libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY Makefile /app/showCrime
-COPY requirements.txt /app/showCrime
-COPY requirements.dev.txt /app/showCrime
-COPY conf/wait-for-it.sh /app/showCrime
+COPY . /app/showCrime
 
 RUN make requirements
-
-COPY showCrime /app/showCrime
 
 RUN mkdir -p /logs \
     && touch /logs/app.log \
