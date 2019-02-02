@@ -20,3 +20,13 @@ variable "deletion_protection" {
   description = "Enable deletion protection on various components."
   default = true
 }
+
+variable "server_email" {
+  description = "Django's SERVER_EMAIL setting. The email address to send admin email."
+  default = "root@localhost"
+}
+
+variable "email_url" {
+  description = "Django's EMAIL_URL setting. The url for the SMTP server, username, password, etc."
+  default = "smtp://user@:password@localhost:25"
+}

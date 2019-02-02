@@ -209,6 +209,18 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     name      = "DATABASE_URL"
     value     = "psql://${var.db_username}:${var.db_password}@${aws_db_instance.database.endpoint}/${var.db_name}"
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "SERVER_EMAIL"
+    value     = "${var.server_email}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "EMAIL_URL"
+    value     = "${var.email_url}"
+  }
 }
 
 // Create a DNS record at the naked domain (e.g. example.com instead of www.example.com)
