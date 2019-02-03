@@ -79,7 +79,7 @@ resource "aws_iam_user_policy" "ci" {
         "cloudformation:UpdateStack",
         "ec2:AuthorizeSecurityGroupIngress",
         "ec2:RevokeSecurityGroupIngress",
-        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+        "elasticloadbalancing:RegisterTargets",
         "elasticbeanstalk:CreateStorageLocation",
         "elasticbeanstalk:CreateApplicationVersion",
         "elasticbeanstalk:CreateConfigurationTemplate",

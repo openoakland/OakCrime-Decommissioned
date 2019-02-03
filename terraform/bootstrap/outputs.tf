@@ -1,3 +1,7 @@
+output "ci_username" {
+  value = "${aws_iam_user.ci.name}"
+}
+
 output "ci_access_key_id" {
   value = "${aws_iam_access_key.ci.id}"
   sensitive = true
