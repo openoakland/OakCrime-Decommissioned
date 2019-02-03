@@ -87,6 +87,8 @@ resource "aws_iam_user_policy" "ci" {
         "elasticbeanstalk:UpdateConfigurationTemplate",
         "elasticbeanstalk:UpdateEnvironment",
         "elasticbeanstalk:ValidateConfigurationSettings",
+        "logs:CreateLogGroup",
+        "logs:PutRetentionPolicy",
         "s3:PutObject",
         "s3:DeleteObject",
         "s3:PutObjectAcl"
