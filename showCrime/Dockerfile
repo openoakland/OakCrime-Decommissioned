@@ -4,7 +4,9 @@ WORKDIR /app/showCrime
 
 ENV DJANGO_SETTINGS_MODULE showCrime.settings
 ENV MATPLOTLIBRC /app/showCrime
-ENV PUBLIC_ROOT /public/showCrime
+ENV PUBLIC_ROOT /public
+ENV LOG_FILE_PATH /logs
+ENV ENABLE_LOGGING_TO_FILE true
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
@@ -22,10 +24,6 @@ RUN make requirements
 RUN mkdir -p /logs \
     && touch /logs/app.log \
     && touch /logs/gunicorn.log
-
-ENV PUBLIC_ROOT /public
-ENV LOG_FILE_PATH /logs
-ENV ENABLE_LOGGING_TO_FILE true
 
 VOLUME /public/media
 
