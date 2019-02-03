@@ -207,7 +207,7 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE_URL"
-    value     = "psql://${var.db_username}:${var.db_password}@${aws_db_instance.database.endpoint}/${var.db_name}"
+    value     = "postgis://${var.db_username}:${var.db_password}@${aws_db_instance.database.endpoint}/${var.db_name}"
   }
 
   setting {
