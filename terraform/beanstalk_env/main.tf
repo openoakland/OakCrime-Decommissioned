@@ -3,25 +3,6 @@ data "aws_elastic_beanstalk_solution_stack" "docker" {
   name_regex = "^64bit Amazon Linux (.*) running Docker (.*)$"
 }
 
-resource "aws_security_group" "application-load-balancer" {
-  name = "${var.application_name}-${var.environment}-load-balancer"
-
-  // Allow HTTP and HTTPS connections from anywhere
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_security_group" "application" {
   name = "${var.application_name}-${var.environment}-app"
 
@@ -45,6 +26,25 @@ resource "aws_security_group" "application" {
     cidr_blocks = [
       "0.0.0.0/0",
     ]
+  }
+}
+
+resource "aws_security_group" "application-load-balancer" {
+  name = "${var.application_name}-${var.environment}-load-balancer"
+
+  // Allow HTTP and HTTPS connections from anywhere
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -82,18 +82,6 @@ resource "aws_db_instance" "database" {
   vpc_security_group_ids = [
     "${aws_security_group.database.id}",
   ]
-}
-
-resource "aws_elastic_beanstalk_application" "application" {
-  name = "${var.application_name}"
-
-  //  TODO Fix issue with IAM roles
-  //  // Retain the latest 32 application versions/deploys
-  //  appversion_lifecycle {
-  //    service_role          = "aws-elasticbeanstalk-service-role"
-  //    max_count             = 32
-  //    delete_source_from_s3 = true
-  //  }
 }
 
 resource "aws_elastic_beanstalk_environment" "environment" {
@@ -163,7 +151,7 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   setting {
     namespace = "aws:elbv2:listener:443"
     name      = "SSLCertificateArns"
-    value     = "${var.ssl_cert_arn}"
+    value     = "${aws_acm_certificate.environment.arn}"
   }
 
   // Stream logs to Cloudwatch, and hold them for 90 days
@@ -221,20 +209,6 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     name      = "EMAIL_URL"
     value     = "${var.email_url}"
   }
-}
 
-// Create a DNS record at the naked domain (e.g. example.com instead of www.example.com)
-// that points to the application
-data "aws_elastic_beanstalk_hosted_zone" "current" {}
-
-resource "aws_route53_record" "record" {
-  zone_id = "${var.route_53_zone_id}"
-  name    = ""
-  type    = "A"
-
-  alias {
-    name                   = "${lower(aws_elastic_beanstalk_environment.environment.cname)}"
-    zone_id                = "${data.aws_elastic_beanstalk_hosted_zone.current.id}"
-    evaluate_target_health = false
-  }
+  depends_on = ["aws_acm_certificate_validation.environment"]
 }
