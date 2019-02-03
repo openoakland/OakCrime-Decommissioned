@@ -43,6 +43,17 @@ before they are fully integrated. This provides a faster feedback loop and helps
 prevent bugs or mistakes from getting caught late in development.
 
 
+## Continuous delivery
+
+We use continuous delivery (CD) to automatically deploy our application. This
+reduces the risk of human error and makes sure the latest version of the
+application is deployed correctly.
+
+Any commits to the `master` branch are deployed automatically to [AWS Elastic
+Beanstalk](https://aws.amazon.com/elasticbeanstalk/) courtesy of [Open
+Oakland](http://openoakland.org/).
+
+
 ## Contributing
 
 Thank you for considering a contribution to our project! Please see
