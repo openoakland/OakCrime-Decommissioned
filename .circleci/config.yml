@@ -27,14 +27,14 @@ jobs:
             source venv/bin/activate
             make lint
 
-  deploy:
+  deploy-production:
     docker:
       - image: adborden/awsebcli:latest
     steps:
       - checkout
       - run: |
           cd showCrime
-          eb deploy oakcrime-development
+          eb deploy oakcrime-production
 
 
 workflows:
@@ -42,7 +42,7 @@ workflows:
   commit:
     jobs:
       - build
-      - deploy:
+      - deploy-production:
           requires:
             - build
           filters:
