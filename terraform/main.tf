@@ -5,7 +5,7 @@ module "app_oakcrime" {
   dns_zone = "${var.dns_zone}"
 }
 
-module "env_development" {
+module "env_production" {
   source = "./beanstalk_env"
 
   app_instance      = "production"
@@ -15,7 +15,6 @@ module "env_development" {
   db_username      = "${var.db_username}"
   dns_zone_id = "${module.app_oakcrime.dns_zone_id}"
   dns_zone_name = "${module.app_oakcrime.dns_zone}"
-  deletion_protection = false
 
   environment_variables = {
     SECRET_KEY = "${var.django_secret_key}"
