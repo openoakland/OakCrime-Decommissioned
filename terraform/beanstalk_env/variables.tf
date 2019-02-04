@@ -100,3 +100,9 @@ variable "default_beanstalk_environment_settings" {
   },
   ]
 }
+
+variable "environment_variables" {
+  description = "Map of environment variables to set for this beanstalk environment."
+  type = "map"
+  default = {}
+}

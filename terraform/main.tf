@@ -17,4 +17,10 @@ module "env_development" {
   dns_zone_id = "${module.app_oakcrime.dns_zone_id}"
   secret_key       = "${var.django_secret_key}"
   deletion_protection = false
+
+  environment_variables = {
+    SECRET_KEY = "${var.django_secret_key}"
+    SERVER_EMAIL = "root@localhost"
+    EMAIL_URL = "smtp://localhost"
+  }
 }
