@@ -22,7 +22,6 @@ resource "aws_dynamodb_table" "terraform" {
   }
 }
 
-
 resource "aws_iam_user" "ci" {
   name = "oakcrime-ci"
 }
@@ -101,4 +100,3 @@ resource "aws_iam_user_policy" "ci" {
 }
 EOF
 }
-

@@ -20,12 +20,12 @@ variable "app_instance" {
 
 variable "health_check_path" {
   description = "App endpoint to check the health of the instance."
-  default = "/health/"
+  default     = "/health/"
 }
 
 variable "instance_type" {
   description = "EC2 instance type to use for beanstalk instances."
-  default = "t3.micro"
+  default     = "t3.micro"
 }
 
 variable "dns_zone_name" {
@@ -38,11 +38,11 @@ variable "dns_zone_id" {
 
 variable "deletion_protection" {
   description = "Enable deletion protection on various components."
-  default = true
+  default     = true
 }
 
 variable "environment_variables" {
   description = "Map of environment variables to set for this beanstalk environment."
-  type = "map"
-  default = {}
+  type        = "map"
+  default     = {}
 }

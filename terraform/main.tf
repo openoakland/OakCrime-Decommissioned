@@ -8,17 +8,17 @@ module "app_oakcrime" {
 module "env_production" {
   source = "./beanstalk_env"
 
-  app_instance      = "production"
-  app_name = "${var.app_name}"
-  db_name          = "${var.app_name}"
-  db_password      = "${var.db_password}"
-  db_username      = "${var.db_username}"
-  dns_zone_id = "${module.app_oakcrime.dns_zone_id}"
+  app_instance  = "production"
+  app_name      = "${var.app_name}"
+  db_name       = "${var.app_name}"
+  db_password   = "${var.db_password}"
+  db_username   = "${var.db_username}"
+  dns_zone_id   = "${module.app_oakcrime.dns_zone_id}"
   dns_zone_name = "${module.app_oakcrime.dns_zone}"
 
   environment_variables = {
-    SECRET_KEY = "${var.django_secret_key}"
+    SECRET_KEY   = "${var.django_secret_key}"
     SERVER_EMAIL = "root@localhost"
-    EMAIL_URL = "smtp://localhost"
+    EMAIL_URL    = "smtp://localhost"
   }
 }

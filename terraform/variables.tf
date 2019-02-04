@@ -1,24 +1,24 @@
 variable "db_username" {
   description = "Username for the RDS database."
-  default = "oakcrime"
+  default     = "oakcrime"
 }
 
 variable "db_password" {
   description = "Password for the RDS database."
-  type = "string"
+  type        = "string"
 }
 
 variable "django_secret_key" {
   description = "SECRET_KEY setting to provide the Django application."
-  type = "string"
+  type        = "string"
 }
 
 variable "dns_zone" {
   description = "DNS zone for the applications"
-  default = "oakcrime-eb.aws.openoakland.org"
+  default     = "oakcrime-eb.aws.openoakland.org"
 }
 
 variable "app_name" {
   description = "Slugified name of the application instance."
-  default = "oakcrime"
+  default     = "oakcrime"
 }

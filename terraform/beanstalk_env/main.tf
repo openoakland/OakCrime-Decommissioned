@@ -1,6 +1,6 @@
 data "aws_elastic_beanstalk_solution_stack" "docker" {
   most_recent = true
-  name_regex = "^64bit Amazon Linux (.*) running Docker (.*)$"
+  name_regex  = "^64bit Amazon Linux (.*) running Docker (.*)$"
 }
 
 resource "aws_security_group" "application" {
