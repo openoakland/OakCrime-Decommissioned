@@ -20,6 +20,34 @@ All pull requests must be reviewed by the @openoakland/oakcrime-reviewers team
 before they can be merged.
 
 
+###  Feature branches
+
+Use a new "feature" branch for each set of changes. Where possible, your PR
+should only contain changes specific for your feature and should not include
+changes that are contained in another PR. If this is unavoidable due to a hard
+dependency on another PRs changes, be sure to make a note of this in the PR
+description e.g. "This PR depends on #12".
+
+
+### Documentation
+
+Some changes will require updates to the README and other documentation. We want
+to ensure that any manual steps needed to run the app are clearly documented. If
+you make changes to the `Makefile`, or add a new setting to `settings.py`, you
+might need to update the documentation.
+
+
+### Merging pull requests
+
+Merges should be done with the standard commit-style merge (as opposed to a rebase or
+squash merge) to keep related changes together. This also makes it easy to
+revert an entire PR in a single revert commit in the event of a rollback.
+
+In the event of a merge conflict, you're encouraged to rebase your branch before
+merging instead of merging master into your branch. This avoids merge bubbles in
+the commit log.
+
+
 ## Continuous integration
 
 OakCrime practices continuous integration. Every pull request is tested by our
