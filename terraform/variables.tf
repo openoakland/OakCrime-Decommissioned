@@ -15,12 +15,7 @@ variable "django_secret_key" {
 
 variable "dns_zone" {
   description = "DNS zone for the applications"
-  default = "oakcrime.openoakland.org"
-}
-
-variable "app_instance" {
-  description = "Slugified name of the application instance."
-  default = "development"
+  default = "oakcrime-eb.aws.openoakland.org"
 }
 
 variable "app_name" {

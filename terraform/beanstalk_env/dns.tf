@@ -1,6 +1,6 @@
 resource "aws_route53_record" "environment" {
   zone_id = "${var.dns_zone_id}"
-  name    = "${var.application_name}-${var.environment}"
+  name    = "${var.app_name}-${var.app_instance}"
   type    = "CNAME"
   ttl     = 300
   records = ["${aws_elastic_beanstalk_environment.environment.cname}"]
@@ -8,7 +8,7 @@ resource "aws_route53_record" "environment" {
 
 // Create an SSL/TLS certificate for the domain
 resource "aws_acm_certificate" "environment" {
-  domain_name       = "${var.application_name}-${var.environment}.${var.dns_zone_name}"
+  domain_name       = "${var.app_name}-${var.app_instance}.${var.dns_zone_name}"
   validation_method = "DNS"
 
   lifecycle {

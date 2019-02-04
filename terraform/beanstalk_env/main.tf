@@ -4,7 +4,7 @@ data "aws_elastic_beanstalk_solution_stack" "docker" {
 }
 
 resource "aws_security_group" "application" {
-  name = "${var.application_name}-${var.environment}-app"
+  name = "${var.app_name}-${var.app_instance}-app"
 
   // Allow HTTP connections from the load balancer
   ingress {
@@ -30,7 +30,7 @@ resource "aws_security_group" "application" {
 }
 
 resource "aws_security_group" "application-load-balancer" {
-  name = "${var.application_name}-${var.environment}-load-balancer"
+  name = "${var.app_name}-${var.app_instance}-load-balancer"
 
   // Allow HTTP and HTTPS connections from anywhere
   ingress {
@@ -49,7 +49,7 @@ resource "aws_security_group" "application-load-balancer" {
 }
 
 resource "aws_security_group" "database" {
-  name = "${var.application_name}-${var.environment}-db"
+  name = "${var.app_name}-${var.app_instance}-db"
 
   // Allow HTTP connections from the application
   ingress {
@@ -70,8 +70,8 @@ resource "aws_db_instance" "database" {
   engine_version            = "10.5"
   instance_class            = "db.t2.micro"
   deletion_protection       = "${var.deletion_protection}"
-  identifier                = "${var.application_name}-${var.environment}"
-  final_snapshot_identifier = "${var.application_name}-${var.environment}-final"
+  identifier                = "${var.app_name}-${var.app_instance}"
+  final_snapshot_identifier = "${var.app_name}-${var.app_instance}-final"
   name                      = "${var.db_name}"
   username                  = "${var.db_username}"
   password                  = "${var.db_password}"
@@ -85,8 +85,8 @@ resource "aws_db_instance" "database" {
 }
 
 resource "aws_elastic_beanstalk_environment" "environment" {
-  name                = "${var.application_name}-${var.environment}"
-  application         = "${var.application_name}"
+  name                = "${var.app_name}-${var.app_instance}"
+  application         = "${var.app_name}"
   solution_stack_name = "${data.aws_elastic_beanstalk_solution_stack.docker.name}"
 
   // NOTE: See https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html for more settings.
