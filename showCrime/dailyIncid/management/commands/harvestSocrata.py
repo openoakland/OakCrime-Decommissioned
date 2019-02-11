@@ -2,11 +2,13 @@
 
 Created on Jun 19, 2017
 
+command run by runHarvestSocrata.sh, capturing logs, emailing summary
 
-ASSUME crontab entry ala (daily @ 1am)
+ASSUME crontab entry ala (daily @ 4:08p)
 
-> crontab -e
-0 1 * * * * source python /pathToApplicationDir/.../manage.py runcrons HarvestSocrataJob > /pathTologFiles/.../cronjob.log
+> crontab -l
+# run once a day at 16:08
+8 16 * * * .../showCrime/shell/runHarvestSocrata.sh
 
 @author: rik
 '''
