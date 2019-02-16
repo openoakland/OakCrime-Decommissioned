@@ -234,6 +234,16 @@ SERVER_EMAIL = env('SERVER_EMAIL')
 EMAIL_CONFIG = env.email_url('EMAIL_URL')
 vars().update(EMAIL_CONFIG)
 
+# Box SDK configuration
+BOX_ENTERPRISE_ID = env('BoxEnterpriseID', default=None)
+BOX_CLIENT_ID = env('BoxClientID', default=None)
+BOX_CLIENT_SECRET = env('BoxClientSecret', default=None)
+BOX_JWT_KEY_ID = env('BoxPublicKeyID', default=None)
+BOX_RSA_FILE_PATH = env('BoxRSAFile', default=None)
+BOX_RSA_FILE_PASSPHRASE = env('BoxPassPhrase', default=None)
+
+GOOGLE_MAPS_API_KEY = env('GoogleMapAPIKey', default=None)
+
 ###################
 # echo settings
 #
