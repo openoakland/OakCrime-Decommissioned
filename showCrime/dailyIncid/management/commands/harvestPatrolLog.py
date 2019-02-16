@@ -9,6 +9,7 @@ from datetime import datetime,timedelta
 import dateutil.parser
 import environ
 import json
+import logging
 import os
 import pickle
 import pytz
@@ -39,6 +40,8 @@ HarvestRootDir = settings.MEDIA_ROOT + '/PLHarvest/'
 
 RFC3339Format = "%Y-%m-%dT%H:%M:%S%z"
 OPDPatrolFolderID =  '8881131962' 
+
+log = logging.getLogger(__name__)
 
 def awareDT(naiveDT):
 	utc=pytz.UTC
@@ -380,17 +383,20 @@ class Command(BaseCommand):
 
 		runDate = awareDT(datetime.now())
 		dateStr = datetime.strftime(runDate,'%y%m%d')
-		
+
 		## Compare cache to current database
-			
-		# SQL equivalent query
-# 		select "lastModDateTime" from "dailyIncid_oakcrime" where source like '%DLog_%'
-# 			order by "lastModDateTime" DESC LIMIT 1	
-		lastDLogOC = OakCrime.objects.filter(source__contains='DLog_').latest('lastModDateTime')
-		lastDLogDT = lastDLogOC.lastModDateTime
-		
+		try:
+		    # SQL equivalent query
+		    # select "lastModDateTime" from "dailyIncid_oakcrime" where source like '%DLog_%'
+		    # order by "lastModDateTime" DESC LIMIT 1	
+		    lastDLogDT = OakCrime.objects.filter(source__contains='DLog_').latest('lastModDateTime').lastModDateTime
+		except OakCrime.DoesNotExist:
+		    # If we don't have a last modified date, then we should
+		    # fetch from the earliest records available.
+		    lastDLogDT = datetime.min
+
 		if boxCheckDT != None:
-			print('harvestPatrolLog: %s using boxCheckDT=%s lastDLogDT=%s' % (dateStr,boxCheckDT, lastDLogDT))
+			log.info('harvestPatrolLog: %s using boxCheckDT=%s lastDLogDT=%s' % (dateStr,boxCheckDT, lastDLogDT))
 			lastDLogDT = awareDT(boxCheckDT)
 			lastDLogDate = boxCheckDT.date()
 		else:
