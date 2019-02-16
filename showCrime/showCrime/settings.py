@@ -196,18 +196,23 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['file_app', 'console', ],
+            'handlers': ['file_app'],
             'level': 'INFO',
-            'propagate': True,
+        },
+        'dailyIncid': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'handlers': ['console'],
+        },
+        'showCrime': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'handlers': ['console'],
         },
         'boxsdk': {
-            'handlers': ['file_app', 'console'],
+            'handlers': ['console'],
             'level': 'WARNING',
-            'propagate': True,
         },
         'django': {
             'handlers': ['console'],
-            'propagate': True,
         },
     },
 }
