@@ -20,8 +20,19 @@ Primary bits involve:
 
 We assume you already have these installed:
 
+- [Docker Compose](https://docs.docker.com/compose/) v1.x
+- [Docker](https://www.docker.com/) v18.x
+- [Make](https://www.gnu.org/software/make/)
+- [Postgres](https://www.postgresql.org/) v10.x
 - [Python](https://www.python.org/) 3.6+
-- [Postgres](https://www.postgresql.org/)
+
+_MacOS users: you'll find most of these tools in [Homebrew](https://brew.sh)._
+
+
+## Setup
+
+The main project is the django application. Please follow the instructions in
+[showCrime/README](showCrime/README.md).
 
 
 ## Continuous integration
@@ -30,6 +41,17 @@ We're using [CircleCI](https://circleci.com/) for continuous integration (CI).
 Continuous integration automatically tests that any new changes work correctly
 before they are fully integrated. This provides a faster feedback loop and helps
 prevent bugs or mistakes from getting caught late in development.
+
+
+## Continuous delivery
+
+We use continuous delivery (CD) to automatically deploy our application. This
+reduces the risk of human error and makes sure the latest version of the
+application is deployed correctly.
+
+Any commits to the `master` branch are deployed automatically to [AWS Elastic
+Beanstalk](https://aws.amazon.com/elasticbeanstalk/) courtesy of [Open
+Oakland](http://openoakland.org/).
 
 
 ## Contributing

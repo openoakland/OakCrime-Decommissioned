@@ -27,32 +27,14 @@ jobs:
             source venv/bin/activate
             make lint
 
-  ansible-test:
+  deploy-production:
     docker:
-      - image: circleci/python:3.6
+      - image: adborden/awsebcli:latest
     steps:
       - checkout
-      - setup_remote_docker
-      - restore_cache:
-          keys:
-            - v1-oakcrime-ansible-{{ checksum "ansible/requirements.txt" }}
-            - v1-oakcrime-ansible-
-      - run:
-          name: create virtualenv and install dependencies
-          command: |
-            virtualenv ansible/venv
-            source ansible/venv/bin/activate
-            pip install -r ansible/requirements.txt
-      - save_cache:
-          key: v1-oakcrime-ansible-{{ checksum "ansible/requirements.txt" }}
-          paths:
-            - ansible/venv
-      - run:
-          name: make test
-          command: |
-            cd ansible
-            source venv/bin/activate
-            make test
+      - run: |
+          cd showCrime
+          eb deploy oakcrime-production
 
 
 workflows:
@@ -60,4 +42,10 @@ workflows:
   commit:
     jobs:
       - build
-      - ansible-test
+      - deploy-production:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master

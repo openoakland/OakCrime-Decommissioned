@@ -1,0 +1,15 @@
+{
+  "AWSEBDockerrunVersion": 1,
+  "Volumes": [
+    {
+      "HostDirectory": "/public/media",
+      "ContainerDirectory": "/public/media"
+    },
+    {
+      "HostDirectory": "/public/static",
+      "ContainerDirectory": "/public/static"
+    }
+  ],
+  "Logging": "/logs"
+}
+

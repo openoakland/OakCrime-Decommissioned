@@ -6,10 +6,13 @@ import pytz
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.measure import D
+from django.db import DatabaseError, connection
 from django.db.models import Max, Min, Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 from rest_framework import generics
+
 
 from dailyIncid import serializers
 from .forms import *
@@ -1108,3 +1111,36 @@ class CrimeCatAPI(generics.ListAPIView):
 		logger.info('user=%s CrimeCatAPI cc=%s nresult=%d (%6.2f sec)' % (userName,crimeCat,nresult,elapTime.total_seconds()))
 
 		return queryset
+
+
+def health(_):
+    """ Returns a simplified view of the health of this application.
+    Checks the database connection. Use this for load balancer health checks.
+
+    https://github.com/clintonb/cookiecutter-django/blob/6a5840ed79f607b7d70eab80f4815799cb29eaff/%7B%7B%20cookiecutter.project_slug%20%7D%7D/%7B%7B%20cookiecutter.project_slug%20%7D%7D/apps/core/views.py
+    """
+    def status_fmt(ok):
+        return 'OK' if ok else 'UNAVAILABLE'
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('SELECT 1')
+        cursor.fetchone()
+        cursor.close()
+        database_ok = True
+    except DatabaseError:
+        database_ok = False
+
+    overall_ok = all((database_ok,))
+
+    data = {
+        'timestamp': timezone.now(),
+        'overall_status': status_fmt(overall_ok),
+        'detailed_status': {
+            'database_status': status_fmt(database_ok),
+        },
+    }
+
+    status = 200 if overall_ok else 503
+
+    return JsonResponse(data, status=status)

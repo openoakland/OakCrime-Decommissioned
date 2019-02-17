@@ -116,3 +116,4 @@ dmypy.json
 
 **/oakcrime_venv/*
 .idea/
+showCrime/public
