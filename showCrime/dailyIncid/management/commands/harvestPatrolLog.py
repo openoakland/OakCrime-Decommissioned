@@ -15,40 +15,39 @@ from datetime import datetime,timedelta
 import dateutil.parser
 import environ
 import json
+import logging
 import os
 import pickle
 import pytz
 import socket
 import sys
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 import boxsdk 
 import googlemaps
 import mapbox
 
-from showCrime.settings import MEDIA_ROOT
 from dailyIncid.models import *
 from dailyIncid.management.commands import parsePatrolLog as parsePL
 from dailyIncid.management.commands import postPatrolLog as postPL
 
-env = environ.Env(DEBUG=(bool, False), )
 
-GoogleMapAPIKey = env('GoogleMapAPIKey')
-BoxEnterpriseID = env('BoxEnterpriseID')
-BoxHarvestBotUserID = env('BoxHarvestBotUserID')
-BoxHarvestBotEmail= env('BoxHarvestBotEmail')
-BoxDevpToken = env('BoxDevpToken')
-BoxClientID = env('BoxClientID')
-BoxClientSecret = env('BoxClientSecret')
-BoxPublicKeyID = env('BoxPublicKeyID')
-BoxRSAFile = env('BoxRSAFile')
-BoxPassPhrase = env('BoxPassPhrase')
+GoogleMapAPIKey = settings.GOOGLE_MAPS_API_KEY
+BoxEnterpriseID = settings.BOX_ENTERPRISE_ID
+BoxClientID = settings.BOX_CLIENT_ID
+BoxClientSecret = settings.BOX_CLIENT_SECRET
+BoxPublicKeyID = settings.BOX_JWT_KEY_ID
+BoxRSAFile = settings.BOX_RSA_FILE_PATH
+BoxPassPhrase = settings.BOX_RSA_FILE_PASSPHRASE
 
-HarvestRootDir = MEDIA_ROOT + '/PLHarvest/'
+HarvestRootDir = settings.MEDIA_ROOT + '/PLHarvest/'
 
 RFC3339Format = "%Y-%m-%dT%H:%M:%S%z"
 OPDPatrolFolderID =  '8881131962' 
+
+log = logging.getLogger(__name__)
 
 def awareDT(naiveDT):
 	utc=pytz.UTC
@@ -390,17 +389,20 @@ class Command(BaseCommand):
 
 		runDate = awareDT(datetime.now())
 		dateStr = datetime.strftime(runDate,'%y%m%d')
-		
+
 		## Compare cache to current database
-			
-		# SQL equivalent query
-# 		select "lastModDateTime" from "dailyIncid_oakcrime" where source like '%DLog_%'
-# 			order by "lastModDateTime" DESC LIMIT 1	
-		lastDLogOC = OakCrime.objects.filter(source__contains='DLog_').latest('lastModDateTime')
-		lastDLogDT = lastDLogOC.lastModDateTime
-		
+		try:
+		    # SQL equivalent query
+		    # select "lastModDateTime" from "dailyIncid_oakcrime" where source like '%DLog_%'
+		    # order by "lastModDateTime" DESC LIMIT 1	
+		    lastDLogDT = OakCrime.objects.filter(source__contains='DLog_').latest('lastModDateTime').lastModDateTime
+		except OakCrime.DoesNotExist:
+		    # If we don't have a last modified date, then we should
+		    # fetch from the earliest records available.
+		    lastDLogDT = datetime.min
+
 		if boxCheckDT != None:
-			print('harvestPatrolLog: %s using boxCheckDT=%s lastDLogDT=%s' % (dateStr,boxCheckDT, lastDLogDT))
+			log.info('harvestPatrolLog: %s using boxCheckDT=%s lastDLogDT=%s' % (dateStr,boxCheckDT, lastDLogDT))
 			lastDLogDT = awareDT(boxCheckDT)
 			lastDLogDate = boxCheckDT.date()
 		else:
