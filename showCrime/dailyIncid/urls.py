@@ -30,6 +30,9 @@ urlpatterns = [
     url(r'^interface/$', TemplateView.as_view(template_name="dailyIncid/interface.html")),
     url(r'^faq/$', TemplateView.as_view(template_name="dailyIncid/faq.html")),
 
+	url(r'^ToBeImplemented/$', TemplateView.as_view(template_name="dailyIncid/ToBeImplemented.html")),
+
+
     url(r'heatmap/$', views.heatmap, name='heatmap'),
     url(r'heatmap/(?P<mapType>.+)/$', views.heatmap, name='heatmapTyped'),
 
