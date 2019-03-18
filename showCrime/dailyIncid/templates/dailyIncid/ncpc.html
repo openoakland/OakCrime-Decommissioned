@@ -95,7 +95,12 @@
     <div id="legend" class="flex-legend">
     	<p align=center>
      		<img type="image/png" height=20 src="{% static 'marker-icon-red.png' %}"> Incidents within Beat {{beat}}
-    		<img type="image/png" height=20 src="{% static 'marker-icon-black.png' %}"> Other incidents in vicinity
+
+    		<!-- 
+				 190318: drop mapping of in-vicinity points; too easily polluted by bad beat data
+				 <img type="image/png" height=20 src="{% static 'marker-icon-black.png' %}"> Other incidents in vicinity 
+			-->
+
     		<img type="image/png" height=20 src="{% static 'marker-icon-yellow.png' %}"> Patrol log report only
 		</p>
     </div>
