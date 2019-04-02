@@ -22,12 +22,10 @@ import string
 import subprocess
 
 from django.conf import settings
+from django.core.mail import mail_managers
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import Point
-
-from django.core.mail import send_mail
-
 from sodapy import Socrata
 
 from dailyIncid.models import *
@@ -455,8 +453,8 @@ class Command(BaseCommand):
 
 		fullRpt = '\n'.join(rptLines)
 
-		send_mail('Socrata harvest', fullRpt, 'rik@electronicArtifacts.com', \
-				['rik@electronicArtifacts.com'], fail_silently=False)
+		if settings.EMAIL_ENABLE:
+		    mail_managers('[oakcrime] Socrata harvest', fullRpt)
 
 # if __name__ == "__main__":
 # 	do_harvest()		
