@@ -249,6 +249,13 @@ BOX_RSA_FILE_PASSPHRASE = env('BoxPassPhrase', default=None)
 
 GOOGLE_MAPS_API_KEY = env('GoogleMapAPIKey', default=None)
 
+SOCRATA_HOST = env('SOCRATA_HOST', default='data.oaklandnet.com')
+SOCRATA_KEY = env('SOCRATA_KEY', default=None)
+SOCRATA_RESOURCE_ID = env('SOCRATA_RESOURCE_ID', default='3xav-7geq')
+
+MANAGERS = [('', email) for email in env('MANAGERS', default=[])]
+
+
 ###################
 # echo settings
 #
