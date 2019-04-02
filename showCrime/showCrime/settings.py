@@ -235,6 +235,7 @@ LEAFLET_CONFIG = {
 PLOT_PATH = os.path.join(project_root, 'plots')
 
 # Email configuration
+EMAIL_ENABLE = env('EMAIL_ENABLE', default=False)
 SERVER_EMAIL = env('SERVER_EMAIL')
 EMAIL_CONFIG = env.email_url('EMAIL_URL')
 vars().update(EMAIL_CONFIG)
