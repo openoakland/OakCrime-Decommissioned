@@ -236,6 +236,7 @@ LEAFLET_CONFIG = {
 PLOT_PATH = os.path.join(project_root, 'plots')
 
 # Email configuration
+EMAIL_ENABLE = env('EMAIL_ENABLE', default=False)
 SERVER_EMAIL = env('SERVER_EMAIL')
 EMAIL_CONFIG = env.email_url('EMAIL_URL')
 vars().update(EMAIL_CONFIG)
@@ -249,6 +250,13 @@ BOX_RSA_FILE_PATH = env('BoxRSAFile', default=None)
 BOX_RSA_FILE_PASSPHRASE = env('BoxPassPhrase', default=None)
 
 GOOGLE_MAPS_API_KEY = env('GoogleMapAPIKey', default=None)
+
+SOCRATA_HOST = env('SOCRATA_HOST', default='data.oaklandnet.com')
+SOCRATA_KEY = env('SOCRATA_KEY', default=None)
+SOCRATA_RESOURCE_ID = env('SOCRATA_RESOURCE_ID', default='3xav-7geq')
+
+MANAGERS = [('', email) for email in env('MANAGERS', default=[])]
+
 
 # Celery config
 
