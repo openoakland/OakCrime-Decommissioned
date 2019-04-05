@@ -251,13 +251,6 @@ BOX_RSA_FILE_PASSPHRASE = env('BoxPassPhrase', default=None)
 
 GOOGLE_MAPS_API_KEY = env('GoogleMapAPIKey', default=None)
 
-SOCRATA_HOST = env('SOCRATA_HOST', default='data.oaklandnet.com')
-SOCRATA_KEY = env('SOCRATA_KEY', default=None)
-SOCRATA_RESOURCE_ID = env('SOCRATA_RESOURCE_ID', default='3xav-7geq')
-
-MANAGERS = [('', email) for email in env('MANAGERS', default=[])]
-
-
 # Celery config
 
 # CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
@@ -271,6 +264,13 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'rabbitmq'
+=======
+SOCRATA_HOST = env('SOCRATA_HOST', default='data.oaklandnet.com')
+SOCRATA_KEY = env('SOCRATA_KEY', default=None)
+SOCRATA_RESOURCE_ID = env('SOCRATA_RESOURCE_ID', default='3xav-7geq')
+
+MANAGERS = [('', email) for email in env('MANAGERS', default=[])]
+
 
 ###################
 # echo settings
