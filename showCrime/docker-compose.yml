@@ -26,6 +26,25 @@ services:
       - logs:/var/log/nginx
       - media:/public/media:ro
       - static:/public/static:ro
+      
+  rabbitmq:
+    image: "rabbitmq:3.7.14"
+
+  celery:
+    build: .
+    command: celery -A showCrime.celery worker --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - rabbitmq
+  celery-beat:
+    build: .
+    command: celery -A showCrime.celery beat --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - rabbitmq
+
 volumes:
   logs:
   media:

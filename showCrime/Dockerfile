@@ -15,6 +15,7 @@ RUN apt-get update && \
         libffi-dev \
         libgdal-dev \
         libssl-dev \
+		rabbitmq-server \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /app/showCrime

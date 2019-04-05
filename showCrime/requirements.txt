@@ -1,5 +1,7 @@
 boxsdk==2.0.0
+celery==4.3.0
 Django==1.11.20
+django-celery-beat==1.4.0
 django-environ==0.4.5
 djangorestframework==3.9.0
 editdistance==0.4

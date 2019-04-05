@@ -40,6 +40,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+	'django_celery_beat',
     'rest_framework',
 ]
 
@@ -248,6 +249,20 @@ BOX_RSA_FILE_PATH = env('BoxRSAFile', default=None)
 BOX_RSA_FILE_PASSPHRASE = env('BoxPassPhrase', default=None)
 
 GOOGLE_MAPS_API_KEY = env('GoogleMapAPIKey', default=None)
+
+# Celery config
+
+# CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+# https://kombu.readthedocs.io/en/latest/userguide/connections.html#connection-urls
+# A connection without options will use the default connection settings,
+# which is using the localhost host, default port, user name guest,
+# password guest and virtual host “/”. A connection without arguments is
+# the same as: Connection('amqp://guest:guest@localhost:5672//')
+
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'rabbitmq'
 
 ###################
 # echo settings
