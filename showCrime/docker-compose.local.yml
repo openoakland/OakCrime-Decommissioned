@@ -15,8 +15,6 @@ services:
     #   - 5432:5432
     restart: always
   app:
-    # Instruct Gunicorn to reload code when it is changed locally.
-    command: --reload
     depends_on:
       - db
     environment:

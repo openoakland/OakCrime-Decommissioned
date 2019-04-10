@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ $# -ne 0 ]; then
+if [ $# -ne "0" ]; then
   # We were given arguments, lets run them
   exec /bin/sh -c "$*"
 fi
