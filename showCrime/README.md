@@ -13,9 +13,21 @@ All instructions assume you're running from the `showCrime` directory.
 
     cd showCrime
 
+Build the containers.
+
+    make docker.build
+
+Run the database migrations.
+
+    docker-compose run --rm app make migrate
+
+Build static files.
+
+    docker-compose run --rm app make static
+
 Start the containers.
 
-    make local.up
+    make docker.up
 
 Open your web browser to [localhost:8000](http://localhost:8000).
 
@@ -31,31 +43,26 @@ Build/rebuild the container images.
 Pull the latest container images from the Docker registry.
 
 
-#### make local.down
+#### make docker.down
 
 Stop and remove the containers.
 
 
-#### make local.restart
-
-Restart the containers.
-
-
-#### make local.shell
+#### make docker.shell
 
 Open a shell in the application container.
 
 
-#### make local.up
+#### make docker.up
 
-Start the containers.
+Start the containers and show the application logs.
 
 
 ### Extra setup steps
 
 Create an admin user to login with.
 
-    make local.shell
+    make docker.shell
     ./manage.py createsuperuser
 
 
