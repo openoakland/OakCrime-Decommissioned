@@ -7,6 +7,7 @@ __credits__ = ["clinton.blackburn@gmail.com","actionspeakslouder@gmail.com"]
 __date__ = "190128"
 __version__ = "0.1.0-alpha"
 
+from email.utils import parseaddr
 import os
 
 import environ
@@ -254,7 +255,8 @@ SOCRATA_HOST = env('SOCRATA_HOST', default='data.oaklandnet.com')
 SOCRATA_KEY = env('SOCRATA_KEY', default=None)
 SOCRATA_RESOURCE_ID = env('SOCRATA_RESOURCE_ID', default='3xav-7geq')
 
-MANAGERS = [('', email) for email in env('MANAGERS', default=[])]
+# export MANAGERS='"Person One" <one@example.com>, "Person Two" <two@example.com>'
+MANAGERS = (parseaddr(email) for email in env('MANAGERS', default='').split(','))
 
 
 ###################
