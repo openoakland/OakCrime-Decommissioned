@@ -26,6 +26,12 @@ jobs:
           command: |
             source venv/bin/activate
             make lint
+      - run:
+          name: run tests
+          command: |
+            source venv/bin/activate
+            make test
+
 
   deploy-production:
     docker:
