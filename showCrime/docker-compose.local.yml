@@ -15,17 +15,9 @@ services:
     #   - 5432:5432
     restart: always
   app:
-    # Instruct Gunicorn to reload code when it is changed locally.
-    command: --reload
     depends_on:
       - db
-    environment:
-      - DEBUG=true
-      - SECRET_KEY=replace-me
-      - DATABASE_URL=postgis://postgres:postgres@oakcrime.db:5432/oakcrime?connect_timeout=60
-      - DEFAULT_FILE_STORAGE=django.core.files.storage.FileSystemStorage
-      - SERVER_EMAIL=root@localhost
-      - EMAIL_URL=smtp://user@:password@localhost:25
+
     links:
       - db
     ports:
