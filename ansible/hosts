@@ -1,8 +1,0 @@
-[standalone]
-oakcrime.aws.openoakland.org
-
-[database:children]
-standalone
-
-[webserver:children]
-standalone
