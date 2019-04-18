@@ -17,19 +17,20 @@ from collections import defaultdict
 import pickle # cPickle python2 only
 import csv 
 from datetime import datetime,timedelta,date
+import logging
 import string 
 import subprocess
 
+from django.conf import settings
+from django.core.mail import mail_managers
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
-
 from django.contrib.gis.geos import Point
-
-from django.core.mail import send_mail
-
 from sodapy import Socrata
 
 from dailyIncid.models import *
+
+log = logging.getLogger(__name__)
 
 ## Utilities
 Punc2SpaceTranTbl = {ord(c): ord(u' ') for c in string.punctuation}
@@ -41,9 +42,9 @@ def cleanOPDtext(s):
 	return news
 
 ## Constants
-OaklandResourceName = "data.oaklandnet.com"
-SocrataKey = "CXBxLW1bZbAjvL7FWZLr4hLCE"
-OPDKey = "3xav-7geq"
+OaklandResourceName = settings.SOCRATA_HOST
+SocrataKey = settings.SOCRATA_KEY
+OPDKey = settings.SOCRATA_RESOURCE_ID
 
 Socrata_date_format = '%Y-%m-%dT%H:%M:%S' # 2013-12-04T19:00:00
 DateOnlyStrFormat = '%Y-%m-%d'
@@ -60,7 +61,8 @@ def harvestSince(minDateTime,qryLimit=500):
 
 	# import pdb; pdb.set_trace()
 	
-	print('harvestSince: Date=%s NResult=%d' % (socBegDateStr,len(results)) )
+	log.info('harvestSince: Date=%s NResult=%d',
+                 socBegDateStr, len(results))
 	return results
 
 # from https://docs.djangoproject.com/en/1.11/howto/custom-management-commands/
@@ -224,8 +226,8 @@ def mergeIncid2List(matchObjList,newOC):
 		try:
 			bestMatch.save()
 		except Exception as e:
-			print('mergeIncid2List: cant save?! cid=%s bestIdx=%s' % \
-				(newOC.opd_rd,bestMatch.idx))
+			log.warn('mergeIncid2List: cant save?! cid=%s bestIdx=%s',
+				  newOC.opd_rd, bestMatch.idx)
 			return None
 		return bestMatch
 
@@ -292,9 +294,9 @@ def mergeIncidSingle(prevObj,newOC):
 		try:
 			prevObj.save()
 		except Exception as e:
-			print('mergeIncidSingle: cant save?! cid=%s prevIdx=%s' % \
-				(newOC.opd_rd,prevObj.idx))
-			return None
+                    log.exception('mergeIncidSingle: cant save?! cid=%s prevIdx=%s',
+                                  newOC.opd_rd, prevObj.idx)
+                    return None
 
 		return prevObj
 	else:
@@ -317,7 +319,7 @@ def mergeList(results,startDate,verboseFreq=None,rptAll=False):
 	rptLines = []
 		
 	rptMsg = 'mergeList: NIncid=%d' % (len(results)) 
-	print(rptMsg)
+	log.info(rptMsg)
 	rptLines.append(rptMsg)
 
 	for incidIdx, socDict in enumerate(results):
@@ -370,7 +372,7 @@ def mergeList(results,startDate,verboseFreq=None,rptAll=False):
 				nupdate += 1
 				if rptAll:
 					rptMsg = 'mergeList: update %d %s' % (incidIdx,cid)
-					print(rptMsg)
+					log.info(rptMsg)
 					rptLines.append(rptMsg)
 				
 		else:
@@ -380,18 +382,18 @@ def mergeList(results,startDate,verboseFreq=None,rptAll=False):
 				nadd += 1
 				if rptAll:
 					rptMsg = 'mergeList: new added %d %s' % (incidIdx,cid)
-					print(rptMsg)
+					log.info(rptMsg)
 					rptLines.append(rptMsg)
 			except Exception as e:
 				rptMsg = 'mergeList: cant save new?! %d %s %s\n\t%s' % (incidIdx,cid,e,socDict)
-				print(rptMsg)
+				log.info(rptMsg)
 				rptLines.append(rptMsg)
 				continue
 						
 		if verboseFreq != None and incidIdx % verboseFreq == 0:
 			# NB: not added to rptLines
-			print('Idx=%d CID=%s nadd=%d nupdate=%d nsame=%d tot=%d' % \
-				(incidIdx, cid, nadd,nupdate,nsame,(nadd+nupdate+nsame)) )
+			log.info('Idx=%d CID=%s nadd=%d nupdate=%d nsame=%d tot=%d',
+				 incidIdx, cid, nadd, nupdate, nsame, sum((nadd, nupdate, nsame)))
 			
 			# stop after verboseFreq, for profiling
 # 			if incidIdx > 0:
@@ -400,7 +402,7 @@ def mergeList(results,startDate,verboseFreq=None,rptAll=False):
 	nincid = OakCrime.objects.all().count()
 	rptMsg = 'mergeList: NAdd=%d NDupCID=%d NUpdate=%d NSame=%d NCrimeCat=%d NGeo=%d NIncid=%d' % \
 		(nadd,ndup,nupdate,nsame,ncc,ngeo,nincid) 
-	print(rptMsg)
+	log.info(rptMsg)
 	rptLines.append(rptMsg)
 	
 	return rptLines
@@ -434,7 +436,7 @@ class Command(BaseCommand):
 
 		rptLines = []
 		rptMsg = 'harvestSocrata: full date range from %s' % (minDateTime) 
-		print(rptMsg)
+		log.info(rptMsg)
 		rptLines.append(rptMsg)
 
 		results = harvestSince(minDateTime,qryLimit=20000)
@@ -446,13 +448,13 @@ class Command(BaseCommand):
 
 		elapTime = datetime.now() - nowDT
 		rptMsg = 'harvestSocrata: Completed %s sec' % (elapTime.total_seconds())
-		print(rptMsg)
+		log.info(rptMsg)
 		rptLines.append(rptMsg)
 
 		fullRpt = '\n'.join(rptLines)
 
-		send_mail('Socrata harvest', fullRpt, 'rik@electronicArtifacts.com', \
-				['rik@electronicArtifacts.com'], fail_silently=False)
+		if settings.EMAIL_ENABLE:
+		    mail_managers('[oakcrime] Socrata harvest', fullRpt)
 
 # if __name__ == "__main__":
 # 	do_harvest()		

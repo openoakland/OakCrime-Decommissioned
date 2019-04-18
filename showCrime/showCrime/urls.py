@@ -18,6 +18,7 @@ from django.conf.urls import url, include
 # from django.urls import include, path
 
 from django.contrib import admin
+from django.contrib.staticfiles import views as static_views
 
 from rest_framework import routers
 
@@ -38,8 +39,9 @@ urlpatterns = [
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
-		# For django versions before 2.0:
-		url(r'^__debug__/', include(debug_toolbar.urls)),
-        # path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+        # For django versions before 3.0:
+        url(r'^__debug__/', include(debug_toolbar.urls)),
 
+        # Serve static files in development
+        url(r'^static/(?P<path>.*)$', static_views.serve),
+    ] + urlpatterns

@@ -35,6 +35,7 @@ jobs:
       - run: |
           cd showCrime
           eb deploy oakcrime-prod-web
+          eb deploy oakcrime-production-worker
 
 
 workflows:
