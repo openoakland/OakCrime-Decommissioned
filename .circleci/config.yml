@@ -30,6 +30,7 @@ jobs:
           name: run tests
           command: |
             source venv/bin/activate
+            cd showCrime
             make test
 
 
