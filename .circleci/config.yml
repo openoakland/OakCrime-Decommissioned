@@ -4,6 +4,8 @@ jobs:
   build:
     docker:
       - image: circleci/python:3.6
+    environment:
+      SECRET_KEY: fakesecretkey
     steps:
       - checkout
       - restore_cache:
