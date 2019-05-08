@@ -30,8 +30,8 @@ jobs:
       - run:
           name: run tests
           command: |
-            source venv/bin/activate
             cd showCrime
+            make docker.build
             make docker.test
 
 
