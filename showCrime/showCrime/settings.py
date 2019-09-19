@@ -14,7 +14,7 @@ root = environ.Path(__file__) - 2
 # env = environ.Env(DEBUG=(bool, False), )
 
 def env(key):
-	print('env:',key)
+	# print('env:',key)
 	return os.environ[key]
 
 # Support for Path objects in the os module was added in Python 3.6.
@@ -36,9 +36,9 @@ PLOT_PATH = os.path.join(root, "plots")
 
 # PUBLIC_ROOT = env('PUBLIC_ROOT')
 
-print('envDict:')
-for k,v in os.environ.items():
-	print(k,v)
+# print('envDict:')
+# for k,v in os.environ.items():
+# 	print(k,v)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
@@ -236,25 +236,26 @@ LOGGING = {
         },
 
 	'loggers': {
-        '': {
-            'handlers': ['file_app', 'console', ],
-            'level': 'INFO',
-			'propagate': True,
-		},
-		},
+        # '': {
+            # 'handlers': ['file_app', 'console', ],
+            # 'level': 'INFO',
+	    #     	'propagate': True,
+	    #     },
+	    #     },
 		'dailyIncid': {
-			'handlers': ['console', 'mail_admins'],
+                        'handlers': ['console', 'file_app'],
 			'level': 'INFO',
 		},
 		'harvestSocrata': {
-			'handlers': ['console', 'mail_admins'],
+                        'handlers': ['console', 'file_app'],
 			'level': 'INFO',
 		},
 		'harvestPatrolLog': {
-			'handlers': ['console', 'mail_admins'],
+                        'handlers': ['console', 'file_app'],
 			'level': 'INFO',
 		}
 	}
+}
 # LOGGING_CONFIG = None
 
 import logging.config

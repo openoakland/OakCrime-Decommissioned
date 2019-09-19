@@ -111,7 +111,9 @@ def getMiss(boxidx,verbose=True):
 def connectJWTAuth():
 	
 	# import pdb; pdb.set_trace()
-	
+	# print('connectJWTAuth: rsaFile=%s exists=%s read=%s' % (BoxRSAFile, os.path.exists(BoxRSAFile),os.access(BoxRSAFile, os.R_OK)))
+	# for k in sorted(os.environ.keys()): print(k,os.environ[k])
+
 	auth = boxsdk.JWTAuth(
 		client_id=BoxClientID,
 		client_secret=BoxClientSecret,
@@ -460,7 +462,9 @@ def createBoxTblFromDB():
 	return currTbl
 
 class Command(BaseCommand):
-	help = '''harvest updates from OPD PatrolLogs from Box since %y%m%d startDate
+	help = '''harvest updates from OPD PatrolLogs from Box 
+			if lastCheck, recover since %Y-%m-%d lastCheck date, 
+				else since most recent boxModDT across BoxID records
 			Compare cache to current database
 			Parse PDF of newly harvested
 			Merge against existing dailyIncid
@@ -498,7 +502,7 @@ class Command(BaseCommand):
 			lastTouchedBoxID = BoxID.objects.latest('boxModDT')
 			lastBoxDT = lastTouchedBoxID.boxModDT
 			
-			logger.info('lastBoxDT=%s' , dateStr,lastBoxDT)
+			logger.info('BOXMOD lastBoxDT=%s' ,lastBoxDT)
 			
 			# NB: HarvestOverlapBuffer to avoid missing any in the gap!
 			lastBoxDT -= timedelta(days=HarvestOverlapBuffer)
@@ -508,7 +512,7 @@ class Command(BaseCommand):
 		else:
 			lastBoxDT = datetime.strptime(lastCheck,'%Y-%m-%d')
 			lastBoxDT = OaklandTimeZone.localize(lastBoxDT)
-			logger.info('%s FIXED lastBoxDT=%s', dateStr,lastBoxDT)
+			logger.info('FIXED lastBoxDT=%s', lastBoxDT)
 		
 		# FIRST TIME load initial BoxID relation from json
 		if initAll:
@@ -523,7 +527,7 @@ class Command(BaseCommand):
 		## Check current files @ Box
 		makeBoxConnection() # sets CurrBoxClient
 				
-		chgList = updateBoxID(lastBoxDT)
+		chgList = updateBoxID(lastBoxDT,verbose=True)
 		elapTime = datetime.now() - beginDT
 		logger.info('updateBoxID DONE elapTime=%s' , elapTime.total_seconds())	
 		summRpt += 'updateBoxID: NChanged BoxID=%s\n' % len(chgList)
@@ -626,9 +630,8 @@ class Command(BaseCommand):
 		
 		summRpt = summRpt + rptMsg + '\n'
 
-		print('2bMailed:',summRpt)
-		# 190831: enable email summRpt
-# 		send_mail('Socrata harvest', summRpt, 'rik@electronicArtifacts.com', \
-# 				['rik@electronicArtifacts.com'], fail_silently=False)
+		# print('2bMailed:',summRpt)
+		send_mail('PatrolLog @ Box harvest', summRpt, 'rik@electronicArtifacts.com', \
+				['rik@electronicArtifacts.com'], fail_silently=False)
 
 	

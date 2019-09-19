@@ -315,7 +315,7 @@ def findSimIncid(dpIdxList,nowString,verbose=None):
 		# drop those missing either
 		if not (dpo.incidDT != None and 'location1' in dlog and 'XLng' in dlog and 'YLat' in dlog):
 			ndrop += 1
-			logger.warning('findSimIncid: i=%d cid=%d dropped, missing time/date' , i,cid)
+			logger.warning('findSimIncid: i=%d cid=%s dropped, missing time/date' , i,cid)
 			continue
 
 		## first try using cid directly
