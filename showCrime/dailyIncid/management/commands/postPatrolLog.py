@@ -3,14 +3,17 @@
 	uses findSimIncident() to attempt matches of DLogs to incidents
 	ASSUME geotagging already done
 	
-@date 181218
+@version 0.3: prepare for AWS
+	- use BoxID, database tables vs JSON
+	
+@date 190819
 @author: rik
 '''
 
 from datetime import datetime,timedelta,date,time
+import json
+import logging
 import pytz
-import re
-from re import match
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
@@ -22,98 +25,48 @@ from django.core.mail import send_mail
 import editdistance
 
 from dailyIncid.models import *
+from dailyIncid.util import *
+
+logger = logging.getLogger(__name__)
 
 ## Constants
+
 SRS_default = 4326 # WGS84
 SRS_10N = 26910 	# UTM zone 10N
 
-MaxCIDDiff = 3  # max allowable difference between PatrolLog Report# and opd_rd
-DefaultNDays = 7
+PlogOCMatchThresh = 0.8  # 190829
+PlogCIDMinMatch = 0.8
+
+MaxCIDDiff = 2  # max allowable difference between PatrolLog Report# and opd_rd
+
 DateOnlyStrFormat = '%Y-%m-%d'
 Socrata_date_format = '%Y-%m-%dT%H:%M:%S' # 2013-12-04T19:00:00
 DLogDateTimeFmt = "%Y-%m-%d %H:%M:%S"
 
 MZDefaultOaklandCoord = [-122.197811, 37.785199]
 
-# 171026:  Most frequent pairs from pc2ccTbl_171006.ods
-MajorCrimes = ['ASSAULT' 'DOM-VIOL', 'HOMICIDE', 'ROBBERY']
-
-PC2CrimeCatTbl = {'211': 'ROBBERY', 
-					'245(a)(1)': 'ASSAULT', 
-					'245(a)(2)': 'ASSAULT', 
-					'664': 'ROBBERY', 
-					'246.3': 'ASSAULT', 
-					'215': 'ROBBERY', 
-					'246': 'ASSAULT', 
-					'212.5': 'ROBBERY', 
-					'(211': 'ROBBERY', 
-					'187': 'HOMICIDE', 
-					'247(b)': 'ASSAULT', 
-					'273.5': 'DOM-VIOL', 
-					'211pc-armed': 'ROBBERY', 
-					'247': 'ASSAULT'}
-
-def awareDT(naiveDT):
-	utc=pytz.UTC
-	return utc.localize(naiveDT)
-
-def classify(ctype,desc):
-	try:
-		cco1 = CrimeCat.objects.get(ctypeDesc=ctype)
-		cc = cco1.crimeCat
-	except ObjectDoesNotExist:
-		try:
-			cco2 = CrimeCat.objects.get(ctypeDesc=desc)
-			cc = cco2.crimeCat
-		except ObjectDoesNotExist:
-			cc = ''
-	return cc
-
-def classifyPC(pclist):
-	'''return first match found in PC2CrimeCatTbl
-	'''
-
-	for pc in pclist:
-		if pc in PC2CrimeCatTbl:
-			return PC2CrimeCatTbl[pc]
-	return ''
-
-def mergeDLog2Incid(dlogDict,ocResult,nowDate):
+def mergeDLog2Incid(dpo,incid,nowDate):
 	'''Combine dlog dictionary with OakCrime match including existing ocResult incident
 	PREFER ocResult fields
 	if ocResult==None, fill only fields available in dlog
 	'''
 
 	newOC = OakCrime()
+	dlogDict = json.loads(dpo.parseDict)
 	
 	# NB: include froot as part of dlogSrc
 	dlogSrc = 'DLog_' + nowDate + '_' + dlogDict['froot']
 	
-	if ocResult==None:	
+	if incid==None:	
 		# New incident indicated to save() by null idx 
 		newOC.idx = None
-		# NB: missing existing ocResult, use cid from dlog
-		newOC.opd_rd = dlogDict['rptno']
-		# NB:  oidx must be non-null! - 171205
+		newOC.opd_rd = dpo.opd_rd
 		newOC.oidx = 0
 
-		# NB: parseOPDLog_PDForm.regularizeIncidTbl() can't regularize bad dates!
-		dlogDate = dlogDict['reg_date']
-		# NB: parse_OPDLog_PDForm.regularizeIncidTbl() only includes good times 
-		if 'reg_time' not in dlogDict or dlogDict['reg_time']=='':
-			dlogTime = time()
-		else:
-			dlogTime = dlogDict['reg_time']
-	
-		newDateTime = awareDT(datetime.combine(dlogDate, dlogTime)	)
-		newOC.cdateTime	= newDateTime 		
+		newOC.cdateTime	= dpo.incidDT 		
 		
 		newOC.desc = ''		# NB: no description in logs, nature used for pclist
 		newOC.ctype = ''
-		if 'reg_pc' in dlogDict:
-			newOC.crimeCat = classifyPC(dlogDict['reg_pc'])
-		else:
-			newOC.crimeCat = ''
 		
 		newOC.beat = dlogDict['reg_beat']	
 		newOC.addr = dlogDict['location1'].upper()
@@ -127,13 +80,12 @@ def mergeDLog2Incid(dlogDict,ocResult,nowDate):
 				newpt.transform(SRS_10N)
 				newOC.point = newpt
 			except Exception as e:
-				print('mergeDLog2Incid: cant make point for dlog?! %s %s %s\n\t%s' % (newOC.opd_rd,newOC.xlng,newOC.ylat,e))
+				logger.warning('mergeDLog2Incid: cant make point for dlog?! %s %s %s\n\t%s' , newOC.opd_rd,newOC.xlng,newOC.ylat,e)
 				newOC.point = None
 						
 		newOC.source = dlogSrc
 		
 	else:
-		incid = ocResult['incid']
 		# NB: existing ocResult, use cid from it
 		# 		and make sure to steal its primary key!
 		newOC.idx = incid.idx
@@ -186,25 +138,11 @@ def mergeDLog2Incid(dlogDict,ocResult,nowDate):
 				newpt.transform(SRS_10N)
 				newOC.point = newpt
 			except Exception as e:
-				print('mergeDLog2Incid: cant add point from dlog?! %s %s %s\n\t%s' % (incid.opd_rd,newOC.xlng,newOC.ylat,e))
+				logger.warning('mergeDLog2Incid: cant add point from dlog?! %s %s %s\n\t%s' , incid.opd_rd,newOC.xlng,newOC.ylat,e)
 				newOC.point = None
 		else:
 			newOC.point = None
 
-		# 2do: new classify(newOC.ctype,newOC.desc, PC)
-	
-		# NB: prefer previous crimeCat, then (re-)try to classify based on ctype,desc
-		# 		finally exploit dlog reg_pc
-	
-		if incid.crimeCat != '':
-			newOC.crimeCat = incid.crimeCat
-		elif incid.ctype != '' or incid.desc != '':
-			cc = classify(incid.ctype,incid.desc)
-			if cc == '' and 'reg_pc' in dlogDict:
-				cc = classifyPC(dlogDict['reg_pc'])
-			newOC.crimeCat = cc
-		else:
-			newOC.crimeCat = ''
 			
 		newOC.source = incid.source + '+' + dlogSrc
 		
@@ -232,55 +170,27 @@ def mergeDLog2Incid(dlogDict,ocResult,nowDate):
 	# 2do HACK: parse_OPDLog_PDForm.regularizeIncidTbl()  WHY WOULD reg_ro and reg_pc be missing?!
 	newOC.roList = dlogDict['reg_ro']		   if ('reg_ro' in dlogDict) else []
 	newOC.pcList = dlogDict['reg_pc']			if ('reg_pc' in dlogDict) else []
-	
+
+	newOC.crimeCat = classify(newOC)
+		
 	return newOC
 	
-def distWgt(dist,maxDist):
-	'''linear ramp weight from 1.0 to 0.0 at maxDist
-	'''
-
-	dist = max([0,min([dist,maxDist])])
 	
-	return (maxDist-dist)/maxDist
-
-def dateDiffWgt(dayDiff,maxDays):
-	'''linear ramp weight from 1.0 to 0.0 at maxDays
-	'''
-	
-	return (float(maxDays) - abs(dayDiff)) / maxDays
-	
-def getBestMatch(dlog,dlogCID,logStream,cidFilter=False,requireMajorCrime=True):
+def getBestMatch(dpo,dlogCID,verbose=False,cidFilter=True):
 	'''query existing OakCrime database for exact opd_rd match,
 	then approx dateTime+location similarity
 	  - logStream: non-None is a stream to write matching detailed log
 	  - cidFilter: pre-filter against matches with CID > MaxCIDDiff
-	  - requireMajorCrime: only consider incidents with ctype in MajorCrimes list
 	ASSUME dlog contains date and xlng,ylat 
 	'''
 	
-	CloseRadius = 1000 # 1km
-	DateRange = 7
 	
-	LocationScale = 0.5
-	DateScale = 0.5
-		
-	if 'reg_date' not in dlog or dlog['reg_date'] == None:
-		# nmissDate += 1
-		return 'missDate'
-	else:
-		dlogDate = dlog['reg_date']
-
-	if 'reg_time' not in dlog or dlog['reg_time']=='':
-		dlogTime = time()
-	else:
-		dlogTime = dlog['reg_time']
-
-
-	dlogDateTime = awareDT(datetime.combine(dlogDate, dlogTime)	)
+	dlog = json.loads(dpo.parseDict)
+	dlogDateTime = dpo.incidDT
 	
 	# ASSUME 4am cutoff ala 29 Sept 17 "0400hrs / Friday (29SEP17) - 0400hrs / Saturday (30SEP17)"
 	# 		ie goes 4 hours into next day's incidents
-	if dlogTime.hour <= 4:
+	if dlogDateTime.hour <= 4:
 		dlogDateTime += timedelta(days=1)
 		
 	minDate = (dlogDateTime - timedelta(days=DateRange))
@@ -313,62 +223,28 @@ def getBestMatch(dlog,dlogCID,logStream,cidFilter=False,requireMajorCrime=True):
 			continue
 
 		match['idDist'] = idDist
-		cdateTime = incid.cdateTime
-		# match['cdate'] = cdate
-		dateDiff = cdateTime - dlogDateTime
-		dateDiffSeconds = dateDiff.total_seconds()
-		dayDiff = float(dateDiffSeconds) / 60 / 60 / 24
+
+		dayDiff, distKM = compTimePlace(dlogDateTime,dlPt,incid.cdateTime,incid.point)
 		match['dayDiff'] = dayDiff
+		match['dist'] = distKM
 		
-		XLng = incid.xlng
-		YLat = incid.ylat
-		
-		if XLng == None or YLat == None:
-			print('getBestMatch: missing coord in matching incid?! dlog: %s %s %s ; %s %s %s' % \
-					(dlogCID,dlXLng,dlYLat,opd_rd,XLng,YLat))
-			continue
-		
-		incidPt = incid.point
-		
-		distDegree = incidPt.distance(dlPt) # degrees!
-
-		# EarthEquatorialRadius = 6378000 
-		Degree2Meter = 111195 # EarthEquatorialRadius * Pi / 180 
-		distMeter = distDegree * Degree2Meter
-
-		distw = distWgt(distMeter, CloseRadius)
-				
-		match['dist'] = distMeter
-
-		datew = dateDiffWgt(dayDiff, DateRange)
-		
-		matchScore = LocationScale * distw + DateScale * datew
-		
-		## 181223: PatrolLogs generally only report crimes in PC2CrimeCatTbl
-		# NB: only keeping first PCode in match
-		majorCrime = False
-		for pc in dlog['reg_pc']:
-			if incid.ctype in MajorCrimes:
-				majorCrime = True
-				break
-		match['majorCrime'] = majorCrime
-		
-		match['mscore'] = matchScore
+		timePlaceScore = timePlaceMatchScore(dayDiff,distKM)
+		match['mscore'] = timePlaceScore
 		
 		# include all of OakCrime incident features
 		match['incid'] = incid
 		
 		matchTbl[opd_rd] = match
 		
-		if logStream:
+		if verbose:
 			# dRptNo,dLoc,dxlng,dylat,dDT,dPC,iCID,iAddr,ixlng,iylat,iDT,iCC,iCType,iDesc,matchScore,idDist,distMeter,dayDiff,majorCrime
 			
 			logFlds = [dlog['rptno'],dlog['location1'],dlXLng,dlYLat,dlogDateTime,dlog['reg_pc'], \
 						incid.opd_rd,incid.addr,incid.xlng,incid.ylat,incid.cdateTime,incid.crimeCat,incid.ctype,incid.desc, \
-						matchScore,idDist,distMeter,dayDiff,majorCrime]
+						timePlaceScore,idDist,distKM,dayDiff]
 			logStrFlds = ['"'+str(f)+'"' for f in logFlds]
 			outline = ','.join(logStrFlds)
-			logStream.write(outline+'\n')
+			logger.info('getBestMatch: '+ outline)
 		
 	allMatch = list(matchTbl.keys())
 	bestMatch = None
@@ -377,110 +253,128 @@ def getBestMatch(dlog,dlogCID,logStream,cidFilter=False,requireMajorCrime=True):
 	# select exact match CID result,
 	for opd_rd in allMatch:
 		match = matchTbl[opd_rd]
-		# NB: parse_OPDLoPDF.mergeDailyLogs() adds suffix to cid for duplicate rptno
-		# exact match of either allowed
-		if opd_rd==dlogCID or opd_rd==dlog['rptno']:
+		if opd_rd==dlogCID or opd_rd==dpo.opd_rd:
 			bestMatch = match
 			break
 
 	# or best-matching 
 	if not bestMatch:
-		majorCrimes = []
-		if requireMajorCrime:
-			for opd_rd in allMatch:
-				match = matchTbl[opd_rd]
-				if match['majorCrime']:
-					majorCrimes.append(opd_rd)
-					
-			# NB: only match against majorCrime if it is unique
-			if len(majorCrimes) > 1:
-				# print('getBestMatch: multiple majorCrime match!',majorCrimes)
-				pass
-			elif len(majorCrimes) == 1:
-				bestMatch = matchTbl[majorCrimes[0]]
-		else:
-			for opd_rd in allMatch:
-				match = matchTbl[opd_rd]	
-				if match['mscore'] > bestMatchScore:
-					bestMatch = match
-					bestMatchScore = match['mscore']
+		for opd_rd in allMatch:
+			match = matchTbl[opd_rd]	
+			if match['mscore'] > bestMatchScore:
+				bestMatch = match
+				bestMatchScore = match['mscore']
 			
-	if bestMatch and logStream:
+	if bestMatch and verbose:
 		# dRptNo,dLoc,dxlng,dylat,dDT,dPC,iCID,iAddr,ixlng,iylat,iDT,iCC,iCType,iDesc,matchScore,idDist,distMeter,dayDiff,majorCrime
 		incid = bestMatch['incid']
 		# NB: prefix best's CID with star!
 		logFlds = [dlog['rptno'],dlog['location1'],dlXLng,dlYLat,dlogDateTime,dlog['reg_pc'], \
 					incid.opd_rd,incid.addr,incid.xlng,incid.ylat,incid.cdateTime,incid.crimeCat,incid.ctype,incid.desc, \
-					matchScore,idDist,distMeter,dayDiff,majorCrime]
+					timePlaceScore,idDist,distKM,dayDiff]
 		logStrFlds = ['"'+str(f)+'"' for f in logFlds]
 		outline = ','.join(logStrFlds)
-		logStream.write(outline+'\n')
+		logger.info('bestMatch: '+outline)
 		
 	return bestMatch
 
-def findSimIncid(dlogTbl,nowString,logStr=None,verbose=None):
-	'''build ranked list of dailyIncid 'similar' to each dailyLog
-	return dlogMatchTbl: 	cid -> OakCrime() and 
-		   dlogUnmatchTbl: 	dlogCID -> OakCrime()
+def findSimIncid(dpIdxList,nowString,verbose=None):
+	'''go through all DailyParse objects arising from recent parse
+		try to match based on opd_rd unique or otherwise
+		if this fails try heuristic matching based on dateTime+location
+		separate into two dicts of matching+merged or unmatched NEW OakCrime objects
+		NB: objects have not been saved yet
+		
+	return dlogMatchTbl: 	cid -> merged OakCrime 
+		   dlogUnmatchTbl: 	cid -> new OakCrime  
 	'''
-	
-
-	allCID = list(dlogTbl.keys())
-	allCID.sort()
 		
 	nhit = 0
 	nmissGC = 0
 	nmissDate = 0
 	nmissTime = 0
-	ncidMatch = 0
 	nnearMatch = 0
 	nunmatch = 0
 	nbadTransform = 0
+	nprepost = 0
 	ndrop = 0
 	dlMatchTbl = {}
 	unMatchTbl = {}
 
-	for i,dlogCID in enumerate(allCID):
+	for i,dpIdx in enumerate(dpIdxList):
+		dpo = DailyParse.objects.get(idx=dpIdx)
+		cid = dpo.opd_rd
+		dlog = json.loads(dpo.parseDict)
+
 		if verbose != None and i % verbose == 0:
-			print('findSimIncid: i=%d %s NHit=%d NDrop=%d NMissGC=%d NMissDate=%d NBadTran=%d NMissTime=%d NCIDMatch=%d NNearMatch=%d NMatch=%d NUnmatch=%d/%d (%d)' % \
-				(i,dlogCID,nhit,ndrop,nmissGC,nmissDate,nbadTransform,nmissTime, ncidMatch, nnearMatch, len(dlMatchTbl), \
-				len(unMatchTbl),nunmatch, (len(dlMatchTbl)+len(unMatchTbl))))
+			logger.info('findSimIncid: verbose NHit=%d NDrop=%d NPrePost=%d NMissGC=%d NMissDate=%d NBadTran=%d NMissTime=%d NNearMatch=%d NMatch=%d NUnmatch=%d/%d (%d)' , \
+				nhit,ndrop,nprepost,nmissGC,nmissDate,nbadTransform,nmissTime, nnearMatch, len(dlMatchTbl), \
+				len(unMatchTbl),nunmatch, (len(dlMatchTbl)+len(unMatchTbl)))
 
-
-		dlog = dlogTbl[dlogCID]
+		# Can't confirm matching OPD_RD or  approximate match without date and location
+		# drop those missing either
+		if not (dpo.incidDT != None and 'location1' in dlog and 'XLng' in dlog and 'YLat' in dlog):
+			ndrop += 1
+			logger.warning('findSimIncid: i=%d cid=%s dropped, missing time/date' , i,cid)
+			continue
 
 		## first try using cid directly
-		if dlogCID.find('_') != -1:
-			dlcid,suf = dlogCID.split('_')
-		else:
-			dlcid = dlogCID
-		try:
-			sameCIDIncid = OakCrime.objects.filter(opd_rd=dlcid)
-		except Exception as e:
-			sameCIDIncid = []
+		sameCIDIncid = OakCrime.objects.filter(opd_rd=cid)
 			
 		# not uncommon to have multiple incident records sharing same OPD_RD
 		if len(sameCIDIncid) >= 1:
+			if len(sameCIDIncid) > 1:
+				
+				# NB: attach dailyLog info to oidx=0 incident; all should share same date, location
+				# NB: 190902: There exist multiple oidx=0 records for same OPD_RD
+				incidList = list(sameCIDIncid.filter(oidx=0))
+				# NB: if there are more than one, arbitrarily pick first
+				incid = incidList[0]
+			else:
+				incid = sameCIDIncid[0]
 
-			# NB: arbitrarily pick FIRST; all should share same date, location
-			incid = sameCIDIncid[0]
-			nhit += 1
-			# HACK: create dictionary for use in mergeDLog2Incid()
-			opd_rd = incid.opd_rd
-			match = {'cid': opd_rd}
-			match['incid'] = incid
-			newOC = mergeDLog2Incid(dlog,match,nowString)
-			dlMatchTbl[dlogCID] = newOC
-			continue
+			# ensure same patrol log doesn't post twice to same OakCrime instance!
+			
+			if incid.source.find(dpo.froot) != -1:
+				nprepost += 1
+				ndrop += 1
+				continue
+			
+			# ASSUME without location info in existing incid, need to assume the match is correct?!
+			if incid.point == None:
+				nhit += 1
+				newOC = mergeDLog2Incid(dpo,incid,nowString)
+				dlMatchTbl[cid] = newOC
+				continue
 
-		# Can't find approximate match without date and location
-		# drop those missing either
-		if not ('reg_date' in dlog and 'location1' in dlog and 'XLng' in dlog and 'YLat' in dlog):
-			ndrop += 1
-			continue
-
+			# 190829: otherwise, test matching opd_rd is time+space nearby
+	
+			dlXLng = dlog['XLng']
+			dlYLat = dlog['YLat']
+			if dlXLng=='' or dlYLat=='':
+				logger.warning('findSimIncid: i=%d cid=%s blank xlng/ylat?!' , i, cid)
+				ndrop += 1
+				continue
+			
+			dlPt = Point(dlXLng,dlYLat,srid=SRS_default)
+		
+			dayDiff, distKM = compTimePlace(dpo.incidDT,dlPt,incid.cdateTime,incid.point)
+			timePlaceScore = timePlaceMatchScore(dayDiff,distKM)
+			if timePlaceScore > PlogCIDMinMatch:
+				nhit += 1
+				newOC = mergeDLog2Incid(dpo,incid,nowString)
+				dlMatchTbl[cid] = newOC
+				continue
+			else:
+				ndrop += 1
+				logger.warning('findSimIncid: i=%d shared OPD_RD but large timePlaceScore?! dayDiff=%5.2f geoDist=%5.2f Score=%5.2f \n\t patrolLog (%s,%s,%s,%s) \n\t prevOC    (%s,%s,%s,%s/%s)' , \
+				i,dayDiff,distKM, timePlaceScore, \
+				 dpo.opd_rd, dpo.incidDT, dlog['location1'],dlog['nature'], \
+			 	 incid.opd_rd, incid.cdateTime, incid.addr, incid.desc, incid.ctype)
+				continue
+		
 		## Next try heuristic matching based on date, 
-		bestMatch = getBestMatch(dlog,dlogCID,logStr)
+		bestMatch = getBestMatch(dpo,cid,verbose)
 		
 		if bestMatch=='missGC':
 			nmissGC += 1
@@ -494,27 +388,24 @@ def findSimIncid(dlogTbl,nowString,logStr=None,verbose=None):
 		
 		if (bestMatch == None):
 			nunmatch += 1
-			newOC = mergeDLog2Incid(dlog,None, nowString)
-			unMatchTbl[dlogCID] = newOC
+			newOC = mergeDLog2Incid(dpo,None, nowString)
+			unMatchTbl[cid] = newOC
 			
+		elif bestMatch['mscore'] > PlogOCMatchThresh:
+			nnearMatch += 1
+			bestIncid = bestMatch['incid']
+			
+			logger.info('findSimIncid: i=%d nearMatch idDist=%d dayDiff=%5.2f geoDist=%5.2f Score=%5.2f \n\t patrolLog (%s,%s,%s,%s)\n\t prevOC    (%s,%s,%s,%s/%s)' , \
+					i,bestMatch['idDist'],bestMatch['dayDiff'],bestMatch['dist'],bestMatch['mscore'], \
+					 dpo.opd_rd, dpo.incidDT, dlog['location1'],dlog['nature'], \
+				 	 bestIncid.opd_rd, bestIncid.cdateTime, bestIncid.addr, bestIncid.desc, bestIncid.ctype)
+			newOC = mergeDLog2Incid(dpo,bestIncid, nowString)	
+			dlMatchTbl[cid] = newOC
+
 		else:
-			
-			# NB: parse_OPDLoPDF.mergeDailyLogs() adds suffix to cid for duplicate rptno
-			# exact match of either allowed
-			if bestMatch['cid']==dlogCID or bestMatch['cid']==dlog['rptno']:
-				ncidMatch += 1
-				newOC = mergeDLog2Incid(dlog,bestMatch, nowString)
-				dlMatchTbl[dlogCID] = newOC
-
-			elif bestMatch['majorCrime'] and bestMatch['mscore'] > 0.5:
-				nnearMatch += 1
-				newOC = mergeDLog2Incid(dlog,bestMatch, nowString)	
-				dlMatchTbl[dlogCID] = newOC
-
-			else:
-				nunmatch += 1
-				newOC = mergeDLog2Incid(dlog,None, nowString)
-				unMatchTbl[dlogCID] = newOC
+			nunmatch += 1
+			newOC = mergeDLog2Incid(dpo,None, nowString)
+			unMatchTbl[cid] = newOC
 					
 		# import pdb; pdb.set_trace()
 
@@ -533,9 +424,9 @@ def findSimIncid(dlogTbl,nowString,logStr=None,verbose=None):
 	# 	nunmatch	“ / Nunmatch”	no best nor ncidMatch nor above match thresh
 	# 	(368)	(len(dlMatchTbl)+len(unMatchTbl))	“( )”	
 		
-	print('findSimIncid: FINAL NHit=%d NDrop=%d NMissGC=%d NMissDate=%d NBadTran=%d NMissTime=%d NCIDMatch=%d NNearMatch=%d NMatch=%d NUnmatch=%d/%d (%d)' % \
-		(nhit,ndrop,nmissGC,nmissDate,nbadTransform,nmissTime, ncidMatch, nnearMatch, len(dlMatchTbl), \
-		len(unMatchTbl),nunmatch, (len(dlMatchTbl)+len(unMatchTbl))))
+	logger.info('findSimIncid: FINAL NHit=%d NDrop=%d NPrePost=%d NMissGC=%d NMissDate=%d NBadTran=%d NMissTime=%d NNearMatch=%d NMatch=%d NUnmatch=%d/%d (%d)' , \
+		nhit,ndrop,nprepost,nmissGC,nmissDate,nbadTransform,nmissTime, nnearMatch, len(dlMatchTbl), \
+		len(unMatchTbl),nunmatch, (len(dlMatchTbl)+len(unMatchTbl)))
 
 	return dlMatchTbl, unMatchTbl
 
