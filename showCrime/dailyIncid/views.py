@@ -23,7 +23,8 @@ import random
 
 import geojson 
 
-from showCrime.settings import PLOT_PATH, SITE_URL
+from showCrime.settings import PLOT_PATH
+SITE_URL = 'oakcrime.org'
 
 from .forms import *
 from .models import *
