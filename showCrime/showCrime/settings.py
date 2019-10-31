@@ -1,29 +1,19 @@
 """
 django app for https://OakCrime.org
-
-__author__ = "rik@electronicArtifacts.com"
-__date__ = "191031"
-__version__ = "0.3.1"
 """
 
+__author__ = "rik@electronicArtifacts.com"
+__credits__ = ["clinton.blackburn@gmail.com","actionspeakslouder@gmail.com"]
+__date__ = "190128"
+__version__ = "0.1.0-alpha"
+
+from email.utils import parseaddr
 import os
 
 import environ
-root = environ.Path(__file__) - 2
+
+project_root = environ.Path(__file__) - 2
 env = environ.Env(DEBUG=(bool, False), )
-
-# Support for Path objects in the os module was added in Python 3.6.
-# BASE_DIR1 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASE_DIR = os.path.abspath(os.path.join(__file__, '../../'))
-root = BASE_DIR
-
-MEDIA_ROOT = os.path.join(root, "media") 
-MEDIA_URL = '/media/'
-
-STATIC_ROOT = os.path.join(root, "static")
-STATIC_URL = '/static/'
-PLOT_PATH = os.path.join(root, "plots")
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
@@ -38,66 +28,58 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
-INSTALLED_APPS = [
-	'django.contrib.admin',
-	'django.contrib.auth',
-	'django.contrib.contenttypes',
-	'django.contrib.sessions',
+DJANGO_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
     'django.contrib.sites',
-	'django.contrib.messages',
-	'django.contrib.staticfiles',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
     'django.contrib.flatpages',
-	'django.contrib.gis',
-	'rest_framework',
-    'leaflet',
+    'django.contrib.gis',
+]
+
+THIRD_PARTY_APPS = [
+    'rest_framework',
+]
+
+LOCAL_APPS = [
     'dailyIncid',
 ]
 
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
 MIDDLEWARE = [
-	'django.middleware.security.SecurityMiddleware',
-	'django.contrib.sessions.middleware.SessionMiddleware',
-	'django.middleware.common.CommonMiddleware',
-	'django.middleware.csrf.CsrfViewMiddleware',
-	'django.contrib.auth.middleware.AuthenticationMiddleware',
-	'django.contrib.messages.middleware.MessageMiddleware',
-	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
 ]
-
-if DEBUG:
-	INSTALLED_APPS.append('debug_toolbar')
-
-	# The order of MIDDLEWARE_CLASSES is important. You should include the
-	# Debug Toolbar middleware as early as possible in the list. However, it
-	# must come after any other middleware that encodes the response's
-	# content, such as GZipMiddleware.
-	MIDDLEWARE.insert(0,'debug_toolbar.middleware.DebugToolbarMiddleware')
-	STATICFILES_DIRS = [ ]
-	INTERNAL_IPS = ['127.0.0.1' ] # for debug_toolbar
-else:
-	STATICFILES_DIRS = [ env(STATICFILES_DIRS), ]
-	INTERNAL_IPS = []
-
 
 ROOT_URLCONF = 'showCrime.urls'
 
 TEMPLATES = [
-	{
-		'BACKEND': 'django.template.backends.django.DjangoTemplates',
-		'DIRS': [os.path.join(root, 'templates')],
-		
- 		# not allowed to have APP_DIRS true when using explicit loaders
-	   'APP_DIRS': True,
-		'OPTIONS': {
-			'context_processors': [
-				'django.template.context_processors.debug',
-				'django.template.context_processors.request',
-				'django.contrib.auth.context_processors.auth',
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            str(project_root.path('templates')),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
                 'django.template.context_processors.i18n',
-				'django.contrib.messages.context_processors.messages',
-			],
-		},
-	},
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
 ]
 
 WSGI_APPLICATION = 'showCrime.wsgi.application'
@@ -106,32 +88,31 @@ WSGI_APPLICATION = 'showCrime.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-	'default': {
-			# LOCAL DATABASE
-		'ENGINE': 'django.contrib.gis.db.backends.postgis',
- 		'NAME': env('DB_NAME'),
- 		'USER': env('DB_USER'),
- 		'PASSWORD': env('DB_PW'),
- 		'HOST': env('DB_HOST')		
-	},
+    'default': env.db(),
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-	{
-		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-	},
-	{
-		'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-	},
-	{
-		'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-	},
-	{
-		'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-	},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
 ]
 
 # Internationalization
@@ -145,150 +126,155 @@ USE_I18N = True
 
 USE_L10N = True
 
-# https://docs.djangoproject.com/en/2.1/topics/i18n/timezones/#database
-# ... if you’re using PostgreSQL, you can switch between USE_TZ = False and USE_TZ = True freely.
-# The database connection’s time zone will be set to TIME_ZONE or UTC respectively, so that Django obtains correct datetimes in all cases.
-# You don’t need to perform any data conversions
 USE_TZ = True
-
-# WebFac?!
-LOGIN_URL = '/dailyIncid/need2login/'
-LOGIN_REDIRECT_URL = '/dailyIncid/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+PUBLIC_ROOT = env('PUBLIC_ROOT', cast=str, default=str(project_root.path('public')))
+MEDIA_ROOT = str(environ.Path(PUBLIC_ROOT).path('media'))
+MEDIA_URL = '/media/'
+STATIC_ROOT = str(environ.Path(PUBLIC_ROOT).path('static'))
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    str(project_root.path('static')),
+]
 
 SITE_ID = 1
 
-# 2do: enable cache?
-# CACHES = {
-#     'default': env.cache(default='locmemcache://showCrime'),
-# }
-
-LOG_FILE_PATH = os.path.join(root, "logs") 
-LOG_FILE = LOG_FILE_PATH + '/showCrime.log'
-
-ENABLE_LOGGING_TO_FILE = True # env('ENABLE_LOGGING_TO_FILE', default=True)
-def generate_file_handler(filename):
-	""" Generates a logging handler that writes to a file.
-
-	If the `ENABLE_LOGGING_TO_FILE` setting is `False`, `logging.NullHandler` will be used instead
-	of `logging.FileHandler`.
-
-	Args:
-		filename (str): Name of the file to which logs are written.
-
-	Returns:
-		dict
-	"""
-	handler = {
-		'level': 'INFO',
-		'formatter': 'standard',
-	}
-	if ENABLE_LOGGING_TO_FILE:
-		handler.update({
-			'class': 'logging.FileHandler',
-			'filename': LOG_FILE, # environ.Path(LOG_FILE_PATH).path(filename),
-		})
-	else:
-		handler['class'] = 'logging.NullHandler'
-
-	return handler
-
-# LOGGING = None
-LOGGING = {
-	'version': 1,
-        'disable_existing_loggers': False,
-	'formatters': {
-                'standard': {
-                        # 'format': '%(asctime)s %(levelname)s %(process)d %(pathname)s:%(lineno)d - %(message)s',
-                        # 'format': '%(asctime)s %(levelname)s  %(name)s:%(funcName)s:%(lineno)d - %(message)s',
-                        'format': '%(asctime)s %(name)s %(levelname)s - %(message)s',
-                },
-	},
-
-        'handlers': {
-                'console': {
-                        'level': 'INFO',
-                        'class': 'logging.StreamHandler',
-                        'formatter': 'standard'
-                },
-                'file_app': generate_file_handler('showCrime.log'),
-                'null': {
-                        'class': 'logging.NullHandler',
-                }
-        },
-
-	'loggers': {
-		'dailyIncid': {
-                        'handlers': ['console', 'file_app'],
-			'level': 'INFO',
-		},
-		'harvestSocrata': {
-                        'handlers': ['console', 'file_app'],
-			'level': 'INFO',
-		},
-		'harvestPatrolLog': {
-                        'handlers': ['console', 'file_app'],
-			'level': 'INFO',
-		}
-	}
+CACHES = {
+    'default': env.cache(default='locmemcache://showCrime'),
 }
-# LOGGING_CONFIG = None
 
-import logging.config
-logging.config.dictConfig(LOGGING)
+
+def generate_file_handler(filename):
+    """ Generates a logging handler that writes to a file.
+
+    If the `ENABLE_LOGGING_TO_FILE` setting is `False`, `logging.NullHandler` will be used instead
+    of `logging.FileHandler`.
+
+    Args:
+        filename (str): Name of the file to which logs are written.
+
+    Returns:
+        dict
+    """
+    handler = {
+        'level': 'INFO',
+        'formatter': 'standard',
+    }
+    if ENABLE_LOGGING_TO_FILE:
+        handler.update({
+            'class': 'logging.FileHandler',
+            'filename': environ.Path(LOG_FILE_PATH).path(filename),
+        })
+    else:
+        handler['class'] = 'logging.NullHandler'
+
+    return handler
+
+
+LOG_FILE_PATH = env('LOG_FILE_PATH', cast=str, default=str(project_root.path('logs')))
+ENABLE_LOGGING_TO_FILE = env('ENABLE_LOGGING_TO_FILE', cast=bool, default=False)
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s %(levelname)s %(process)d %(pathname)s:%(lineno)d - %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+        'file_app': generate_file_handler('app.log'),
+        'null': {
+            'class': 'logging.NullHandler',
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file_app'],
+            'level': 'INFO',
+        },
+        'dailyIncid': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'handlers': ['console'],
+        },
+        'showCrime': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'handlers': ['console'],
+        },
+        'boxsdk': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
+        'django': {
+            'handlers': ['console'],
+        },
+    },
+}
 
 REST_FRAMEWORK = {
-	'DEFAULT_PERMISSION_CLASSES': [
-		'rest_framework.permissions.IsAuthenticated', # 'rest_framework.permissions.IsAdminUser',
-	],
-	'PAGE_SIZE': 10,
-	'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'PAGE_SIZE': 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
 }
-
 
 LEAFLET_CONFIG = {
-  'DEFAULT_CENTER': (52.00,20.00),
-  'DEFAULT_ZOOM': 6,
-  'MIN_ZOOM': 1,
-  'MAX_ZOOM': 20,
+    'DEFAULT_CENTER': (52.00, 20.00),
+    'DEFAULT_ZOOM': 6,
+    'MIN_ZOOM': 1,
+    'MAX_ZOOM': 20,
 }
 
-CRON_CLASSES = [
-	"dailyIncid.cron.HarvestSocrataJob",
-	'django_cron.cron.FailedRunsNotificationCronJob',
-]
+PLOT_PATH = os.path.join(project_root, 'plots')
 
-# Email config, ala https://docs.webfaction.com/software/django/getting-started.html?highlight=django%2520email#configuring-django-to-send-email-messages
-ADMIN = ((env('ADMIN_USER'),env('ADMIN_EMAIL')))
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD  = env('EMAIL_PW')
+# Email configuration
+EMAIL_ENABLE = env('EMAIL_ENABLE', default=False)
 SERVER_EMAIL = env('SERVER_EMAIL')
-SITE_URL = env('SITE_URL')
+EMAIL_CONFIG = env.email_url('EMAIL_URL')
+vars().update(EMAIL_CONFIG)
 
-DEBUG_TOOLBAR_PATCH_SETTINGS = False
-# disables DEBUG_TOOLBAR
-DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': lambda r: False,  }
+# Box SDK configuration
+BOX_ENTERPRISE_ID = env('BoxEnterpriseID', default=None)
+BOX_CLIENT_ID = env('BoxClientID', default=None)
+BOX_CLIENT_SECRET = env('BoxClientSecret', default=None)
+BOX_JWT_KEY_ID = env('BoxPublicKeyID', default=None)
+BOX_RSA_FILE_PATH = env('BoxRSAFile', default=None)
+BOX_RSA_FILE_PASSPHRASE = env('BoxPassPhrase', default=None)
+
+GOOGLE_MAPS_API_KEY = env('GoogleMapAPIKey', default=None)
+
+SOCRATA_HOST = env('SOCRATA_HOST', default='data.oaklandnet.com')
+SOCRATA_KEY = env('SOCRATA_KEY', default=None)
+SOCRATA_RESOURCE_ID = env('SOCRATA_RESOURCE_ID', default='3xav-7geq')
+
+# export MANAGERS='"Person One" <one@example.com>, "Person Two" <two@example.com>'
+MANAGERS = (parseaddr(email) for email in env('MANAGERS', default='').split(','))
+
 
 ###################
 # echo settings
-
-import django
-print('settings: django version',django.__version__)
-print('settings: DEBUG',DEBUG)
-
-import socket
-HostName = socket.gethostname()
-print('settings: HostName', HostName)
-print('settings: root', root)
-print('settings: STATIC_URL', STATIC_URL)
-print('settings: SITE_URL', SITE_URL)
-print('settings: STATICFILES_DIRS', STATICFILES_DIRS)
-print('settings: MEDIA_ROOT', MEDIA_ROOT)
-print('settings: LOG_FILE_PATH', LOG_FILE_PATH)
-print('settings: PLOT_PATH', PLOT_PATH)
-print('settings: database hosted at %s:%s' % (DATABASES['default']["HOST"],DATABASES['default']["NAME"]))
-print('settings: DEBUG',DEBUG)
+#
+# import django
+# print('settings: django version',django.__version__)
+# print('settings: DEBUG',DEBUG)
+#
+# import socket
+# HostName = socket.gethostname()
+# print('settings: HostName', HostName)
+# print('settings: root', root)
+# print('settings: STATIC_URL', STATIC_URL)
+# print('settings: SITE_URL', SITE_URL)
+# print('settings: STATICFILES_DIRS', STATICFILES_DIRS)
+# print('settings: MEDIA_ROOT', MEDIA_ROOT)
+# print('settings: LOG_FILE_PATH', LOG_FILE_PATH)
+# print('settings: PLOT_PATH', PLOT_PATH)
+# print('settings: database hosted at %s:%s' % (DATABASES['default']["HOST"],DATABASES['default']["NAME"]))
+# print('settings: DEBUG',DEBUG)
