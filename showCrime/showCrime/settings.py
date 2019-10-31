@@ -2,15 +2,20 @@
 django app for https://OakCrime.org
 
 __author__ = "rik@electronicArtifacts.com"
-__date__ = "191031"
-__version__ = "0.3.1"
+__credits__ = ["clinton.blackburn@gmail.com","actionspeakslouder@gmail.com"]
+__date__ = "181217"
+__version__ = "0.3"
 """
 
 import os
 
 import environ
 root = environ.Path(__file__) - 2
-env = environ.Env(DEBUG=(bool, False), )
+# env = environ.Env(DEBUG=(bool, False), )
+
+def env(key):
+	# print('env:',key)
+	return os.environ[key]
 
 # Support for Path objects in the os module was added in Python 3.6.
 # BASE_DIR1 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,10 +25,20 @@ root = BASE_DIR
 MEDIA_ROOT = os.path.join(root, "media") 
 MEDIA_URL = '/media/'
 
+# local
 STATIC_ROOT = os.path.join(root, "static")
 STATIC_URL = '/static/'
+# WebFac!?
+# STATIC_URL = 'http://oakcrime.org/static/'
+# STATIC_ROOT = '/home/rik/webapps/djstatic/'
+
 PLOT_PATH = os.path.join(root, "plots")
 
+# PUBLIC_ROOT = env('PUBLIC_ROOT')
+
+# print('envDict:')
+# for k,v in os.environ.items():
+# 	print(k,v)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
@@ -221,6 +236,12 @@ LOGGING = {
         },
 
 	'loggers': {
+        # '': {
+            # 'handlers': ['file_app', 'console', ],
+            # 'level': 'INFO',
+	    #     	'propagate': True,
+	    #     },
+	    #     },
 		'dailyIncid': {
                         'handlers': ['console', 'file_app'],
 			'level': 'INFO',
@@ -292,3 +313,5 @@ print('settings: LOG_FILE_PATH', LOG_FILE_PATH)
 print('settings: PLOT_PATH', PLOT_PATH)
 print('settings: database hosted at %s:%s' % (DATABASES['default']["HOST"],DATABASES['default']["NAME"]))
 print('settings: DEBUG',DEBUG)
+
+
