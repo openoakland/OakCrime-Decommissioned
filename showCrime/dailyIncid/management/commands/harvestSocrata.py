@@ -354,7 +354,6 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 			prevObj.crimeCat = newCC
 			
 		# NB: updated record gets timestamp associated with newOC socrata :updated_at
-		prevSocDT = prevObj.socrataDT
 		prevObj.socrataDT = newOC.socrataDT
 
 		try:
@@ -374,7 +373,7 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 			ocup.oidx = prevObj.oidx
 			ocup.fieldName = fldName
 			ocup.newSrc = newOC.source
-			ocup.prevSocDT = prevSocDT
+			ocup.prevSocDT = prevObj.socrataDT
 			ocup.newSocDT = newOC.socrataDT
 			ocup.prevVal = str(prevVal)
 			ocup.newVal = str(newVal)
@@ -412,17 +411,13 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 			currSocDT = socDT	
 			
 		cid = socDict['casenumber']
+		cdateTime = parseSocDT(socDict['datetime'])
 		
-		try:
-			cdateTime = parseSocDT(socDict['datetime'])
-		except Exception as e:
-			logger.warning('mergeList: missing datetime?! incidIdx=%d srcLbl=%s socDict="%s"', incidIdx,srcLbl,socDict)
-			continue
-
 		# ignore updates referring to distant past or future
 		if cdateTime < minGoodDate or cdateTime > nowDT:
 			nbadDate += 1
 			continue
+		
 		
 		# no geotagging in tests
 		# newOC = socrata2OakCrime(socDict,srcLbl,doGeoTag=False) 
