@@ -4,19 +4,12 @@ updated 23 Mar 17: include GIS,
 updated 20 Jun 17: combine dateTime, add source
 updated 17 Oct 17: incorporate dailyLog incident data
 updated 14 Jul 18: add OPDBeats, CensusTracts
-updated 8 Aug 19: add new CrimeCatCDMatch, PC2CC
-
-updated 15 Aug 19: add new OCUpdate for audit
-					capture socrata's :updated_at meta variable
-					BoxID instead of JSON files
-					DailyParse instead of JSON files
 """
 
-__author__ = "rik@electronicArtifacts.com"
-__version__ = "0.41"
+__author__ = "rik@electronicArtifacts.com", "actionspeakslouder@gmail.com"
+__version__ = "0.4"
 
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
 
 ## Stick global variables in models
 DateFormat = '%Y-%m-%d'
@@ -29,8 +22,6 @@ class OakCrime(models.Model):
 	idx = models.AutoField(primary_key=True)
 	opd_rd = models.CharField(max_length=10,db_index=True)
 	oidx = models.IntegerField()
-	# socrataDT: last time incident updated with socrata data; null if source is PatrolLog only
-	socrataDT = models.DateTimeField(null=True)
 	cdateTime = models.DateTimeField(db_index=True)
 	# list of all source_date in chron order, separated by +
 	source = models.CharField(max_length=500)
@@ -81,42 +72,9 @@ class OakCrime(models.Model):
 	def __unicode__(self):
 		return '%d:%s' % (self.idx,self.opd_rd)
 
-class OCUpdate(models.Model):
-	# audit trail of changes made to dailyIncid after initial posting
-	idx = models.AutoField(primary_key=True)
-	# 2do: replace with reference to foreign OakCrime instance
-	opd_rd = models.CharField(max_length=10,db_index=True)
-	oidx = models.IntegerField(default=0)
-	newSrc =  models.CharField(max_length=50)
-	# cf harvestSocrata
-	# modifiableFields = ('cdateTime', 'ctype', 'desc', 'beat', 'addr','point', 'crimeCat')
-	fieldName = models.CharField(max_length=20)
-	prevVal = models.CharField(max_length=200)
-	newVal = models.CharField(max_length=200)
-	
-	# HACK null=True required for legacy testing OCUpdate
-	prevSocDT = models.DateTimeField(null=True)
-	newSocDT = models.DateTimeField(null=True)
-	lastModDateTime = models.DateTimeField(auto_now=True)
-	
 class CrimeCat(models.Model):
 	idx = models.AutoField(primary_key=True)
-	crimeCat = models.CharField(max_length=50)
-
-class CrimeCatMatch(models.Model):
-	# Rules for matching crime type and/or description --> CrimeCat
-	MatchTypes = ( ('cd', 'CrimeType+Desc'),  ('c', 'CrimeType'), ('d', 'Desc'),)
-	
-	idx = models.AutoField(primary_key=True)
-	matchType = models.CharField(max_length=2,choices=MatchTypes)
-	ctype = models.CharField(max_length=100,db_index=True)
-	desc = models.CharField(max_length=100,db_index=True)
-	crimeCat = models.CharField(max_length=50)
-
-class PC2CC(models.Model):
-	# Penal Code -> CrimeCat
-	idx = models.AutoField(primary_key=True)
-	pc = models.CharField(max_length=30)
+	ctypeDesc = models.CharField(max_length=100,db_index=True)
 	crimeCat = models.CharField(max_length=100)
 	
 class TargetPlace(models.Model):
@@ -259,31 +217,3 @@ Censustract_mapping = {
 	'awater': 'AWATER',
 	'geom': 'MULTIPOLYGON',
 }
-
-# 190817
-# support BoxID info ala boxIDTbl = {'root': {'id': OPDPatrolFolderID,'kids': []} }
-class BoxID(models.Model):
-	idx = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=100)
-	boxidx = models.BigIntegerField(db_index=True)
-	boxModDT = models.DateTimeField()
-	# boxType = models.CharField(max_length=10) # folder,file
-	kids =  models.ManyToManyField('self', symmetrical=False,related_name='parent')
-	froot = models.CharField(max_length=100,db_index=True)
-	harvestDT = models.DateTimeField(null=True)
-	parseDT = models.DateTimeField(null=True)
-
-# capture results of daily log file's parse
-# cf. collectDailyLogs()
-class DailyParse(models.Model):
-	idx = models.AutoField(primary_key=True)
-	boxobj = models.ForeignKey('boxid',on_delete=models.CASCADE)
-	froot = models.CharField(max_length=100,db_index=True)
-	parseDT =  models.DateTimeField(null=True)
-	parseOrder = models.IntegerField(default=0)
-	opd_rd = models.CharField(max_length=10,db_index=True)
-	incidDT = models.DateTimeField(null=True)
-	parseDict = JSONField(default={})
-
-	
-	

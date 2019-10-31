@@ -6,17 +6,14 @@ ASSUME crontab entry ala (daily @ 4:20p)
 # run once a day at 16:20
 20 16 * * * .../showCrime/dailyIncid/management/commands/harvestPatrolLog.py
 
-@version 0.3: prepare for AWS
-	- use BoxID, database tables vs JSON
-	
-@date 190819
+@date 181218
 
 @author: rik
 '''
 
 from datetime import datetime,timedelta
 import dateutil.parser
-# import environ # in settings
+import environ
 import json
 import logging
 import os
@@ -24,96 +21,120 @@ import pickle
 import pytz
 import socket
 import sys
-import time
+
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 
 import boxsdk 
 import googlemaps
 import mapbox
 
-from django.core.management.base import BaseCommand, CommandError
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import send_mail
-
-from showCrime.settings import MEDIA_ROOT
-
 from dailyIncid.models import *
-from dailyIncid.util import *
-
 from dailyIncid.management.commands import parsePatrolLog as parsePL
 from dailyIncid.management.commands import postPatrolLog as postPL
 
-logger = logging.getLogger(__name__)
 
-# Credentials
-# env = environ.Env(DEBUG=(bool, False), ) # in settings
-GoogleMapAPIKey = env('GoogleMapAPIKey')
-BoxEnterpriseID = env('BoxEnterpriseID')
-BoxHarvestBotUserID = env('BoxHarvestBotUserID')
-BoxHarvestBotEmail= env('BoxHarvestBotEmail')
-BoxDevpToken = env('BoxDevpToken')
-BoxClientID = env('BoxClientID')
-BoxClientSecret = env('BoxClientSecret')
-BoxPublicKeyID = env('BoxPublicKeyID')
-BoxRSAFile = env('BoxRSAFile')
-BoxPassPhrase = env('BoxPassPhrase')
+GoogleMapAPIKey = settings.GOOGLE_MAPS_API_KEY
+BoxEnterpriseID = settings.BOX_ENTERPRISE_ID
+BoxClientID = settings.BOX_CLIENT_ID
+BoxClientSecret = settings.BOX_CLIENT_SECRET
+BoxPublicKeyID = settings.BOX_JWT_KEY_ID
+BoxRSAFile = settings.BOX_RSA_FILE_PATH
+BoxPassPhrase = settings.BOX_RSA_FILE_PASSPHRASE
 
-# Constants
-HarvestRootDir = MEDIA_ROOT + '/PLHarvest/'
-BoxDateTimeFmt = "%Y-%m-%dT%H:%M:%S"
-PythonCTimeFmt = "%a %b %d %H:%M:%S %Y"
+HarvestRootDir = settings.MEDIA_ROOT + '/PLHarvest/'
+
+RFC3339Format = "%Y-%m-%dT%H:%M:%S%z"
 OPDPatrolFolderID =  '8881131962' 
-OCSourceDateFmt = '%y%m%d'
 
-def getMiss(boxidx,verbose=True):
-	''' download file missing from cache
-		create subdirectory if it has kids		
-	'''
-	
-	try:
-		boxobj = BoxID.objects.get(boxidx=boxidx)
-	except ObjectDoesNotExist:
-		logger.warning('getMiss: missing BoxID?! boxidx=%s',boxidx)
-		return None
-	
-	name = boxobj.name
-	nkids = boxobj.kids.all().count()
-	haveKids = nkids > 0
+log = logging.getLogger(__name__)
 
-	# missInfo = ( '_'-separated path relavitive to HarvestRootDir, boxid, kidsP)
-	kbits = name.split('_')
+def awareDT(naiveDT):
+	utc=pytz.UTC
+	return utc.localize(naiveDT)
+	
+def getMonthFiles(monthFolderID,harvDir):
+	
+	harvestedFiles = []
+	
+	items = CurrBoxClient.folder(folder_id=monthFolderID).get_items(limit=100, offset=0)
+	nharvest = 0
+	nskip = 0
+	nerr = 0
+	for item in items:
+		fpath = harvDir+item.name
+		if os.path.exists(fpath):
+			print('getMonthFiles: skipping',item.id,item.name)
+			nskip += 1
+			continue
+		try:
+			box_file = CurrBoxClient.file(file_id=item.id).get()
+			with open(fpath, 'wb') as outs:
+				box_file.download_to(outs)
+			harvestedFiles.append( (monthFolderID,fpath) )
+			
+		except Exception as e:
+			print('getMonthFiles: cant get file?!',item.id,item.name)
+			nerr += 1
+		nharvest += 1
+	print('getMonthFiles: NHarvest=%d NSkip=%d Nerr=%d' % (nharvest,nskip,nerr))
+	
+	return harvestedFiles
+	
+	
+def getMiss(missInfo):
+
+	pathStr,id,kidsP = missInfo
+	kbits = pathStr.split('_')
 	kbits.insert(0,HarvestRootDir)
 	# NB: splat to provide all of kbits
 	path = os.path.join(*kbits)
-	# create subdirectory for those with kids
-	if haveKids:
+	if kidsP:
 		try:
 			os.mkdir(path)
-			logger.info('getMiss: directory created id=%s path=%s',id,path)
+			print('getMiss: directory created',id,path)
 		except Exception as e:
-			logger.warning('getMiss: directory already exists?! path=%s except=%s',path,e)
+			print('getMiss: directory already exists?!',path,e)
 		return None
 	try:
-		box_file = CurrBoxClient.file(file_id=boxidx).get()
+		box_file = CurrBoxClient.file(file_id=id).get()
 		with open(path, 'wb') as outs:
 			box_file.download_to(outs)
-			if verbose:
-				logger.info('getMiss: retrieved path=%s',path)
-				
-		nowDT = datetime.now()
-		locDT = awareDT(nowDT)
-		boxobj.harvestDT = locDT
-		boxobj.save()
-		return True
+		return (pathStr)
 	except Exception as e:
-		logger.warning('getMiss: cant get file?! id=%s path=%s except=%s',id,path,e)
+		print('getMiss: cant get file?!',id,path,e)
 		return None
 		
+
+def filterNewDLog(newIncid):
+	# after parseOPDLog_PDForm.filterNewDLogTbl()
+	# drop any dlog in newIncid that is already in database
+	# NB: prevDLog, newIncid may have cid keys with _%d suffix!
+	# 	newIncid cid_foo could match ANY cid_bar in prevDLog!
+	
+	newDLog = {}
+	ndup=0	
+	nnew=0
+
+	allNCID = list(newIncid.keys())
+	allNCID.sort()
+
+	for ncid in allNCID:
+		
+		# dlogData = True AND lastModDateTime > startDate
+		# and also ncid/cid matches
+		
+		assert False, " 2do ASAP: do query against OakCrime"
+		
+		newDLog[ncid] = newIncid[ncid].copy()
+		
+	print('filterNewDLogTbl: NIn=%d NDup=%d NNew=%d/%d' % \
+			(len(newIncid),ndup,nnew,len(newDLog)))
+			
+	return newDLog
+
 def connectJWTAuth():
 	
-	# import pdb; pdb.set_trace()
-	# print('connectJWTAuth: rsaFile=%s exists=%s read=%s' % (BoxRSAFile, os.path.exists(BoxRSAFile),os.access(BoxRSAFile, os.R_OK)))
-	# for k in sorted(os.environ.keys()): print(k,os.environ[k])
-
 	auth = boxsdk.JWTAuth(
 		client_id=BoxClientID,
 		client_secret=BoxClientSecret,
@@ -145,56 +166,72 @@ def makeBoxConnection():
 	currentUser = CurrBoxClient.user().get()
 	currLogin = currentUser.login
 	currName = currentUser.name
-	logger.info('connectBox: login=%s name=%s' , currLogin,currName )
+	print('connectBox: login=%s name=%s' % (currLogin,currName) )
 	
 	return CurrBoxClient
 
-def compBox2Dir(chgList,init=False):
-	'''identify which BoxID (from list identified by updateBoxID) have NOT (yet) been harvested 
-		as files under HarvestRootDir
-		if init, initialize harvestDT from files' timestamp
-		returns missing list: [boxidx]
+def makeGConnection():
+	
+	global CurrGClient
+	CurrGClient = googlemaps.Client(key=GoogleMapAPIKey)
+
+	return CurrGClient
+
+def pprintOC(oco):
+	ppstr = '%s\n' % (oco.opd_rd)
+	allFlds = list([f.name for f in OakCrime._meta.fields])
+	allFlds.sort()
+	for f in allFlds:
+		ppstr += '\t%s: "%s"\n' % (f,getattr(oco, f))
+	return ppstr
+	
+def compBox2Dir(boxIDTbl):
+	'''check which kids in boxIDTbl are found under rootPath
+	returns list: (k,info['id'],kidsP)
 	'''
 
 	missing = []
 	nfnd = 0
 	ndirMismatch = 0
-	for boxidx in chgList:	
-		try:
-			boxobj = BoxID.objects.get(idx=boxidx)
-		except ObjectDoesNotExist:
-			logger.warning('compBox2Dir: missing BoxID?! boxidx=%s',boxidx)
+	for k, info in boxIDTbl.items():
+		if k=='root':
 			continue
-
-		name = boxobj.name
-		nkids = boxobj.kids.all().count()
-		haveKids = nkids > 0
-		if name=='root':
-			continue
-		kbits = name.split('_')
+		kbits = k.split('_')
 		kbits.insert(0,HarvestRootDir)
 		# NB: splat to provide all of kbits
 		path = os.path.join( *kbits)
 		if os.path.exists(path):
 			nfnd += 1
-			dirP = os.path.exists(path) and os.path.isdir(path)
-			if (dirP and not haveKids) or (not dirP and haveKids):
+			dirP = os.path.isdir(path)
+			if (dirP and 'kids' not in info) or (not dirP and 'kids' in info):
 				ndirMismatch += 1
-				logger.info('compBox2Dir: dir/file mismatch?! name=%s',name)
-				continue
-			if init:
-				boxobj.froot = parsePL.name2froot(name)
-				# NB: use file's modif timestamp as assumed harvestDT
-				fileMTime = os.path.getmtime(path)
-				harvestDT = datetime.strptime(time.ctime(fileMTime), PythonCTimeFmt)
-				boxobj.harvestDT = OaklandTimeZone.localize(harvestDT)
-				boxobj.save()
-
+				print('compBox2Dir: dir/file mismatch?!',k)
 		else:
-			missing.append( boxobj.boxidx )
-	logger.info('compBox2Dir: NFnd=%d NMiss/HarvestNext=%d NDirMismatch=%d' , nfnd,len(missing),ndirMismatch)
+			kidsP = 'kids' in info
+			missing.append( (k,info['id'],kidsP) )
+	print('compBox2Dir: NEntries=%d NFnd=%d NMiss=%d NDirMismatch=%d' % (len(boxIDTbl),nfnd,len(missing),ndirMismatch))
 	return missing
-	
+
+
+def modifiedSince(boxIDTbl,sinceDate):
+	'''return filtered boxIDTbl with modified_at dates >= sinceDate
+	'''
+
+	modTbl = {}
+	nfnd = 0
+	for k, info in boxIDTbl.items():
+		if k=='root':
+			continue
+		boxDT = info['mdate']
+		# pyDT = datetime.strptime(boxDT,RFC3339Format)
+		pyDT = dateutil.parser.parse(boxDT)
+		pyDate = pyDT.date()
+		if pyDate >= sinceDate:
+			nfnd += 1
+			modTbl[k] = info
+	print('getModifiedSince: NModified since %s: %d' % (sinceDate,len(modTbl)))	
+	return modTbl
+
 def getBoxIDs(verbose=True):
 	'''traverse all folders under OPDPatrolFolderID FROM SCRATCH to build boxIDTbl
 	'''	
@@ -204,13 +241,13 @@ def getBoxIDs(verbose=True):
 	yearFolders = CurrBoxClient.folder(folder_id=OPDPatrolFolderID).get_items(limit=100, offset=0)
 	for yrf in yearFolders:
 		if yrf.type != 'folder':
-			logger.info('getBoxIDs: skipping year non-folder %s %s %s' , yrf.id,yrf.type,yrf.name)
+			print('getBoxIDs: skipping year non-folder %s %s %s' % (yrf.id,yrf.type,yrf.name))
 			nskip += 1
 			continue
 		# NB: '_' used to separate key bits; make sure it isn't already there
 		ykey = yrf.name.strip().lower().replace('_','#')
 		if ykey in boxIDTbl:
-			logger.info('getBoxIDs: duplicate year name?! new: %s %s %s\n\t prevID:%s' , yrf.id,yrf.type,ykey,boxIDTbl[ykey]['id'])
+			print('getBoxIDs: duplicate year name?! new: %s %s %s\n\t prevID:%s' % (yrf.id,yrf.type,ykey,boxIDTbl[ykey]['id']))
 			nskip += 1
 			continue			
 		boxIDTbl['root']['kids'].append(ykey)
@@ -218,13 +255,13 @@ def getBoxIDs(verbose=True):
 		boxIDTbl[ykey] = {'id': yrf.id,'mdate': yrInfo.modified_at,'kids': []}
 		for monf in yrf.get_items(limit=100):
 			if monf.type != 'folder':
-				logger.info('getBoxIDs: skipping month non-folder %s / %s %s %s' , ykey,monf.id,monf.type,monf.name)
+				print('getBoxIDs: skipping month non-folder %s / %s %s %s' % (ykey,monf.id,monf.type,monf.name))
 				nskip += 1
 				continue
 			mkey = ykey + '_' + monf.name.strip().lower().replace('_','#')
 			if mkey in boxIDTbl:
-				logger.info('getBoxIDs: duplicate month name?! new: %s %s %s\n\t prevID:%s' , \
-					mkey,monf.id,monf.type,boxIDTbl[mkey]['id'])
+				print('getBoxIDs: duplicate month name?! new: %s %s %s\n\t prevID:%s' % \
+					(mkey,monf.id,monf.type,boxIDTbl[mkey]['id']))
 				nskip += 1
 				continue			
 			boxIDTbl[ykey]['kids'].append(mkey)
@@ -232,361 +269,256 @@ def getBoxIDs(verbose=True):
 			boxIDTbl[mkey] = {'id': monf.id,'mdate': monInfo.modified_at,'kids': []}
 			for dayf in monf.get_items(limit=100):
 				if dayf.type != 'file':
-					logger.info('getBoxIDs: skipping day non-file %s / %s %s %s' , \
-						mkey,dayf.id,dayf.type,dayf.name)
+					print('getBoxIDs: skipping day non-file %s / %s %s %s' % \
+						(mkey,dayf.id,dayf.type,dayf.name))
 					nskip += 1
 					continue
 				dkey = mkey + '_' + dayf.name.strip().lower().replace('_','#')
 				if dkey in boxIDTbl:
-					logger.info('getBoxIDs: duplicate day name?! new: %s / %s %s %s %s' , \
-						dkey, dayf.id, dayf.type, dayf.name, boxIDTbl[dkey]['id'])
+					print('getBoxIDs: duplicate day name?! new: %s / %s %s %s %s' % \
+						(dkey, dayf.id, dayf.type, dayf.name, boxIDTbl[dkey]['id']))
 					nskip += 1
 					continue
 				boxIDTbl[mkey]['kids'].append(dkey)
 				dayInfo = CurrBoxClient.file(file_id=dayf.id).get(fields=['modified_at'])
 				boxIDTbl[dkey] = {'id': dayf.id,'mdate': dayInfo.modified_at}  # NB, no kids for files
 			if verbose:
-				logger.info('Month %s: %d day files' , mkey,len(boxIDTbl[mkey]['kids']))
+				print('Month %s: %d day files' % (mkey,len(boxIDTbl[mkey]['kids'])))
 				
 		if verbose:
-			logger.info('Year %s: %d month folders' , ykey,len(boxIDTbl[ykey]['kids']))
+			print('Year %s: %d month folders' % (ykey,len(boxIDTbl[ykey]['kids'])))
 	
 	if verbose:
-		logger.info('Root: %d year folders' , len(boxIDTbl['root']['kids']))
+		print('Root: %d year folders' % (len(boxIDTbl['root']['kids'])))
 	
 	return boxIDTbl
 
-def updateBoxID(lastUpdate,verbose=False):
-	'''traverse all folders under OPDPatrolFolderID @ Box for changes since lastUpdate
-	return list of new BoxID.idx changed
+def updateBoxIDTbl(boxIDTbl,lastUpdate):
+	'''traverse all folders under OPDPatrolFolderID for changes since lastUpdate
 	'''	
 
 	nskip = 0
 	yearFolders = CurrBoxClient.folder(folder_id=OPDPatrolFolderID).get_items(limit=100, offset=0)
-	newChanges = set()
 	for yrf in yearFolders:
 		if yrf.type != 'folder':
-			if verbose:
-				logger.info('updateBoxID: skipping year non-folder %s %s %s' , yrf.name,yrf.id,yrf.type)
+			print('updateBoxIDTbl: skipping year non-folder %s %s %s' % (yrf.id,yrf.type,yrf.name))
 			nskip += 1
 			continue
 		# NB: '_' used to separate key bits; make sure it isn't already there
 		ykey = yrf.name.strip().lower().replace('_','#')
 		yrInfo = CurrBoxClient.folder(folder_id=yrf.id).get(fields=['modified_at'])
-		
-		try: 
-			ybo = BoxID.objects.get(name=ykey)
-			prevYrModDT = ybo.boxModDT
-		except ObjectDoesNotExist:
-			rootBO = BoxID.objects.get(name='root')
-			
-			yrKids = rootBO.kids.filter(name=ykey)
-			assert yrKids.count()==0, "updateBoxID: ykey already kid of root?! %s" % (ykey)
-			
-			ybo = BoxID()
-			ybo.name = ykey
-			ybo.froot = parsePL.name2froot(ykey)		
-			ybo.boxidx = int(yrf.id)
-			ybo.boxModDT = yrInfo.modified_at
-			ybo.save()
-			newChanges.add(ybo.idx)
-			rootBO.kids.add(ybo)
-			rootBO.save()
-			newChanges.add(rootBO.idx)
-			
+		if ykey in boxIDTbl:
+			prevYrModDT = dateutil.parser.parse(boxIDTbl[ykey]['mdate'])
+		else:
+			assert ykey not in boxIDTbl['root']['kids'], "updateBoxIDTbl: inconsistent ykey?! %s" % (ykey)
+			boxIDTbl['root']['kids'].append(ykey)	
+			boxIDTbl[ykey] = {'id': yrf.id,'mdate': yrInfo.modified_at,'kids': []}
 			prevYrModDT = None
-			logger.info('updateBoxID: including year %s (boxidx=%s) modified %s' , ybo.name,ybo.boxidx,ybo.boxModDT)					
-		
+			
 		yrModDT = dateutil.parser.parse(yrInfo.modified_at)
 		
 		if prevYrModDT is not None and not (yrModDT > prevYrModDT and yrModDT > lastUpdate):
-			if verbose:
-				logger.info('updateBoxID: skipping year %s (boxidx=%s %s) yrModDT=%s prevYrModDT=%s lastUpdate=%s' , \
-					yrf.name,yrf.id,yrf.type,yrModDT,prevYrModDT,lastUpdate)
+			print('updateBoxIDTbl: skipping year %s %s %s yrModDT=%s prevYrModDT=%s lastUpdate=%s' % \
+				(yrf.id,yrf.type,yrf.name,yrModDT,prevYrModDT,lastUpdate))
 			continue
 		
-		if verbose:
-			logger.info('updateBoxID: updating year folder %s (boxidx=%s) modified %s' , ybo.name,ybo.boxidx,ybo.boxModDT)
-
-		for monf in yrf.get_items():
+		print('updateBoxIDTbl: updating year folder %s %s modified %s' % (yrf.id,yrf.name,yrInfo.modified_at))
+		boxIDTbl[ykey]['mdate'] = yrInfo.modified_at
+		for monf in yrf.get_items(limit=100):
 			if monf.type != 'folder':
-				if verbose:
-					logger.info('updateBoxID: skipping month non-folder in %s / %s (boxidx=%s %s)' , ykey,monf.name,monf.boxidx,monf.type)
+				print('getBoxIDs: skipping month non-folder %s / %s %s %s' % (ykey,monf.id,monf.type,monf.name))
 				nskip += 1
 				continue
 			mkey = ykey + '_' + monf.name.strip().lower().replace('_','#')
 			monInfo = CurrBoxClient.folder(folder_id=monf.id).get(fields=['modified_at'])
-			
-			try: 
-				mbo = BoxID.objects.get(name=mkey)
-				prevMonModDT = mbo.boxModDT
-			except ObjectDoesNotExist:
-				
-				mbo = BoxID()
-				mbo.name = mkey
-				mbo.froot = parsePL.name2froot(mkey)		
-				mbo.boxidx = int(monf.id)
-				mbo.boxModDT = monInfo.modified_at
-				mbo.save()
-				newChanges.add(mbo.idx)
-				ybo.kids.add(mbo)
-				ybo.save()
-				newChanges.add(ybo.idx)
-				
+
+			if mkey in boxIDTbl:
+				prevMonModDT = dateutil.parser.parse(boxIDTbl[mkey]['mdate'])
+			if mkey not in boxIDTbl[ykey]['kids']:
+				boxIDTbl[ykey]['kids'].append(mkey)				
+				boxIDTbl[mkey] = {'id': monf.id,'mdate': monInfo.modified_at,'kids': []}
 				prevMonModDT = None
-
-				logger.info('updateBoxID: including month %s (boxidx=%s) modified %s' , mbo.name,mbo.boxidx,mbo.boxModDT)					
-
 			monModDT = dateutil.parser.parse(monInfo.modified_at)
 				
 			if prevMonModDT is not None and not (monModDT > prevMonModDT and monModDT > lastUpdate):
-				if verbose:
-					logger.info('updateBoxID: skipping month %s (id=%s %s) monModDT=%s prevMonModDT=%s lastUpdate=%s' , \
-						monf.name,monf.id,monf.type,monModDT,prevMonModDT,lastUpdate)
-				nskip += 1
+				print('updateBoxIDTbl: skipping month %s %s %s monModDT=%s prevMonModDT=%s lastUpdate=%s' % \
+					(monf.id,monf.type,monf.name,monModDT,prevMonModDT,lastUpdate))
 				continue
 			
-			if verbose:
-				logger.info('updateBoxID: updating month folder %s %s modified %s' , mbo.name,mbo.boxidx,mbo.boxModDT)		
-
-			for dayf in monf.get_items():
+			print('updateBoxIDTbl: updating month folder %s %s modified %s' % (monf.id,monf.name,monInfo.modified_at))		
+			boxIDTbl[mkey]['mdate'] = monInfo.modified_at
+			for dayf in monf.get_items(limit=100):
 				if dayf.type != 'file':
-					logger.info('updateBoxID: skipping day non-file in month %s / %s (%s %s)' , \
-						mkey,dayf.name,dayf.id,dayf.type)
+					print('getBoxIDs: skipping day non-file %s / %s %s %s' % \
+						(mkey,dayf.id,dayf.type,dayf.name))
 					nskip += 1
 					continue
 				dkey = mkey + '_' + dayf.name.strip().lower().replace('_','#')
 				dayInfo = CurrBoxClient.file(file_id=dayf.id).get(fields=['modified_at'])
-
-				try: 
-					dbo = BoxID.objects.get(name=dkey)
-					prevDayModDT = dbo.boxModDT
-				except ObjectDoesNotExist:
+				
+				if dkey in boxIDTbl:
+					# ASSUME day is in month parent iff it's also in boxIDTbl itself
+					prevDayModDT = dateutil.parser.parse(boxIDTbl[dkey]['mdate'])
+				else:
+					prevDayModDT = None
 					
-					dbo = BoxID()
-					dbo.name = dkey
-					dbo.froot = parsePL.name2froot(dkey)		
-					dbo.boxidx = int(dayf.id)
-					dbo.boxModDT = dayInfo.modified_at
-					dbo.save()
-					newChanges.add(dbo.idx)
-					mbo.kids.add(dbo)
-					mbo.save()
-					newChanges.add(mbo.idx)
-														
-					logger.info('updateBoxID: including day %s (boxidx=%s) modified %s' , dbo.name,dbo.boxidx,dbo.boxModDT)					
-	chgList = list(newChanges)
-	logger.info('updateBoxID: NChanged BoxID=%s',len(chgList))
-	return chgList
-	
-def postBoxTbl2DB(currTbl,lastModDate):
-	'''initialize BoxID model objects based on currTbl
-		lastModDate used if no modify date specified
-	'''
-	
-	BoxID.objects.all().delete()
-	
-	for name,info in currTbl.items():
-		try: 
-			boxObj = BoxID.objects.get(name=name)
-		except ObjectDoesNotExist:
-			boxObj = BoxID()
-			boxObj.name = name
-			boxObj.boxidx = int(info['id'])
-			
-			boxObj.froot = parsePL.name2froot(name)
-			
-			if 'mdate' in info:
-				mdatestr = info['mdate']
-				# HACK: 190825
-				# mdatestr = 2017-01-10T15:18:15-08:00
-				mdatestr = mdatestr[:-6]
-				mdate = awareDT(datetime.strptime(mdatestr,BoxDateTimeFmt))
-			else:
-				mdate = lastModDate
-			boxObj.boxModDT = mdate 
-			boxObj.save()
-			
-		except Exception as e: # # BoxID.DoesNotExist: # ObjectDoesNotExist:
-			logger.warning('postBoxTbl2DB: exception1?! name=%s except=%s',name,e)
-			continue
-			
-			# NB: need to save boxObj before we can add kids
-			# ValueError: "<BoxID: BoxID object>" needs to have a value for field "idx" before this many-to-many relationship can be used.
-				
-		if 'kids' in info:
-			for kidname in info['kids']:
-				kidInfo = currTbl[kidname]
-				kidid = kidInfo['id']
-				try:
-					kidObj = BoxID.objects.get(boxidx=kidid)
-				except ObjectDoesNotExist:
-					kidObj = BoxID()
-					kidObj.name = kidname
-					kidObj.boxidx = kidid
-					kidObj.froot = parsePL.name2froot(kidname)
-					if 'mdate' in kidInfo:
-						mdatestr = kidInfo['mdate']
-						# HACK: 190825
-						# mdatestr = 2017-01-10T15:18:15-08:00
-						mdatestr = mdatestr[:-6]
-						mdate = awareDT(datetime.strptime(mdatestr,BoxDateTimeFmt))
-					else:
-						mdate = lastModDate
-					kidObj.boxModDT = mdate
-					kidObj.save()
-				except Exception as e: 
-					logger.warning('postBoxTbl2DB: exception?! kidname=%s except=%s',kidname,e)
+				dayModDT = dateutil.parser.parse(dayInfo.modified_at)
+				if prevDayModDT != None and not (dayModDT > prevDayModDT and dayModDT > lastUpdate):
 					continue
-
-				boxObj.kids.add(kidObj)
-				
-			# NB: final save to include added kids
-			boxObj.save()			
-
-	logger.info('postBoxTbl2DB: NBoxID=%d' , BoxID.objects.count())
+			
+				print('updateBoxIDTbl: including day %s %s modified %s' % (dayf.id,dayf.name,dayInfo.modified_at))		
+				boxIDTbl[mkey]['kids'].append(dkey)
+				boxIDTbl[dkey] = {'id': dayf.id,'mdate': dayInfo.modified_at} # NB, no kids for files
+			
 	
-def createBoxTblFromDB():
-	'''convert all BoxID model objects into python dictionary with name keys
-		ala {'root': {'id': "16382272441","mdate": "2016-08-09T04:08:13-07:00", 'kids': []} }
-	'''
-	qs = BoxID.objects.all()
-	currTbl = {}
-	for boxObj in qs:
-		boxPO = {'id': boxObj.boxidx, 'name': boxObj.name, 'mdate': boxObj.boxModDT, 'kids': []}
-		for kidObj in boxObj.kids.all():
-			boxPO['kids'].append(kidObj.name)
-		currTbl[boxObj.name] = boxPO
+	return boxIDTbl
 	
-	logger.info('createBoxTblFromDB: NBoxID=%d' , len(currTbl))
-	return currTbl
-
 class Command(BaseCommand):
-	help = '''harvest updates from OPD PatrolLogs from Box 
-			if lastCheck, recover since %Y-%m-%d lastCheck date, 
-				else since most recent boxModDT across BoxID records
-			Compare cache to current database
-			Parse PDF of newly harvested
-			Merge against existing dailyIncid
-			'''
-	
-	def add_arguments(self, parser):
-		parser.add_argument(
-			'--lastCheck',
-			default='',
-			help='harvest only those with modified_at > startDate %Y-%m-%d'
-		)
+	help = 'harvest updates from OPD PatrolLogs from Box since %Y-%m-%d startDate. defaults to 30 days ago'
+# 	def add_arguments(self, parser):
+# 		parser.add_argument('startDate', nargs='?', default='noStartSpecified') 
 
 	def handle(self, *args, **options):
-		# ASSUME logging handled in settings
-		# .basicConfig(level=logging.INFO)
-
-		logging.getLogger("boxsdk").setLevel(logging.WARNING)
-		logging.getLogger("pdfminer").setLevel(logging.WARNING)
-
-		lastCheck = options['lastCheck']
-		logger.info('harvestPatrolLog: lastCheck=%s' , lastCheck)
 
 		verbose = None
-		initAll = False 
-		HarvestOverlapBuffer = 2
-		
-		beginDT = datetime.now()
-		runDate = awareDT(beginDT)
+		checkPoint = True
+		boxCheckDT = datetime.strptime("181231", "%y%m%d")
+
+# 		import logging
+# 		logging.basicConfig(level=logging.WARNING)
+
+		runDate = awareDT(datetime.now())
 		dateStr = datetime.strftime(runDate,'%y%m%d')
 
-		summRpt = '' # summary report for email
+		## Compare cache to current database
+		try:
+		    # SQL equivalent query
+		    # select "lastModDateTime" from "dailyIncid_oakcrime" where source like '%DLog_%'
+		    # order by "lastModDateTime" DESC LIMIT 1	
+		    lastDLogDT = OakCrime.objects.filter(source__contains='DLog_').latest('lastModDateTime').lastModDateTime
+		except OakCrime.DoesNotExist:
+		    # If we don't have a last modified date, then we should
+		    # fetch from the earliest records available.
+		    lastDLogDT = datetime.min
 
-		if lastCheck == '':
-			## Compare cache to current database
-			lastTouchedBoxID = BoxID.objects.latest('boxModDT')
-			lastBoxDT = lastTouchedBoxID.boxModDT
-			
-			logger.info('BOXMOD lastBoxDT=%s' ,lastBoxDT)
-			
-			# NB: HarvestOverlapBuffer to avoid missing any in the gap!
-			lastBoxDT -= timedelta(days=HarvestOverlapBuffer)
-			lastDLogDate = lastBoxDT.date()
-			logger.info('%s DB last updated with PatrolLogs >= (%d days earlier than) %s' , \
-				dateStr,HarvestOverlapBuffer,lastDLogDate)
+		if boxCheckDT != None:
+			log.info('harvestPatrolLog: %s using boxCheckDT=%s lastDLogDT=%s' % (dateStr,boxCheckDT, lastDLogDT))
+			lastDLogDT = awareDT(boxCheckDT)
+			lastDLogDate = boxCheckDT.date()
 		else:
-			lastBoxDT = datetime.strptime(lastCheck,'%Y-%m-%d')
-			lastBoxDT = OaklandTimeZone.localize(lastBoxDT)
-			logger.info('FIXED lastBoxDT=%s', lastBoxDT)
-		
-		# FIRST TIME load initial BoxID relation from json
-		if initAll:
-			boxIDFile = HarvestRootDir + 'boxIDTbl.json'
-			logger.info('initializing DB from %s',boxIDFile)
-			currTbl = json.load(open(boxIDFile))
-			logger.info('init BoxID table NID=%d' , len(currTbl))
-			postBoxTbl2DB(currTbl,lastBoxDT)
-			elapTime = datetime.now() - beginDT
-			logger.info('init BoxID table DONE elapTime=%s' , elapTime.total_seconds())
+			# NB: HarvestOverlapBuffer to avoid missing any in the gap!
+			HarvestOverlapBuffer = 2
+			lastDLogDT -= timedelta(days=HarvestOverlapBuffer)
+			lastDLogDate = lastDLogDT.date()
+			print('harvestPatrolLog: %s using lastDLogDT=%s' % (dateStr, lastDLogDT))
+
+		print('harvestPatrolLog: %s DB last updated with PatrolLogs %s' % (dateStr,lastDLogDate))
 
 		## Check current files @ Box
+		
 		makeBoxConnection() # sets CurrBoxClient
-				
-		chgList = updateBoxID(lastBoxDT,verbose=True)
-		elapTime = datetime.now() - beginDT
-		logger.info('updateBoxID DONE elapTime=%s' , elapTime.total_seconds())	
-		summRpt += 'updateBoxID: NChanged BoxID=%s\n' % len(chgList)
+		
+		boxIDFile = HarvestRootDir + 'boxIDTbl.json'
+		if os.path.exists(boxIDFile):
+			print('harvestPatrolLog: boxIDFile found, updating')
+			currBoxIDTbl = json.load(open(boxIDFile))
+			currBoxIDTbl = updateBoxIDTbl(currBoxIDTbl,lastDLogDT)
+		else:
+			print('harvestPatrolLog: boxIDFile NOT found, building from scratch')
+			currBoxIDTbl = getBoxIDs()
+			
+		json.dump(currBoxIDTbl,open(boxIDFile,'w'),indent=1)
+		
+		## Compare current Box inventory to cache contents
 
-		## identify those not yet reflected in local cache under HarvestRootDir
-		missingList = compBox2Dir(chgList)	
-		elapTime = datetime.now() - beginDT
-		logger.info('compBox2Dir DONE elapTime=%s' , elapTime.total_seconds())
-	
-		## harvest these to local cache under HarvestRootDir
+		# missingList: [ ( '_'-separated full path, boxid, kidsP), ...]
+		missingList = compBox2Dir(currBoxIDTbl)
+		
 		harvestedFiles = []
-		for boxidx in missingList:
-			if getMiss(boxidx):
-				harvestedFiles.append(boxidx)
-		logger.info('NFilesHarvested=%d' ,len(harvestedFiles))
-		elapTime = datetime.now() - beginDT
-		logger.info('getMiss DONE elapTime=%s' , elapTime.total_seconds())	
-		summRpt += 'NFilesHarvested=%d\n'  % len(harvestedFiles)
+		for missInfo in missingList:
+			pathStr = getMiss(missInfo)
+			if pathStr:
+				# non-None rval is path string
+				harvestedFiles.append(pathStr)
 
-		## Parse PDF of recently harvested, unparsed files
-
-		parseSinceDT = beginDT - timedelta(days=HarvestOverlapBuffer)
-		qs = BoxID.objects.filter(harvestDT__gte=parseSinceDT).filter(parseDT__isnull=True)
-		unParsed = [boxid.idx for boxid in qs]
-		logger.info('NUparsed=%d since %s',len(unParsed),parseSinceDT)
-						
-		# dpIdxList = list of all DailyParse indices produced as part of parse
-		dpIdxList = parsePL.parseLogFiles(unParsed,HarvestRootDir,verbose=True)
-		elapTime = datetime.now() - beginDT
-		logger.info('parseLogFiles DONE elapTime=%s' , elapTime.total_seconds())			
-		summRpt += 'parseLogFiles: NIncidParsed=%d\n'  % len(dpIdxList)
-
-		## Regularize attributes from PDF fields, including geotagging
+		print('harvestPatrolLog: %s NFilesHarvested=%d' % (dateStr,len(harvestedFiles)))
 		
-		parsePL.regularizeIncidTbl(dpIdxList)
-		elapTime = datetime.now() - beginDT
-		logger.info('regularizeIncidTbl DONE elapTime=%s' , elapTime.total_seconds())			
+		files2parse = modifiedSince(currBoxIDTbl,lastDLogDate)
 		
-		CurrGClient = makeGConnection()  # sets CurrGClient
+		print('harvestPatrolLog: %s NFilesToParse=%d' % (dateStr,len(files2parse)))
+
+		## Parse harvested PDF
+			
+		# logData: dailyRoot -> [ {allAnnoteInfo} ]
+		logData = parsePL.collectDailyLogs(files2parse,HarvestRootDir)
+		
+		if checkPoint:
+			# cache results of potentially LONG PDF parse
+			ldf = HarvestRootDir + 'logData_%s.json' % (dateStr)
+			json.dump(logData,open(ldf,'w'),indent=1)
+	
+		# logData = json.load(open(ldf))	
+		
+		print('harvestPatrolLog: %s NParsed=%d' % (dateStr,len(logData)))
+
+		# newIncid: cid* -> {froot, TU -> V}
+		inIncid = parsePL.mergeDailyLogs(logData)
+
+		# newIncidTbl = filterNewDLog(logData)
+		
+		regIncidTbl = parsePL.regularizeIncidTbl(inIncid)
+
+		makeGConnection()  # sets CurrGClient
 				
-		parsePL.addGeoCode2(dpIdxList, CurrGClient,verbose=20)
-		elapTime = datetime.now() - beginDT
-		logger.info('addGeoCode DONE elapTime=%s' , elapTime.total_seconds())			
+		geoIncidTbl = parsePL.addGeoCode2(regIncidTbl, CurrGClient, verbose=100)
+	
+		if checkPoint:
+			geof = HarvestRootDir + 'geoIncid_%s.pkl' % (dateStr)
+			with open(geof, 'wb') as f:
+				pickle.dump(geoIncidTbl, f, pickle.HIGHEST_PROTOCOL)
 
-		# dlogMatchTbl: 	cid -> OakCrime UNSAVED and 
-		# dlogUnmatchTbl: 	dlogCID -> OakCrime UNSAVED					
-		dlMatchTbl, unMatchTbl = postPL.findSimIncid(dpIdxList,dateStr)
-		elapTime = datetime.now() - beginDT
-		logger.info('findSimIncid DONE NMatch=%d NUnMatch=%d elapTime=%s' , \
-			len(dlMatchTbl),len(unMatchTbl),elapTime.total_seconds())	
-		summRpt += 'findSimIncid: NMatch=%d NUnMatch=%d\n'  % (len(dlMatchTbl),len(unMatchTbl))
+# 		geof = HarvestRootDir + 'geoIncid.pkl'
+# 		with open(geof, 'rb') as f:
+# 			geoIncidTbl = pickle.load(f)
+
+		print('harvestPatrolLog: %s NGeoIncid=%d' % (dateStr,len(geoIncidTbl)))
+
+		# dlogMatchTbl: 	cid -> OakCrime() and 
+		# dlogUnmatchTbl: 	dlogCID -> OakCrime()
 		
+		# match log written in postPL.getBestMatch()
+		matchLogFile = HarvestRootDir + 'matchLog_%s.csv' % (dateStr)
+		matchLogStream = open(matchLogFile,'w')
+		matchLogStream.write('dRptNo,dLoc,dxlng,dylat,dDT,dPC,iCID,iAddr,ixlng,iylat,iDT,iCC,iCType,iDesc,matchScore,idDist,distMeter,dayDiff,majorCrime\n')
+			
+		dlMatchTbl, unMatchTbl = postPL.findSimIncid(geoIncidTbl,dateStr,logStr=matchLogStream,verbose=100)
+
+		matchLogStream.close()
+
+		if checkPoint:		
+			dlf = HarvestRootDir + 'dlMatch_%s.pkl' % (dateStr)
+			with open(dlf, 'wb') as f:
+				pickle.dump(dlMatchTbl, f, pickle.HIGHEST_PROTOCOL)
+	
+			unf = HarvestRootDir + 'unMatch_%s.pkl' % (dateStr)
+			with open(unf, 'wb') as f:
+				pickle.dump(unMatchTbl, f, pickle.HIGHEST_PROTOCOL)
+
+# 		dlf = HarvestRootDir + 'dlMatch_%s.pkl' % (dateStr)
+# 		with open(dlf, 'rb') as f:
+# 			dlMatchTbl = pickle.load(f)
+# 		unf = HarvestRootDir + 'unMatch_%s.pkl' % (dateStr)
+# 		with open(unf, 'rb') as f:
+# 			unMatchTbl = pickle.load(f)	
+# 		print('harvestPatrolLog: %s dlMatch=%d unMatch=%d' % (dateStr,len(dlMatchTbl),len(unMatchTbl)))
+
 		allCID = list(dlMatchTbl.keys())
 		allCID.sort()
 		nupdate =0
 		nerr=0
 		for i,cid in enumerate(allCID):
 			if verbose != None and (i % verbose)==0:
-				logger.info('%s Matches saved %d NUpdate=%d NErr=%d' , dateStr,i,nupdate,nerr)
+				print('harvestPatrolLog: %s Matches saved %d NUpdate=%d NErr=%d' % (dateStr,i,nupdate,nerr))
 			newOC = dlMatchTbl[cid]
 						
 			try:
@@ -595,12 +527,12 @@ class Command(BaseCommand):
 				newOC.save()
 				nupdate += 1
 			except Exception as e:
-				logger.warning('cant save merge?! %s %s\n\t%s' , cid,e,pprintOC(newOC) )
+				print('harvestPatrolLog: cant save merge?! %s %s\n\t%s' % (cid,e,pprintOC(newOC)) )
+				# import pdb; pdb.set_trace()
 				nerr += 1
 				continue
-		logger.info('%s Matches saved FINAL NUpdate=%d NErr=%d' , dateStr,nupdate,nerr)
-		summRpt += 'Match NUpdate=%d NErr=%d\n'  % (nupdate,nerr)
-
+		print('harvestPatrolLog: %s Matches saved FINAL NUpdate=%d NErr=%d' % (dateStr,nupdate,nerr))
+			
 		allCID = list(unMatchTbl.keys())
 		allCID.sort()
 		
@@ -608,30 +540,21 @@ class Command(BaseCommand):
 		nerr=0
 		for i,cid in enumerate(allCID):
 			if verbose != None and (i % verbose)==0:
-				logger.info('%s Unmatched saved %d NUpdate=%d NErr=%d' , dateStr,i,nupdate,nerr)
+				print('harvestPatrolLog: %s Unmatched saved %d NUpdate=%d NErr=%d' % (dateStr,i,nupdate,nerr))
 			newOC = unMatchTbl[cid]
 			# NB: findSimIncid() returns None in unMatchTbl for cid's without any best match
 			
 			try:
-				assert bool(newOC.idx) == False, 'Idx for insert?! %s\n%s' % (cid,pprintOC(newOC))
+				assert bool(newOC.idx) == False, 'harvestPatrolLog: Idx for insert?! %s\n%s' % (cid,pprintOC(newOC))
 				newOC.save()
 				nupdate += 1
 			except Exception as e:
-				logger.warning('cant save new?! %s %s\n\t%s' , cid,e,pprintOC(newOC) )
+				print('harvestPatrolLog: cant save new?! %s %s\n\t%s' % (cid,e,pprintOC(newOC)) )
+				# import pdb; pdb.set_trace()
 				nerr += 1
 				continue
 			
-		logger.info('%s Unmatched saved FINAL NUpdate=%d NErr=%d' , dateStr,nupdate,nerr)
-		summRpt += 'UnMatch NUpdate=%d NErr=%d\n'  % (nupdate,nerr)
+		print('harvestPatrolLog: %s Unmatched saved FINAL NUpdate=%d NErr=%d' % (dateStr,nupdate,nerr))
 		
-		elapTime = datetime.now() - beginDT
-		rptMsg = ' DONE elapTime=%s' % elapTime.total_seconds()
-		logger.info(rptMsg)			
-		
-		summRpt = summRpt + rptMsg + '\n'
-
-		# print('2bMailed:',summRpt)
-		send_mail('PatrolLog @ Box harvest', summRpt, 'rik@electronicArtifacts.com', \
-				['rik@electronicArtifacts.com'], fail_silently=False)
 
 	

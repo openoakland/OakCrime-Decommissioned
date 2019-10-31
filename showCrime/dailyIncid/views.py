@@ -1,33 +1,23 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
-
-from django.db.models import Min, Max, Q
-from django.db.models.lookups import IExact
-# from django.db import transaction
-# from django.db import IntegrityError
-from django.template import Context
-
-from django.contrib.gis.geos import  Polygon
-# from django.contrib import admin
-# from django.contrib.gis.admin import GeoModelAdmin
-from django.contrib.gis.measure import D
-
-from rest_framework import generics # viewsets
-
-# from datetime import datetime, timedelta
-
 import logging
-import pytz
 import random
 
-import geojson 
+import geojson
+import pytz
+from django.conf import settings
+from django.contrib.gis.geos import Polygon
+from django.contrib.gis.measure import D
+from django.db import DatabaseError, connection
+from django.db.models import Max, Min, Q
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from rest_framework import generics
 
-from showCrime.settings import PLOT_PATH, SITE_URL
 
+from dailyIncid import serializers
 from .forms import *
 from .models import *
-from dailyIncid import serializers
+
 
 def awareDT(naiveDT):
 	utc=pytz.UTC
@@ -36,7 +26,6 @@ def awareDT(naiveDT):
 def rikNoLogin(cbfn): 
 	# print('rikNoLogin cbfn',cbfn)
 	return cbfn
-
 login_required = rikNoLogin
 
 logger = logging.getLogger(__name__)
@@ -71,9 +60,8 @@ def getQuery(request):
 		logger.info('user=%s getQuery-nonPost' % (userName))
 		qform = twoTypeQ()
 		
-	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': SITE_URL})
+	return render(request, 'dailyIncid/getQuery.html', {'form': qform})
 	   
-import os
 
 import matplotlib
 
@@ -85,8 +73,6 @@ matplotlib.use('Agg')
 import pylab as p
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.dates import DateFormatter
 from datetime import datetime,timedelta,date
 import matplotlib.dates as mdates
 
@@ -269,7 +255,7 @@ def plotResults(request,beat,crimeCat,crimeCat2=None):
 	f1.autofmt_xdate()
 	
 	figDPI=200
-	fullPath = PLOT_PATH+fname+'_'+runTime+'.png'
+	fullPath = settings.PLOT_PATH+fname+'_'+runTime+'.png'
 	logger.info('user=%s plotting %d/%d (%6.2f sec) to %s' % (userName,totBeat,totCity,qryTime.total_seconds(),fullPath))
 	
 	# 2do: 181218  fix plot file permission
@@ -297,9 +283,7 @@ def otherUtil(request):
 
 ## GeoDjango
 
-from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos import Point
-from django.contrib.gis.utils import LayerMapping
 
 
 @login_required
@@ -580,7 +564,7 @@ def hybridQual(request,mapType):
 
 	ccatList = request.GET.getlist('crimeCat')
 
-	NTopLevelCC = 16 # updated 190812
+	NTopLevelCC = 14
 	if len(ccatList) < NTopLevelCC:
 		
 		# NB: disjunction across separate crimeCat query sets!
@@ -799,19 +783,12 @@ def bldNCPCRpt(request):
 	xlngMin = ylatMin = 1000.
 	xlngMax = -1000.
 	ylatMax = 0.
-	xlngSum = 0.
-	ylatSum = 0.
-	ncoord = 0
 	
 	incid0_opd_rd_Dict = {} # dict for quick tests by second vicinity set
 	for incid in incidList0:
 		incid0_opd_rd_Dict[incid.opd_rd] = True
 		if incid.ylat == None:
 			continue
-		
-		ncoord += 1
-		xlngSum += incid.xlng
-		ylatSum += incid.ylat
 		
 		if incid.ylat < ylatMin:
 			ylatMin = incid.ylat
@@ -822,31 +799,22 @@ def bldNCPCRpt(request):
 			xlngMin = incid.xlng
 		if incid.xlng > xlngMax:
 			xlngMax= incid.xlng
-			
-	ctrXLng = xlngSum / float(ncoord)
-	ctrYLat = ylatSum / float(ncoord)
 	
 	# relax bbox
-	# BBoxBorder = 1e-3
-	BBoxBorder = 1e-2
+	BBoxBorder = 1e-3
 	
 	# 	xmin = sw[0]
 	# 	ymin = ne[1]
 	# 	xmax = sw[1]
 	# 	ymax = ne[0]
-	
-# 	xlngMin -= BBoxBorder
-# 	xlngMax += BBoxBorder
-# 	ylatMin -= BBoxBorder
-# 	ylatMax += BBoxBorder
-
-	xlngMin = ctrXLng - BBoxBorder
-	xlngMax = ctrXLng + BBoxBorder
-	ylatMin = ctrYLat - BBoxBorder
-	ylatMax = ctrYLat + BBoxBorder
+	xlngMin -= BBoxBorder
+	xlngMax += BBoxBorder
+	ylatMin -= BBoxBorder
+	ylatMax += BBoxBorder
 	
 	bbox = (xlngMin, ylatMin, xlngMax, ylatMax)
 	geom = Polygon.from_bbox(bbox)
+	
 	
 	qs1 = OakCrime.objects.filter(cdateTime__gt=minDate). \
 				filter(cdateTime__lt=nowDT). \
