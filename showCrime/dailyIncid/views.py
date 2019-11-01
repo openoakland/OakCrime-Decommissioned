@@ -13,7 +13,6 @@ from django.shortcuts import render
 from django.utils import timezone
 from rest_framework import generics
 
-
 from dailyIncid import serializers
 from .forms import *
 from .models import *
