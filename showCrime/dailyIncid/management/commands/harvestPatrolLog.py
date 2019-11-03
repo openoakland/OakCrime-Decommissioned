@@ -111,8 +111,9 @@ def getMiss(boxidx,verbose=True):
 def connectJWTAuth():
 	
 	# import pdb; pdb.set_trace()
-	# print('connectJWTAuth: rsaFile=%s exists=%s read=%s' % (BoxRSAFile, os.path.exists(BoxRSAFile),os.access(BoxRSAFile, os.R_OK)))
-	# for k in sorted(os.environ.keys()): print(k,os.environ[k])
+# 	print('connectJWTAuth: rsaFile=%s exists=%s read=%s' % \
+# 			(BoxRSAFile, os.path.exists(BoxRSAFile),os.access(BoxRSAFile, os.R_OK)))
+# 	for k in sorted(os.environ.keys()): print(k,os.environ[k])
 
 	auth = boxsdk.JWTAuth(
 		client_id=BoxClientID,
@@ -512,22 +513,17 @@ class Command(BaseCommand):
 		else:
 			lastBoxDT = datetime.strptime(lastCheck,'%Y-%m-%d')
 			lastBoxDT = OaklandTimeZone.localize(lastBoxDT)
-			logger.info('FIXED lastBoxDT=%s', lastBoxDT)
+			logger.info('FIXED lastBoxDT=%s',lastBoxDT)
 		
-		# FIRST TIME load initial BoxID relation from json
-		if initAll:
-			boxIDFile = HarvestRootDir + 'boxIDTbl.json'
-			logger.info('initializing DB from %s',boxIDFile)
-			currTbl = json.load(open(boxIDFile))
-			logger.info('init BoxID table NID=%d' , len(currTbl))
-			postBoxTbl2DB(currTbl,lastBoxDT)
-			elapTime = datetime.now() - beginDT
-			logger.info('init BoxID table DONE elapTime=%s' , elapTime.total_seconds())
-
 		## Check current files @ Box
 		makeBoxConnection() # sets CurrBoxClient
-				
-		chgList = updateBoxID(lastBoxDT,verbose=True)
+			
+		topf = CurrBoxClient.folder(folder_id=OPDPatrolFolderID)
+		topfInfo = topf.get(fields=['modified_at'])
+		topModDTStr = topfInfo.modified_at
+		summRpt += 'updateBoxID: OPDPatrolFolder modifiedDT=%s\n' % (topModDTStr)
+					
+		chgList = updateBoxID(lastBoxDT)
 		elapTime = datetime.now() - beginDT
 		logger.info('updateBoxID DONE elapTime=%s' , elapTime.total_seconds())	
 		summRpt += 'updateBoxID: NChanged BoxID=%s\n' % len(chgList)
@@ -630,7 +626,6 @@ class Command(BaseCommand):
 		
 		summRpt = summRpt + rptMsg + '\n'
 
-		# print('2bMailed:',summRpt)
 		send_mail('PatrolLog @ Box harvest', summRpt, 'rik@electronicArtifacts.com', \
 				['rik@electronicArtifacts.com'], fail_silently=False)
 
