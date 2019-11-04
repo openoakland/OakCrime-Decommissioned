@@ -72,6 +72,37 @@ class OakCrime(models.Model):
 	def __unicode__(self):
 		return '%d:%s' % (self.idx,self.opd_rd)
 
+class WeeklySummary(models.Model):
+	report_date = models.DateField('report date')
+	area = models.IntegerField(blank=True, null=True)
+	violent_crime_index = models.IntegerField(blank=True, null=True) #'Violent Crime Index')
+	# homicide_187 = models.IntegerField(blank=True, null=True) #'Homicide – 187(a)PC')
+	homicide_all = models.IntegerField(blank=True, null=True) #'Homicide – All Other *')
+	aggravated_assault = models.IntegerField(blank=True, null=True) #'Aggravated Assault')
+	assault_firearm = models.IntegerField(blank=True, null=True) #'Assault with a firearm – 245(a)(2)PC')
+	shooting_occupied_hov = models.IntegerField(blank=True, null=True) #'Shooting occupied home or vehicle – 246PC')
+	shooting_unoccupied_hov = models.IntegerField(blank=True, null=True) #'Shooting unoccupied home or vehicle – 247PC')
+	assault_non_firearm = models.IntegerField(blank=True, null=True) #'Non-firearm aggravated assaults')
+	rape = models.IntegerField(blank=True, null=True) #'Rape')
+	robbery = models.IntegerField(blank=True, null=True) #'Robbery')
+	firearm = models.IntegerField(blank=True, null=True) #'Firearm')
+	knife = models.IntegerField(blank=True, null=True) #'Knife')
+	strong_arm = models.IntegerField(blank=True, null=True) #'Strong-arm')
+	other_weapon = models.IntegerField(blank=True, null=True) #'Other dangerous weapon')
+	robbery_residential = models.IntegerField(blank=True, null=True) #'Residential  robbery – 212.5(a)PC')
+	carjacking = models.IntegerField(blank=True, null=True) #'Carjacking – 215(a) PC')
+	burglary = models.IntegerField(blank=True, null=True) #'Burglary')
+	auto = models.IntegerField(blank=True, null=True) #'Auto')
+	residential = models.IntegerField(blank=True, null=True) #'Residential')
+	commercial = models.IntegerField(blank=True, null=True) #'Commercial')
+	other = models.IntegerField(blank=True, null=True) #'Other (Includes boats, aircraft, and so on)')
+	unknown = models.IntegerField(blank=True, null=True) #'Unknown')
+	motor_vehicle_theft = models.IntegerField(blank=True, null=True) #'Motor Vehicle Theft')
+	larceny = models.IntegerField(blank=True, null=True) #'Larceny')
+	arson = models.IntegerField(blank=True, null=True) #'Arson')
+	total = models.IntegerField(blank=True, null=True) #'Total')
+	# 'Subtotal - Homicides + Firearm Assault'
+
 class CrimeCat(models.Model):
 	idx = models.AutoField(primary_key=True)
 	ctypeDesc = models.CharField(max_length=100,db_index=True)
