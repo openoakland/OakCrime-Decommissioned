@@ -1,7 +1,7 @@
 boxsdk==2.0.0
 Django==1.11.23
 django-environ==0.4.5
-djangorestframework==3.9.1
+djangorestframework==3.10.3
 editdistance==0.4
 future==0.17.1
 geojson==2.4.1
