@@ -1,7 +1,7 @@
 import logging
 import random
 
-import geojson
+import geojson 
 import pytz
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
@@ -36,6 +36,7 @@ def testPage(request):
 	return HttpResponse("Hello, world. You're at dailyIncid test.")
 
 def need2login(request):
+	logger.warning('need2login attempt')
 	return render(request, 'dailyIncid/need2login.html', {})
 
 
@@ -78,7 +79,7 @@ import matplotlib.dates as mdates
 
 # 2do:  reconcile djOakData code with c4a
 MinYear = 2014
-MaxYear = 2018
+MaxYear = 2019
 C4A_date_string = '%y%m%d_%H:%M:%S'
 
 
@@ -563,7 +564,7 @@ def hybridQual(request,mapType):
 
 	ccatList = request.GET.getlist('crimeCat')
 
-	NTopLevelCC = 14
+	NTopLevelCC = 16 # updated 190812
 	if len(ccatList) < NTopLevelCC:
 		
 		# NB: disjunction across separate crimeCat query sets!
@@ -782,12 +783,19 @@ def bldNCPCRpt(request):
 	xlngMin = ylatMin = 1000.
 	xlngMax = -1000.
 	ylatMax = 0.
+	xlngSum = 0.
+	ylatSum = 0.
+	ncoord = 0
 	
 	incid0_opd_rd_Dict = {} # dict for quick tests by second vicinity set
 	for incid in incidList0:
 		incid0_opd_rd_Dict[incid.opd_rd] = True
 		if incid.ylat == None:
 			continue
+		
+		ncoord += 1
+		xlngSum += incid.xlng
+		ylatSum += incid.ylat
 		
 		if incid.ylat < ylatMin:
 			ylatMin = incid.ylat
@@ -798,22 +806,31 @@ def bldNCPCRpt(request):
 			xlngMin = incid.xlng
 		if incid.xlng > xlngMax:
 			xlngMax= incid.xlng
+			
+	ctrXLng = xlngSum / float(ncoord)
+	ctrYLat = ylatSum / float(ncoord)
 	
 	# relax bbox
-	BBoxBorder = 1e-3
+	# BBoxBorder = 1e-3
+	BBoxBorder = 1e-2
 	
 	# 	xmin = sw[0]
 	# 	ymin = ne[1]
 	# 	xmax = sw[1]
 	# 	ymax = ne[0]
-	xlngMin -= BBoxBorder
-	xlngMax += BBoxBorder
-	ylatMin -= BBoxBorder
-	ylatMax += BBoxBorder
+	
+# 	xlngMin -= BBoxBorder
+# 	xlngMax += BBoxBorder
+# 	ylatMin -= BBoxBorder
+# 	ylatMax += BBoxBorder
+
+	xlngMin = ctrXLng - BBoxBorder
+	xlngMax = ctrXLng + BBoxBorder
+	ylatMin = ctrYLat - BBoxBorder
+	ylatMax = ctrYLat + BBoxBorder
 	
 	bbox = (xlngMin, ylatMin, xlngMax, ylatMax)
 	geom = Polygon.from_bbox(bbox)
-	
 	
 	qs1 = OakCrime.objects.filter(cdateTime__gt=minDate). \
 				filter(cdateTime__lt=nowDT). \
