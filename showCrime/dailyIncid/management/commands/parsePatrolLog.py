@@ -1,24 +1,34 @@
-# parsePatrolLogs: convert PDFs
-# 	collapose multiple days' logs allData: froot -> [ { TU->V } ] into
-# 	incidTbl: cid* -> {froot, TU -> V}
-# 	NB: cid from rptno field; random int suffix added if not unique!
-# 	regularize fields, geotag
-# 	save as incidTblArchive_%s.json
-#
-# 181113
-#
+'''parsePatrolLogs: convert PDFs
+	collapose multiple days' logs allData: froot -> [ { TU->V } ] into
+	incidTbl: cid* -> {froot, TU -> V}
+	NB: cid from rptno field; random int suffix added if not unique!
+	regularize fields, geotag
+	save as incidTblArchive_%s.json
 
+@version 0.3: prepare for AWS
+	- use BoxID, database tables vs JSON
+	
+@date 190819
+'''
 
 from collections import defaultdict
-import datetime
+from datetime import datetime,timedelta,time
 import glob
 import json
+import logging
 import os
 import pdfquery
 import re 
 
 import googlemaps
 import mapbox
+
+from django.core.exceptions import ObjectDoesNotExist
+
+from dailyIncid.models import *
+from dailyIncid.util import *
+
+logger = logging.getLogger(__name__)
 
 def cmpx(o1,o2):
 	if o1 < o2:
@@ -79,14 +89,14 @@ cid_pat2 = re.compile(r'(\d{2}-\d{5,6})_(\d+)')
 
 date_pat = re.compile(r'(\d+)(\D+)(\d+)')
 
-def getOneLog(inf,dataDir,outXML=False,verbose=False):
+def parseOneLog(inf,dataDir,outXML=False,verbose=False):
 	'''returns fndList = [ { allAnnoteInfo and i=nfnd} ]
 	'''
 	pdf = pdfquery.PDFQuery(dataDir+inf)
 	try:
 		pdf.load()
 	except Exception as e:
-		print('getOneLog: bad pdf?!',e,inf)
+		logger.warning('parseOneLog: bad pdf?! inf=%s except=%s',inf,e)
 		return []
 		
 	if outXML:
@@ -95,7 +105,7 @@ def getOneLog(inf,dataDir,outXML=False,verbose=False):
 	
 	aeList =pdf.tree.findall('.//Annot')
 		
-	# print('getOneLog: NAnnote=',len(aeList))
+	# logger.info('parseOneLog: NAnnote=%d',len(aeList))
 	
 	fndList = []
 	nfnd = 0
@@ -105,23 +115,36 @@ def getOneLog(inf,dataDir,outXML=False,verbose=False):
 			t = ae.get('TU')
 			v = ae.get('V')
 			
-			if verbose: print(ia,nfnd,t,v)
+			if verbose: logger.info('ia=%s nfnd=%d t=%s v=%s',ia,nfnd,t,v)
 			
 			# assert t == DLogPDFFormFields[ia % DLogPDFFormFields]
 			# ASSUME first field lexicographically encountered is AREA/BEAT:
 			if t=='AREA/BEAT:':
 				# assert len(currDict) == DLogPDFFormFields + 1, 'getOneLog: DLogPDFFormFields misordered?!'
 				if len(currDict) != NDLogPDFFormFields + 1:
-					print('getOneLog: partial logEntry?!',ia,currDict)
+					logger.info('parseOneLog: partial logEntry?! ia=%s currDict=%s',ia,currDict)
 				fndList.append(currDict)
 				nfnd += 1
-				# print('*BREAK*',nfnd)
+				# logger.info('*BREAK* nfnd=%d',nfnd)
 				currDict = {'i': nfnd}
 			currDict[t] = v
 	
 	fndList.append(currDict)
 
 	return fndList
+
+def name2froot(name):
+	'''returns root of pdf file name
+	'''
+
+	if '.pdf' not in name:
+		return ''
+	
+	fbits = name.split('_')
+	pdfFile = fbits[-1]
+	frootOrig,fext = os.path.splitext(pdfFile)
+	froot = normPLogFName(frootOrig)
+	return froot
 
 def normPLogFName(frootOrig):
 	# 181222: file names normalized in harvestPatrolLog.getBoxIDs() with strip().lower().replace('_','#')
@@ -134,33 +157,44 @@ def normPLogFName(frootOrig):
 	froot = froot.strip('-')
 	
 	if date_pat.match(froot) == None:
-		print('normPLogFName: cant match %s -> %s' % (frootOrig,froot))
+		logger.warning('normPLogFName: cant match %s -> %s' ,frootOrig,froot)
 	
 	return froot
 
-def collectDailyLogs(files2parse,rootDir):
-	'''returns logData: dailyRoot -> [ {allAnnoteInfo} ] 
+def parseLogFiles(files2parse,rootDir,verbose=False):
+	'''returns list of DailyParse pkey associated with these files
 		getOneLog() builds allAnnoteInfo: TU -> V 
 		for all annote fields from pdf.tree.findall('.//Annot')
 		concatenate all log entries  the list
 	'''
-		
-	logData = {} # dailyRoot -> [ {infoDict} ]
-		
-	for k,info in files2parse.items():
-		if 'kids' in info:
-			print('collectDailyLogs: skipping directory',k)
+	
+	dpIdxList = []
+	# files2parse = [(name,boxobj.boxidx,haveKids)]
+	npreParse = 0
+	startParseDT = datetime.now()
+	for (nfiles,boxidx) in enumerate(files2parse):
+		try:
+			boxobj = BoxID.objects.get(idx=boxidx)
+		except ObjectDoesNotExist:
+			logger.warning('parseLogFiles: missing BoxID?! boxidx=%s',boxidx)
 			continue
+
+		name = boxobj.name
+		nkids = boxobj.kids.all().count()
+		haveKids = nkids > 0
 		
-		fbits = k.split('_')
-		pdfFile = fbits[-1]
+		if haveKids:
+			logger.info('parseLogFiles: skipping directory name=%s',name)
+			continue
+
+		fbits = name.split('_')
+		froot = name2froot(name)		
 		
-		frootOrig,fext = os.path.splitext(pdfFile)
-		
-		froot = normPLogFName(frootOrig)
-		
-		if froot in logData:
-			print('collectDailyLogs: dup froot?!')
+		qs = DailyParse.objects.filter(froot=froot)
+		nparse = qs.count()
+		if nparse > 0:
+			logger.info('parseLogFiles: already pre-parsed froot=%s nparse=%d', froot,nparse)
+			npreParse += nparse
 			continue
 
 		fbits.insert(0,rootDir)
@@ -171,15 +205,64 @@ def collectDailyLogs(files2parse,rootDir):
 		pathDir += '/'
 
 		try:
-			fndList = getOneLog(pdfFile,pathDir)
+			########
+			fndList = parseOneLog(pdfFile,pathDir)
+			########
 		except Exception as e:
-			print('collectAllDailyLogs: bad file?!',fullpath,e)
+			logger.warning('parseLogFiles: bad file?! fullpath=%s except=%e',fullpath,e)
 			continue
-			
-		print('%s,%d' % (froot,len(fndList)))
-		logData[froot] = fndList		
+		
+		# NB: same dp.parseDT for all parses from same parsed froot
+		nowDT = datetime.now()
+		locDT =  OaklandTimeZone.localize(nowDT)		
+
+		nowDT = datetime.now()
+		locDT = awareDT(nowDT)
+		boxobj.parseDT = locDT
+		boxobj.save()
 				
-	return logData
+		ndrop = 0
+		incidList = []
+		cidFld = 'rptno'
+		for fnd in fndList:
+			# standardize field names to DayLogFields, normalize values
+			newData = {'froot': froot}
+			for k,v in fnd.items():
+				if k in DayLogFields:
+					newData[ DayLogFields[k] ] = normValue(v)
+				elif k != None:
+					logger.warning('parseLogFiles: odd key?! froot=%s k=%s v=%s',froot,k,v)
+
+			# NB: entries missing cid/opd_rd are DROPPED!
+			if cidFld in newData:
+				incidList.append(newData)
+			else:
+				ndrop += 1
+		
+		logger.info('%s: %s NIncid=%d NDrop=%d' , nowDT,froot,len(incidList),ndrop)
+		if verbose:
+			elapTime = datetime.now() - startParseDT
+			logger.info('parseLogFiles: done parsing file %s %d elapTime=%s', froot,nfiles,elapTime.total_seconds())
+		
+		for nfnd,incidParse in enumerate(incidList):
+			dp = DailyParse()
+			dp.parseOrder = nfnd
+			dp.froot = froot
+			dp.boxobj = boxobj
+			opd_rdStr = incidParse[cidFld]
+			if len(opd_rdStr) > 10:
+				logger.warning('parseLogFiles: odd opd_rd?! %s truncated froot=%s nfnd=%d',opd_rdStr,froot,nfnd)
+				opd_rdStr = opd_rdStr[:10]
+			dp.opd_rd = opd_rdStr
+			dp.incidDT = None  # filled in regularizedIncidTbl()
+			dp.parseDict = json.dumps(incidParse)
+			dp.parseDT = locDT
+			dp.save()
+			dpIdx = dp.pk
+			dpIdxList.append(dpIdx)
+	
+	logger.info('parseLogFiles: done. NParse=%d NPreParse=%d',len(dpIdxList),npreParse)
+	return dpIdxList
 
 def normValue(v):
 	if type(v) == type('string'):
@@ -215,67 +298,10 @@ def diffDict(i1,i2):
 def rptDiff(sameVal,diffVal):					
 	allDiff = list(diffVal.keys())
 	allDiff.sort()
-	print('NSame=%d NDiff=%d' % (len(sameVal),len(diffVal)))
+	logger.info('NSame=%d NDiff=%d', len(sameVal),len(diffVal))
 	for k in allDiff:
-		print('\t%s: %s\n\t%s: %s' % (k,diffVal[k][0],k,diffVal[k][1]))
+		logger.info('\t%s: %s\n\t%s: %s' , k,diffVal[k][0],k,diffVal[k][1])
 		
-def mergeDailyLogs(allData):
-	'''collapose multiple days' logs allData: froot -> [ { TU->V } ] into
-	incidTbl: cid* -> {froot, TU -> V}
-	NB: cid from rptno field; random int suffix added if not unique! 
-	'''
-	
-	allFRoots = list(allData.keys())
-	allFRoots.sort()
-	nlog = sum([ len(lst) for lst in allData.values() ])
-	
-	incidTbl = {} # cid -> [ {pdfRoot,} ]
-	ndup = 0
-	nident = 0
-	ndrop = 0
-	nmissCID = 0
-	nextIdx = 1
-	for froot in allFRoots:
-		for infoTbl in allData[froot]:
-			newData = {'froot': froot}
-			for k,v in infoTbl.items():
-				if k in DayLogFields:
-					newData[ DayLogFields[k] ] = normValue(v)
-				elif k != None:
-					print('mergeDailyLogs: odd key?!',froot,k,v)
-			if 'rptno' in newData:
-				cid = newData['rptno']
-				if cid == 'N/A':
-					# NB: create DailyLog CID from file and index pos within file
-					cid = 'DL_' + newData['froot'] + '_' + str(newData['fileIdx'])
-					nmissCID += 1
-				if cid in incidTbl:
-					# print('mergeDailyLogs: dup CID?! %s\n\t%s\n\t%s' % (cid,incidTbl[cid],newData))
-					sameVal,diffVal = diffDict(incidTbl[cid],newData)
-					
-					# ignore pairs differing only in froot; don't add newData rcd
-					if list(diffVal.keys()) == ['froot']:
-						nident += 1
-						continue
-					
-					print('mergeDailyLogs: %s dup CID?! %s NSame=%d nextIdx=%d' % (froot,cid,len(sameVal),nextIdx))
-					rptDiff(sameVal,diffVal)
-										
-					ndup += 1
-					# HACK: add unique but random suffix
-					cid = '%s_%d' % (cid,nextIdx)
-					nextIdx += 1
-				incidTbl[cid] = newData
-			else:
-				# initial field detritus from parse
-				# {'fileIdx': 0, 'froot': '(13-14Jul16)'}
-				# print(newData)
-				ndrop += 1
-					
-	print('* mergeDailyLogs: NIncid=%d/%d NDup=%d NIdent=%d NDrop=%d NMissCID=%d' % \
-			(nlog,len(incidTbl),ndup,nident,ndrop,nmissCID))
-	return incidTbl	
-
 def reg_remove_victim(s):
 	reg = s.replace('(v)','')
 	reg = reg.replace("v1's",'')
@@ -314,10 +340,11 @@ def normBeat(beat):
 	
 # from harvestDLog.py for regularizeIncidTbl()
 
-def regularizeIncidTbl(incidTbl):
+def regularizeIncidTbl(dpIdxList):
 	"""regularize strings, fields, dates, times, areas, beats, 
 		loss, injury, weapon, callout, ncustody, nsuspect, nvictim, nhospital
 		responding officer, nature
+		opd_rd, dates, times placed directly into dpo.incidDT
 	"""
 	
 	nbadCID = 0
@@ -327,20 +354,15 @@ def regularizeIncidTbl(incidTbl):
 	nbadTime = 0
 	nbadBeat = 0
 	
-	newIncidTbl = {}
-	
-	for cid,incidInfo in incidTbl.items():
+	for dpIdx in dpIdxList:
+		dpo = DailyParse.objects.get(idx=dpIdx)
+		cid = dpo.opd_rd
 		
-		if not (cid_pat1.match(cid) or cid_pat2.match(cid)):
-			print('regularizeIncidTbl: bad CID',cid)
-			nbadCID += 1
-			continue
-		
-		# NB: DUPLICATE CID's also regularized!
-		
+		incidInfo = json.loads(dpo.parseDict)
 		newIncidInfo = incidInfo.copy()
-				
-		for fld in incidInfo.keys():
+			
+		# NB: fields sorted to ensure DATE from froot established before time
+		for fld in sorted(incidInfo.keys()):
 
 			v = incidInfo[fld]
 			
@@ -367,34 +389,40 @@ def regularizeIncidTbl(incidTbl):
 					mon = mon.lower()
 					try:
 						moni = Month3Char.index(mon)
-						date = datetime.date(int(year),moni+1,int(day))
-						newIncidInfo['reg_date'] = date
+						dpo.incidDT = datetime(year=int(year),month=moni+1,day=int(day))
+						dpo.incidDT = OaklandTimeZone.localize(dpo.incidDT)
 						ngoodDate += 1
 					except Exception as e:
+						logger.warning('regularizeIncidTbl: cant construct dateTime?! cid=%s v=%s e=%s',cid,v,e)
 						nbadDate += 1
-						pass
+				else:
+					logger.warning('regularizeIncidTbl: bad date?! cid=%s v=%s',cid,v)
+					nbadDate += 1
+				
 				continue
 
 			if fld=='time':
-				time = None
+				ftime = None
 				if v.find('/') != -1:
 					spos = v.find('/')
 					time1 = v[:spos]
 					if len(time1)==4:
-						time = time1
+						ftime = time1
 				elif len(v)==4:
-					time = v 
+					ftime = v 
 					
-				if time != None:
-					hr = int(time[:2])
-					min = int(time[2:])
+				if ftime != None:
+					hr = int(ftime[:2])
+					min = int(ftime[2:])
 					try:
-						timeobj = datetime.time(hr,min)
-						newIncidInfo['reg_time'] = timeobj
+						dpo.incidDT = dpo.incidDT.replace(hour=hr,minute=min)
 						ngoodTime += 1
 					except Exception as e:
+						logger.warning('regularizeIncidTbl: bad ftime?! cid=%s ftime=%s',cid,ftime)
 						nbadTime += 1
-						pass
+				else:
+					logger.warning('regularizeIncidTbl: bad time?! cid=%s v=%s',cid,v)
+					nbadTime += 1
 			
 			if fld == 'area':
 				v = v.replace('?','/')
@@ -408,7 +436,7 @@ def regularizeIncidTbl(incidTbl):
 					else:
 						newIncidInfo['reg_area'] = flds[0].strip()
 				else:
-					print('regularizeIncidTbl: bad area/beat?!',cid,v)
+					logger.warning('regularizeIncidTbl: bad area/beat?! cid=%s v=%s',cid,v)
 					nbadBeat += 1
 					beatFnd = ''
 				
@@ -639,17 +667,15 @@ def regularizeIncidTbl(incidTbl):
 					if len(n)==0 or n.isalpha() or n in punc:
 						continue
 					pcList.append(n)
-				# print(v,pcList)
 				newIncidInfo['reg_pc'] = pcList
 				
 			# eo fld loop
-			
-		newIncidTbl[cid] = newIncidInfo
-				
-	print('* regularizeIncidTbl: NIncid=%d NBadCID=%d NDate=%d/%d NTime=%d/%d NBadBeat=%d' % \
-			(len(newIncidTbl),nbadCID,ngoodDate,nbadDate,ngoodTime,nbadTime,nbadBeat))
-	return newIncidTbl
 
+		dpo.parseDict = json.dumps(newIncidInfo)
+		dpo.save()
+				
+	logger.info('regularizeIncidTbl: NIncid=%d NBadCID=%d NDate=%d/%d NTime=%d/%d NBadBeat=%d' , \
+			len(dpIdxList),nbadCID,ngoodDate,nbadDate,ngoodTime,nbadTime,nbadBeat)
 
 def json_serial(o):
 	'''serialize dates as ISO, all others as strings
@@ -659,30 +685,67 @@ def json_serial(o):
 	else:
 		return str(o)
 
-def addGeoCode2(dlogTbl,gconn,verbose=None):
+def geocodeAddr(addr,gconn):
+
+	loc2 = addr.replace('blk ',' ')
+	loc2 = loc2.replace('block ',' ')
+	loc2 = loc2.replace('of ',' ')
+	loc2 = loc2.replace('IFO ',' ') # 180131
+			
+	# Geocoding via Google
+	# print('trying google...')
+	
+	loc2 += ' Oakland CA'
+	geoCodeG = gconn.geocode(loc2)
+		
+	# NB: python API doesn't provide status, only results!?
+	# if geoCodeG['status'] == 'OK':
+	#	f = geoCodeG['results'][0]
+
+	if len(geoCodeG) < 1:
+		return('GMiss-none')
+	
+	f = geoCodeG[0]
+	oakFnd = False
+	for ac in f['address_components']:
+		if 'locality' in ac['types'] and ac['long_name'] == 'Oakland':
+			oakFnd = True
+			break
+	if oakFnd:
+		xlng = f['geometry']['location']['lng']
+		ylat = f['geometry']['location']['lat']
+		return (xlng,ylat)
+	else:
+		return('GMiss-noOak')
+
+	
+def addGeoCode2(dpIdxList,gconn,verbose=None):
 	'''create updated dlogTbl with XLng, YLat and GCConf columns
 	180131: search against Google
 	'''
 
-	allCID = list(dlogTbl.keys())
-	allCID.sort()
 	
-	MZDefaultOaklandCoord = [-122.197811, 37.785199]
-
 	nMBmiss = 0
 	nMZmiss = 0
 	nggc = 0
 	ngmiss = 0
 	nhit=0
 	newDLogTbl = {}
-	for i,dlogCID in enumerate(allCID):
-		if verbose != None and i % verbose == 0:
-			print('addGeoCodeVerbose: %d NMBMiss=%d NMZMiss=%d NGGC=%d NGMiss=%d NHit=%d NLogOut=%d'  % \
-					(i,nMBmiss,nMZmiss,nggc,ngmiss,nhit,len(newDLogTbl)))
-			
-		dlog = dlogTbl[dlogCID]
+	
+	for i,dpIdx in enumerate(dpIdxList):
+		dpo = DailyParse.objects.get(idx=dpIdx)
+		cid = dpo.opd_rd
+		
+		dlog = json.loads(dpo.parseDict)
 		newdlog = dlog.copy()
-			
+		newdlog['XLng'] = ''
+		newdlog['YLat'] = ''
+		newdlog['GCConf'] = ''
+		
+		if verbose != None and i % verbose == 0:
+			logger.info('addGeoCodeVerbose: %d NMBMiss=%d NMZMiss=%d NGGC=%d NGMiss=%d NHit=%d NLogOut=%d'  , \
+					i,nMBmiss,nMZmiss,nggc,ngmiss,nhit,len(newDLogTbl))
+						
 		if 'location1'  in dlog:
 			loc = dlog['location1'].strip()
 		else:
@@ -690,73 +753,43 @@ def addGeoCode2(dlogTbl,gconn,verbose=None):
 		
 		if len(loc)==0:
 			# print(('addGeoCode: %d %s "%s" %s EMPTY' % (i,dlogCID,loc,GCConf)))
-			newdlog['XLng'] = ''
-			newdlog['YLat'] = ''
-			newdlog['GCConf'] = ''
-			newDLogTbl[dlogCID] = newdlog
 			nMBmiss += 1
+			dpo.parseDict = json.dumps(newdlog)
+			dpo.save()
 			continue
 
-		loc2 = loc.replace('blk ',' ')
-		loc2 = loc2.replace('block ',' ')
-		loc2 = loc2.replace('of ',' ')
-		loc2 = loc2.replace('IFO ',' ') # 180131
-				
-		# Geocoding via Google
-		# print('trying google...')
+		rv = geocodeAddr(loc,gconn)
 		
-		loc2 += ' Oakland CA'
-		geoCodeG = gconn.geocode(loc2)
-		
-		# NB: python API doesn't provide status, only results!?
-		# if geoCodeG['status'] == 'OK':
-		#	f = geoCodeG['results'][0]
-
-		if len(geoCodeG) < 1:
-			print(('addGeoCode G: %d %s "%s" GMiss-none' % (i,dlogCID,loc)))
-			newdlog['XLng'] = ''
-			newdlog['YLat'] = ''
-			newdlog['GCConf'] = ''
-			newDLogTbl[dlogCID] = newdlog
+		if rv == 'GMiss-none':
+			logger.warning('addGeoCode G: %d %s "%s" GMiss-none' , (i,cid,loc))
 			ngmiss += 1
-			continue
+		
+		elif rv == 'GMiss-noOak':
+			logger.info('addGeoCode G: %d %s "%s" GMiss-noOak' , i,cid,loc)
+			ngmiss += 1
 			
-		f = geoCodeG[0]
-		oakFnd = False
-		for ac in f['address_components']:
-			if 'locality' in ac['types'] and ac['long_name'] == 'Oakland':
-				oakFnd = True
-				break
-		if oakFnd:
-			xlng = f['geometry']['location']['lng']
-			ylat = f['geometry']['location']['lat']
+		else:
+			xlng,ylat = rv
 			newdlog['XLng'] = xlng
 			newdlog['YLat'] = ylat
 			newdlog['GCConf'] = '1.0'  # NB: no confidence from Google
 			nggc += 1
-			newDLogTbl[dlogCID] = newdlog
 			if verbose==1:
-				print(('addGeoCode G:  %d %s "%s" "%s" %f %f' % (i,dlogCID,loc,loc2,newdlog['XLng'],newdlog['YLat'])))
+				logger.info('addGeoCode G:  i=%d cid=%s loc="%s" xlng=%f ylat=%f', i,cid,loc,newdlog['XLng'],newdlog['YLat'])
 			nhit += 1
-		else:
-			print(('addGeoCode G: %d %s "%s" GMiss-noOak' % (i,dlogCID,loc)))
-			newdlog['XLng'] = ''
-			newdlog['YLat'] = ''
-			newdlog['GCConf'] = ''
-			newDLogTbl[dlogCID] = newdlog
-			ngmiss += 1
-			continue
 
-	print('addGeoCode2: NDLogIn=%d NGGC=%d NGMiss=%d NHit=%d NLogOut=%d'  % \
-			(len(dlogTbl),nggc,ngmiss,nhit,len(newDLogTbl)))
-	
-	return newDLogTbl
+		dpo.parseDict = json.dumps(newdlog)
+		dpo.save()
+		continue
+
+	logger.info('addGeoCode2: NDLogIn=%d NGGC=%d NGMiss=%d NHit=%d'  , \
+			len(dpIdxList),nggc,ngmiss,nhit)
 
 def checkTblOverlap(d1,d2):
 	
 	redunKeys = set(d1.keys()).intersection(set(d2.keys()))
 	if len(redunKeys)>0:
-		print('checkTblOverlap: redundant keys?!',len(redunKeys))
+		logger.info('checkTblOverlap: redundant keys?! nredun=%d',len(redunKeys))
 		return len(redunKeys)
 	else:
 		return 0

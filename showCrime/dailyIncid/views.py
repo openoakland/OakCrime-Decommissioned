@@ -1,31 +1,21 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
-
-from django.db.models import Min, Max, Q
-from django.db.models.lookups import IExact
-# from django.db import transaction
-# from django.db import IntegrityError
-from django.template import Context
-
-from django.contrib.gis.geos import Polygon
-from django.contrib.gis.measure import D
-
-from rest_framework import generics # viewsets
-
-# from datetime import datetime, timedelta
-
 import logging
-import pytz
 import random
 
 import geojson 
+import pytz
+from django.conf import settings
+from django.contrib.gis.geos import Polygon
+from django.contrib.gis.measure import D
+from django.db import DatabaseError, connection
+from django.db.models import Max, Min, Q
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from rest_framework import generics
 
-from showCrime.settings import PLOT_PATH, SITE_URL
-
+from dailyIncid import serializers
 from .forms import *
 from .models import *
-from dailyIncid import serializers
 
 def awareDT(naiveDT):
 	utc=pytz.UTC
@@ -46,6 +36,7 @@ def testPage(request):
 	return HttpResponse("Hello, world. You're at dailyIncid test.")
 
 def need2login(request):
+	logger.warning('need2login attempt')
 	return render(request, 'dailyIncid/need2login.html', {})
 
 
@@ -91,7 +82,7 @@ import matplotlib.dates as mdates
 
 # 2do:  reconcile djOakData code with c4a
 MinYear = 2014
-MaxYear = 2018
+MaxYear = 2019
 C4A_date_string = '%y%m%d_%H:%M:%S'
 
 
@@ -820,6 +811,9 @@ def bldNCPCRpt(request):
 			xlngMin = incid.xlng
 		if incid.xlng > xlngMax:
 			xlngMax= incid.xlng
+			
+	ctrXLng = xlngSum / float(ncoord)
+	ctrYLat = ylatSum / float(ncoord)
 	
 	ctrXLng = xlngSum / float(ncoord)
 	ctrYLat = ylatSum / float(ncoord)
