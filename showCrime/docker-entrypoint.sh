@@ -16,6 +16,7 @@ touch /logs/gunicorn.log
 tail -n 0 -f /logs/*.log &
 
 mkdir -p /public/static
+make makemigrations
 make migrate
 make static
 
