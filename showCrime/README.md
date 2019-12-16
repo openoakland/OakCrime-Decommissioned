@@ -17,6 +17,10 @@ Build the containers.
 
     make docker.build
 
+Prepare for any database migrations
+
+    docker-compose run --rm app makemigrations
+
 Run the database migrations.
 
     docker-compose run --rm app make migrate
@@ -66,13 +70,6 @@ Create an admin user to login with.
     ./manage.py createsuperuser
 
 
-### Loading OPD data
-
-Older OakCrime datasets in (CSV, JSON and sqlite formats) remain
-available http://data.openoakland.org/dataset/crime-reports in csv
-file formats, but these have not been updated since late 2016.
-
-
 ## Harvest jobs
 
 This section describes the various harvest jobs that fetch and process data that
@@ -81,10 +78,20 @@ powers OakCrime.
 
 ### harvestSocrata
 
-_TODO: describe what this job does, what kind of data it harvests, and any
-command line arguments or configuration._
+OPD provides updated data through a Socrata API about every day.  This
+job queries the API to check for any new and/or modified data, and
+updates the database accordingly.
 
     $ docker-compose run --rm app python manage.py harvestSocrata
+
+### harvestPatrolLogs
+
+OPD provides PDF reports concerning major (FBI UCR "Part 1") crimes,
+approximately once a week via files on Box.com.  This job queries this
+resource daily, harvests any new PDFs, parses the PDFs and merges this
+data to match with existing daily incident reports.
+
+    $ docker-compose run --rm app python manage.py harvestPatrolLog
 
 
 ## Docker containers
