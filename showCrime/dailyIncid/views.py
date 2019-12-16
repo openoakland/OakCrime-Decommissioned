@@ -60,7 +60,7 @@ def getQuery(request):
 		logger.info('user=%s getQuery-nonPost' % (userName))
 		qform = twoTypeQ()
 		
-	return render(request, 'dailyIncid/getQuery.html', {'form': qform, 'siteUrl': SITE_URL})
+	return render(request, 'dailyIncid/getQuery.html', {'form': qform})
 	   
 import os
 

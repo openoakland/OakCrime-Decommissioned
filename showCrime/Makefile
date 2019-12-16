@@ -46,11 +46,24 @@ validate: quality test ## Run tests and quality checks
 detect_missing_migrations:  ## Determine if any apps are missing generated migrations
 	python manage.py makemigrations --check --dry-run || (echo "Migration files are missing. Please run the "makemigrations" management command, and commit the migrations." && false)
 
+makemigrations:  
+	python manage.py makemigrations
+
 migrate: ## Apply database migrations
 	python manage.py migrate --noinput
+
 
 static: ## Gather all static assets for production
 	python manage.py collectstatic --noinput
 
 clean_static: ## Remove all generated static files
 	rm -rf ./public/
+
+harvest_Socrata:
+	python manage.py harvestSocrata
+
+harvest_PatrolLog:
+	python manage.py harvestPatrolLog
+
+
+
