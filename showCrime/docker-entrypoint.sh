@@ -16,7 +16,9 @@ touch /logs/gunicorn.log
 tail -n 0 -f /logs/*.log &
 
 mkdir -p /public/static
-make makemigrations
+# 200108: this makemigrations entry fails, stopping deployment
+# make makemigrations
+
 make migrate
 make static
 
