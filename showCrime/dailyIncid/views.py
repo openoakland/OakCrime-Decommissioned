@@ -82,7 +82,7 @@ import matplotlib.dates as mdates
 
 # 2do:  reconcile djOakData code with c4a
 MinYear = 2014
-MaxYear = 2019
+MaxYear = 2020
 C4A_date_string = '%y%m%d_%H:%M:%S'
 
 
