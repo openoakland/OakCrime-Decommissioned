@@ -17,10 +17,6 @@ Build the containers.
 
     make docker.build
 
-Prepare for any database migrations
-
-    docker-compose run --rm app makemigrations
-
 Run the database migrations.
 
     docker-compose run --rm app make migrate
