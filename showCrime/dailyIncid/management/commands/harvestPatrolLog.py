@@ -46,16 +46,13 @@ logger = logging.getLogger(__name__)
 
 # Credentials
 # env = environ.Env(DEBUG=(bool, False), ) # in settings
-GoogleMapAPIKey = env('GoogleMapAPIKey')
-BoxEnterpriseID = env('BoxEnterpriseID')
-BoxHarvestBotUserID = env('BoxHarvestBotUserID')
-BoxHarvestBotEmail= env('BoxHarvestBotEmail')
-BoxDevpToken = env('BoxDevpToken')
-BoxClientID = env('BoxClientID')
-BoxClientSecret = env('BoxClientSecret')
-BoxPublicKeyID = env('BoxPublicKeyID')
-BoxRSAFile = env('BoxRSAFile')
-BoxPassPhrase = env('BoxPassPhrase')
+GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEI')
+BoxEnterpriseID = env('BOX_ENTERPRISE_ID')
+BoxClientID = env('BOX_CLIENT_ID')
+BoxClientSecret = env('BOX_CLIENT_SECRET')
+BoxPublicKeyID = env('BOX_PUBLIC_KEY_ID')
+BoxRSAKey = env('BOX_RSA_KEY')
+BoxPassPhrase = env('BOX_PASS_PHRASE')
 
 # Constants
 HarvestRootDir = MEDIA_ROOT + '/PLHarvest/'
@@ -120,7 +117,8 @@ def connectJWTAuth():
 		client_secret=BoxClientSecret,
 		enterprise_id=BoxEnterpriseID,
 		jwt_key_id=BoxPublicKeyID,
-		rsa_private_key_file_sys_path=BoxRSAFile,
+		# NB: BoxRSAKey needs to be byte string vs. unicode
+		rsa_private_key_data = BoxRSAKey.encode()
 		rsa_private_key_passphrase=BoxPassPhrase,
 		store_tokens=store_tokens)
 	
