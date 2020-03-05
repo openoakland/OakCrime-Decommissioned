@@ -50,9 +50,10 @@ logger = logging.getLogger(__name__)
 
 # credentials via environment                                                                                                                  
 env = environ.Env(DEBUG=(bool, False), )
-SocrataKey = env('SocrataKey')
-OPDKey = env('OPDKey')
-GoogleMapAPIKey = env('GoogleMapAPIKey')
+
+SocrataKey = env('SOCRATA_KEY')
+GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEI')
+OPDKey =  'ym6k-rx7a' # env('OPD_KEY')
 
 def parseSocDT(dtstr):
 	# HACK; to remove Socrata microseconds?!
