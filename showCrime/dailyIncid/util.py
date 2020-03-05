@@ -33,7 +33,7 @@ SocrataMaxRecords = 49999
 # environment required by some utility
 
 env = environ.Env(DEBUG=(bool, False), )
-GoogleMapAPIKey = env('GoogleMapAPIKey')
+GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEY')
 
 
 ## Utilities
