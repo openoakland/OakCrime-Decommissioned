@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 env = environ.Env(DEBUG=(bool, False), )
 
 SocrataKey = env('SOCRATA_KEY')
-GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEI')
+GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEY')
 OPDKey =  'ym6k-rx7a' # env('OPD_KEY')
 
 def parseSocDT(dtstr):
