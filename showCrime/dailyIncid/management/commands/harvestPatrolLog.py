@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 # Credentials
 # env = environ.Env(DEBUG=(bool, False), ) # in settings
-GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEI')
+GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEY')
 BoxEnterpriseID = env('BOX_ENTERPRISE_ID')
 BoxClientID = env('BOX_CLIENT_ID')
 BoxClientSecret = env('BOX_CLIENT_SECRET')
