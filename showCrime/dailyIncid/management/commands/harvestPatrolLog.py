@@ -107,11 +107,8 @@ def getMiss(boxidx,verbose=True):
 		
 def connectJWTAuth():
 	
-	# import pdb; pdb.set_trace()
-# 	print('connectJWTAuth: rsaFile=%s exists=%s read=%s' % \
-# 			(BoxRSAFile, os.path.exists(BoxRSAFile),os.access(BoxRSAFile, os.R_OK)))
-# 	for k in sorted(os.environ.keys()): print(k,os.environ[k])
-
+ 	print(BoxClientID,BoxClientSecret,BoxPublicKeyID,BoxRSAKey.encode(),BoxPassPhrase)
+	
 	auth = boxsdk.JWTAuth(
 		client_id=BoxClientID,
 		client_secret=BoxClientSecret,
