@@ -1,4 +1,4 @@
-boxsdk==2.0.0
+boxsdk[jwt]==2.7.1
 Django==1.11.23
 django-environ==0.4.5
 djangorestframework==3.9.1

@@ -120,7 +120,7 @@ def connectJWTAuth():
 		store_tokens=store_tokens)
 	
 	# https://github.com/box/box-python-sdk#authorization
-	access_token = auth.authenticate_instance()
+	# access_token = auth.authenticate_instance()
 	
 	client = boxsdk.Client(auth)
 	return client
