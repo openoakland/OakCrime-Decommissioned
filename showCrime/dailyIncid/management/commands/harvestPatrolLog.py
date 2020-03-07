@@ -107,8 +107,8 @@ def getMiss(boxidx,verbose=True):
 		
 def connectJWTAuth():
 	
- 	print(BoxClientID,BoxClientSecret,BoxPublicKeyID,BoxRSAKey.encode(),BoxPassPhrase)
-	
+	print(BoxClientID,BoxClientSecret,BoxPublicKeyID,BoxRSAKey.encode(),BoxPassPhrase)
+
 	auth = boxsdk.JWTAuth(
 		client_id=BoxClientID,
 		client_secret=BoxClientSecret,
