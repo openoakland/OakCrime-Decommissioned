@@ -107,7 +107,7 @@ def getMiss(boxidx,verbose=True):
 		
 def connectJWTAuth():
 	
-	print(BoxClientID,BoxClientSecret,BoxPublicKeyID,BoxRSAKey.encode(),BoxPassPhrase)
+	# print(BoxClientID,BoxClientSecret,BoxPublicKeyID,BoxRSAKey.encode(),BoxPassPhrase)
 
 	auth = boxsdk.JWTAuth(
 		client_id=BoxClientID,
@@ -120,7 +120,7 @@ def connectJWTAuth():
 		store_tokens=store_tokens)
 	
 	# https://github.com/box/box-python-sdk#authorization
-	# access_token = auth.authenticate_instance()
+	access_token = auth.authenticate_instance()
 	
 	client = boxsdk.Client(auth)
 	return client
