@@ -116,7 +116,7 @@ def connectJWTAuth():
 		enterprise_id=BoxEnterpriseID,
 		jwt_key_id=BoxPublicKeyID,
 		# NB: BoxRSAKey needs to be byte string vs. unicode
-		rsa_private_key_data = brk2.encode, # BoxRSAKey.encode(),
+		rsa_private_key_data = brk2.encode(), # BoxRSAKey.encode(),
 		rsa_private_key_passphrase=BoxPassPhrase,
 		store_tokens=store_tokens)
 	
