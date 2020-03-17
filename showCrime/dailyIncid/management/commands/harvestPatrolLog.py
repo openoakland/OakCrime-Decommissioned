@@ -107,7 +107,6 @@ def getMiss(boxidx,verbose=True):
 		
 def connectJWTAuth():
 	
-	print('initBRK',BoxRSAKey)
 	brk2 = BoxRSAKey.replace('\\n','\n')
 	
 	auth = boxsdk.JWTAuth(

@@ -54,7 +54,7 @@ static: ## Gather all static assets for production
 	python manage.py collectstatic --noinput
 
 clean_static: ## Remove all generated static files
-	rm -rf ./public/
+	rm -rf ./public/static
 
 harvest_Socrata:
 	python manage.py harvestSocrata
