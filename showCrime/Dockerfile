@@ -25,7 +25,7 @@ RUN mkdir -p /logs \
     && touch /logs/app.log \
     && touch /logs/gunicorn.log
 
-# VOLUME /public/media
+VOLUME ["/public/static" "/public/media "]
 
 EXPOSE 8000
 
