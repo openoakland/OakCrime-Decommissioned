@@ -120,6 +120,9 @@ def socrata2OakCrime(socDict,srcLbl,doGeoTag=True):
 		newOC.xlng, newOC.ylat = socDict['location_1']['coordinates']
 	elif doGeoTag and socDict['address'] != 'UNKNOWN':
 		# geotag missing addresses, eg "IFO address"
+
+		global NGGeoTag
+		NGgeoTag += 1
 		
 		rv = geocodeAddr(socDict['address'])
 		
@@ -384,6 +387,7 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 	else:
 		return None
 
+NGGeoTag = 0
 def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 		
 	nadd = 0
@@ -501,8 +505,8 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 			(incidIdx, currSocDT,nadd,ndup,nupdate,nsame,noidx,nbadDate,nerr,tot) )
 
 	nincid = OakCrime.objects.all().count()
-	rptMsg = 'mergeList: NAdd=%d NDupCID=%d NUpdate=%d NSame=%d NOIDX=%d NBadDate=%d NErr=%d NCrimeCat=%d NGeo=%d NIncid=%d' % \
-		(nadd,ndup,nupdate,nsame,noidx,nbadDate,nerr,ncc,ngeo,nincid) 
+	rptMsg = 'mergeList: NAdd=%d NDupCID=%d NUpdate=%d NSame=%d NOIDX=%d NBadDate=%d NErr=%d NCrimeCat=%d NGeo=%d NGoogleGeoTag=%d NIncid=%d' % \
+		(nadd,ndup,nupdate,nsame,noidx,nbadDate,nerr,ncc,ngeo,NGGeoTag,nincid) 
 	logger.info(rptMsg)
 	return rptMsg
 
