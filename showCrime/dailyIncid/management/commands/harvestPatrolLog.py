@@ -356,7 +356,9 @@ def updateBoxID(lastUpdate,verbose=False):
 
 				try: 
 					dbo = BoxID.objects.get(name=dkey)
-					prevDayModDT = dbo.boxModDT
+					# 200325: check for days in BoxID but not harvested, parsed
+					if dbo.harvestDT == None or dbo.parseDT == None:
+						newChanges.add(dbo.idx)
 				except ObjectDoesNotExist:
 					
 					dbo = BoxID()
