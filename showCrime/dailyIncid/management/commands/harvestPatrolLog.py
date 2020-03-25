@@ -76,7 +76,7 @@ def getMiss(boxidx,verbose=True):
 	nkids = boxobj.kids.all().count()
 	haveKids = nkids > 0
 
-	name = name.replace(' ','\ ')
+	# name = name.replace(' ','\ ')
 
 	# missInfo = ( '_'-separated path relavitive to HarvestRootDir, boxid, kidsP)
 	kbits = name.split('_')
