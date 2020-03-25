@@ -85,7 +85,7 @@ def getMiss(boxidx,verbose=True):
 	if haveKids:
 		try:
 			os.mkdir(path)
-			logger.info('getMiss: directory created id=%s path=%s',id,path)
+			logger.info('getMiss: directory created boxidx=%s path=%s',boxidx,path)
 		except Exception as e:
 			logger.warning('getMiss: directory already exists?! path=%s except=%s',path,e)
 		return None
@@ -102,7 +102,7 @@ def getMiss(boxidx,verbose=True):
 		boxobj.save()
 		return True
 	except Exception as e:
-		logger.warning('getMiss: cant get file?! id=%s path=%s except=%s',id,path,e)
+		logger.warning('getMiss: cant get file?! boxidx=%s path="%s" bfile.name="%s" bfile.size=%d except=%s',boxidx,path,box_file.name,box_file.size,e)
 		return None
 		
 def connectJWTAuth():
