@@ -868,7 +868,12 @@ def bldNCPCRpt(request):
 	context['maxDateStr'] = maxDateStr
 
 	gjFeatures = []
-	for o in incidList1:
+	
+	# 190318: drop mapping of in-vicinity points; too easily polluted by bad beat data
+	# for o in incidList1:
+	
+	for o in incidList0:
+
 		if o.ylat == None:
 			f = geojson.Feature( geometry=None, properties={"count": 1} )
 		else:
