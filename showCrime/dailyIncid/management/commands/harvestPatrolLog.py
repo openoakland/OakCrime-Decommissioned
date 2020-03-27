@@ -61,7 +61,7 @@ PythonCTimeFmt = "%a %b %d %H:%M:%S %Y"
 OPDPatrolFolderID =  '8881131962' 
 OCSourceDateFmt = '%y%m%d'
 
-def getMiss(boxidx,verbose=True):
+def getMiss(boxidx,verbose=False):
 	''' download file missing from cache
 		create subdirectory if it has kids		
 	'''
@@ -193,67 +193,6 @@ def compBox2Dir(chgList,init=False):
 	logger.info('compBox2Dir: NFnd=%d NMiss/HarvestNext=%d NDirMismatch=%d' , nfnd,len(missing),ndirMismatch)
 	return missing
 	
-def getBoxIDs(verbose=True):
-	'''traverse all folders under OPDPatrolFolderID FROM SCRATCH to build boxIDTbl
-	'''	
-	
-	nskip = 0
-	boxIDTbl = {'root': {'id': OPDPatrolFolderID,'kids': []} }
-	yearFolders = CurrBoxClient.folder(folder_id=OPDPatrolFolderID).get_items(limit=100, offset=0)
-	for yrf in yearFolders:
-		if yrf.type != 'folder':
-			logger.info('getBoxIDs: skipping year non-folder %s %s %s' , yrf.id,yrf.type,yrf.name)
-			nskip += 1
-			continue
-		# NB: '_' used to separate key bits; make sure it isn't already there
-		ykey = yrf.name.strip().lower().replace('_','#')
-		if ykey in boxIDTbl:
-			logger.info('getBoxIDs: duplicate year name?! new: %s %s %s\n\t prevID:%s' , yrf.id,yrf.type,ykey,boxIDTbl[ykey]['id'])
-			nskip += 1
-			continue			
-		boxIDTbl['root']['kids'].append(ykey)
-		yrInfo = CurrBoxClient.folder(folder_id=yrf.id).get(fields=['modified_at'])
-		boxIDTbl[ykey] = {'id': yrf.id,'mdate': yrInfo.modified_at,'kids': []}
-		for monf in yrf.get_items(limit=100):
-			if monf.type != 'folder':
-				logger.info('getBoxIDs: skipping month non-folder %s / %s %s %s' , ykey,monf.id,monf.type,monf.name)
-				nskip += 1
-				continue
-			mkey = ykey + '_' + monf.name.strip().lower().replace('_','#')
-			if mkey in boxIDTbl:
-				logger.info('getBoxIDs: duplicate month name?! new: %s %s %s\n\t prevID:%s' , \
-					mkey,monf.id,monf.type,boxIDTbl[mkey]['id'])
-				nskip += 1
-				continue			
-			boxIDTbl[ykey]['kids'].append(mkey)
-			monInfo = CurrBoxClient.folder(folder_id=monf.id).get(fields=['modified_at'])
-			boxIDTbl[mkey] = {'id': monf.id,'mdate': monInfo.modified_at,'kids': []}
-			for dayf in monf.get_items(limit=100):
-				if dayf.type != 'file':
-					logger.info('getBoxIDs: skipping day non-file %s / %s %s %s' , \
-						mkey,dayf.id,dayf.type,dayf.name)
-					nskip += 1
-					continue
-				dkey = mkey + '_' + dayf.name.strip().lower().replace('_','#')
-				if dkey in boxIDTbl:
-					logger.info('getBoxIDs: duplicate day name?! new: %s / %s %s %s %s' , \
-						dkey, dayf.id, dayf.type, dayf.name, boxIDTbl[dkey]['id'])
-					nskip += 1
-					continue
-				boxIDTbl[mkey]['kids'].append(dkey)
-				dayInfo = CurrBoxClient.file(file_id=dayf.id).get(fields=['modified_at'])
-				boxIDTbl[dkey] = {'id': dayf.id,'mdate': dayInfo.modified_at}  # NB, no kids for files
-			if verbose:
-				logger.info('Month %s: %d day files' , mkey,len(boxIDTbl[mkey]['kids']))
-				
-		if verbose:
-			logger.info('Year %s: %d month folders' , ykey,len(boxIDTbl[ykey]['kids']))
-	
-	if verbose:
-		logger.info('Root: %d year folders' , len(boxIDTbl['root']['kids']))
-	
-	return boxIDTbl
-
 def updateBoxID(lastUpdate,verbose=False):
 	'''traverse all folders under OPDPatrolFolderID @ Box for changes since lastUpdate
 	return list of new BoxID.idx changed
@@ -550,7 +489,7 @@ class Command(BaseCommand):
 		logger.info('NUparsed=%d since %s',len(unParsed),parseSinceDT)
 						
 		# dpIdxList = list of all DailyParse indices produced as part of parse
-		dpIdxList = parsePL.parseLogFiles(unParsed,HarvestRootDir,verbose=True)
+		dpIdxList = parsePL.parseLogFiles(unParsed,HarvestRootDir)
 		elapTime = datetime.now() - beginDT
 		logger.info('parseLogFiles DONE elapTime=%s' , elapTime.total_seconds())			
 		summRpt += 'parseLogFiles: NIncidParsed=%d\n'  % len(dpIdxList)
@@ -563,7 +502,7 @@ class Command(BaseCommand):
 		
 		CurrGClient = makeGConnection()  # sets CurrGClient
 				
-		parsePL.addGeoCode2(dpIdxList, CurrGClient,verbose=20)
+		parsePL.addGeoCode2(dpIdxList, CurrGClient)
 		elapTime = datetime.now() - beginDT
 		logger.info('addGeoCode DONE elapTime=%s' , elapTime.total_seconds())			
 
@@ -625,7 +564,7 @@ class Command(BaseCommand):
 		
 		summRpt = summRpt + rptMsg + '\n'
 
-		send_mail('PatrolLog @ Box harvest', summRpt, 'rik@electronicArtifacts.com', \
-				['rik@electronicArtifacts.com'], fail_silently=False)
+		# send_mail('PatrolLog @ Box harvest', summRpt, 'rik@electronicArtifacts.com', \
+		# 		['rik@electronicArtifacts.com'], fail_silently=False)
 
 	
