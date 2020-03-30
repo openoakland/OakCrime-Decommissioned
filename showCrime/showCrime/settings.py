@@ -236,10 +236,13 @@ LEAFLET_CONFIG = {
 PLOT_PATH = os.path.join(project_root, 'plots')
 
 # Email configuration
-EMAIL_ENABLE = env('EMAIL_ENABLE', default=False)
-SERVER_EMAIL = env('SERVER_EMAIL')
-EMAIL_CONFIG = env.email_url('EMAIL_URL')
-vars().update(EMAIL_CONFIG)
+
+# EMAIL_ENABLE = env('EMAIL_ENABLE', default=False)
+# SERVER_EMAIL = env('SERVER_EMAIL')
+# EMAIL_CONFIG = env.email_url('EMAIL_URL')
+# vars().update(EMAIL_CONFIG)
+# use  Amazon Simple Email Service (SES) for email
+EMAIL_BACKEND = 'django_amazon_ses.EmailBackend'
 
 # Box SDK configuration
 BOX_ENTERPRISE_ID = env('BoxEnterpriseID', default=None)

@@ -552,15 +552,17 @@ def harvest(startDate):
 	#########
 	summRpt = mergeList(results,srcLbl,verboseFreq='chgSocDT',rptAll=True)  # verboseFreq=100, 
 	#########
-	
+
+	bits = summRpt.split(' ')
+	hdrStats = ' '.join([ 'Socrata harvest:',bits[1],bits[3],bits[11] ])
 	elapTime = datetime.now() - nowDT
 	rptMsg = 'do_harvest: Completed %s sec' % (elapTime.total_seconds())
 	logger.info(rptMsg)
 	summRpt = summRpt + '\n' + rptMsg
 
-	# 190831: enable email summRpt	
-# 	send_mail('Socrata harvest', summRpt, 'rik@electronicArtifacts.com', \
-# 			['rik@electronicArtifacts.com'], fail_silently=False)
+	#  email summRpt
+	send_mail(hdrStats, summRpt, 'rik@electronicArtifacts.com', \
+			['rik@electronicArtifacts.com'], fail_silently=False)
 
 	
 class Command(BaseCommand):
