@@ -243,6 +243,7 @@ PLOT_PATH = os.path.join(project_root, 'plots')
 # vars().update(EMAIL_CONFIG)
 # use  Amazon Simple Email Service (SES) for email
 EMAIL_BACKEND = 'django_amazon_ses.EmailBackend'
+AWS_SES_REGION = 'us-west-2'
 
 # Box SDK configuration
 BOX_ENTERPRISE_ID = env('BoxEnterpriseID', default=None)
