@@ -565,7 +565,7 @@ class Command(BaseCommand):
 		summRpt = summRpt + rptMsg + '\n'
 
 		hdrStats = 'PatrolLog harvest: NHarvest=%d NIncid=%d NMatch=%d NUnMatch=%d' % (len(harvestedFiles), len(dpIdxList), len(dlMatchTbl),len(unMatchTbl))
-		send_mail(hrdStats, summRpt, 'rik@electronicArtifacts.com', \
+		send_mail(hdrStats, summRpt, 'rik@electronicArtifacts.com', \
 				['rik@electronicArtifacts.com'], fail_silently=False)
 
 	
