@@ -424,9 +424,9 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 			continue
 		
 		
-		# 200317: disable Google geotagging
-		newOC = socrata2OakCrime(socDict,srcLbl,doGeoTag=False) 
-		# newOC = socrata2OakCrime(socDict,srcLbl)
+		# 200317: temporarily disable Google geotagging
+		# newOC = socrata2OakCrime(socDict,srcLbl,doGeoTag=False) 
+		newOC = socrata2OakCrime(socDict,srcLbl)
 
 		# test if cid already in database
 		
