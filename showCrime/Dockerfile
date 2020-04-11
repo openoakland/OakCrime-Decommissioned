@@ -25,7 +25,10 @@ RUN mkdir -p /logs \
     && touch /logs/app.log \
     && touch /logs/gunicorn.log
 
-VOLUME ["/public/static" "/public/media"]
+# https://boxboat.com/2017/01/23/volumes-and-dockerfiles-dont-mix/
+# VOLUME ["/public/static" "/public/media"]
+
+COPY /Data/c4a-Data/OAK_data/db-bak/djdb10-oakcrime_WF_200410.sql docker-entrypoint-initdb.d/
 
 EXPOSE 8000
 
