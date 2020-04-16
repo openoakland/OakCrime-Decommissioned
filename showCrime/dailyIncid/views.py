@@ -568,8 +568,10 @@ def hybridQual(request,mapType):
 # 	print('hybrid',ocoFirst.opd_rd,ocoFirst.cdateTime,ocoLast.opd_rd,ocoLast.cdateTime)
 
 	ccatList = request.GET.getlist('crimeCat')
+	logline = 'ccatList: %s' % (ccatList,)
+	logger.info(logline)
 
-	NTopLevelCC = 16 # updated 190812
+	NTopLevelCC = 14 # updated 200416
 	if len(ccatList) < NTopLevelCC:
 		
 		# NB: disjunction across separate crimeCat query sets!
@@ -578,6 +580,8 @@ def hybridQual(request,mapType):
 			# NB: __startswith converts to LIKE cc%
 			qs1 = qs0.filter(crimeCat__startswith=cc)
 			qscc = (qscc | qs1)
+			logline = 'ccatDBG: %s %d %d' % (cc,qs1.count(),qscc.count())
+			logger.info(logline)
 			# print(cc,qs1.count(),qscc.count())
 	
 		logline = 'username=%s hybridQual: crimeCat="%s" postCC=%d' % (userName, ccatList, qscc.count())
