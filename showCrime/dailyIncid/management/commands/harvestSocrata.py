@@ -122,7 +122,7 @@ def socrata2OakCrime(socDict,srcLbl,doGeoTag=True):
 		# geotag missing addresses, eg "IFO address"
 
 		global NGGeoTag
-		NGgeoTag += 1
+		NGGeoTag += 1
 		
 		rv = geocodeAddr(socDict['address'])
 		
