@@ -91,6 +91,7 @@ def mergeDLog2Incid(dpo,incid,nowDate):
 		newOC.idx = incid.idx
 		newOC.opd_rd = incid.opd_rd
 		newOC.oidx = incid.oidx
+		newOC.socrataDT = incid.socrataDT
 
 		## PREFER all ocResult fields
 		

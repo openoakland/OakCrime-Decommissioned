@@ -50,13 +50,12 @@ logger = logging.getLogger(__name__)
 
 # credentials via environment                                                                                                                  
 env = environ.Env(DEBUG=(bool, False), )
-
 SocrataKey = env('SOCRATA_KEY')
 GoogleMapAPIKey = env('GOOGLE_MAPS_API_KEY')
 OPDKey =  'ym6k-rx7a' # env('OPD_KEY')
 
 def parseSocDT(dtstr):
-	# HACK; to remove Socrata microseconds?!
+	# HACK; to remove Socrata microseconds & 0Z timezone?!
 	rpos = dtstr.rfind('.')
 	upstr = dtstr[:rpos]
 	upDT = datetime.strptime( upstr, Socrata_date_format)
@@ -118,27 +117,18 @@ def socrata2OakCrime(socDict,srcLbl,doGeoTag=True):
 		
 		newOC.point	= Point(socDict['location_1']['coordinates'])
 		newOC.xlng, newOC.ylat = socDict['location_1']['coordinates']
-	elif doGeoTag and socDict['address'] != 'UNKNOWN':
-		# geotag missing addresses, eg "IFO address"
-
-		global NGGeoTag
-		NGGeoTag += 1
 		
-		rv = geocodeAddr(socDict['address'])
+	# 200427:  new format for Socrata location dictionaries?!
+	elif 'location_1' in socDict and 'latitude' in socDict['location_1']:
+		newOC.xlng = float(socDict['location_1']['longitude'])
+		newOC.ylat = float(socDict['location_1']['latitude'])
+		newOC.point	= Point(newOC.xlng,newOC.ylat)
 		
-		if rv == 'GMiss-none' or rv == 'GMiss-noOak':
-			logger.info('socrata2OakCrime: "%s" %s' ,socDict['address'],rv)
+	else:
+		newOC.xlng = None
+		newOC.ylat = None
+		newOC.point	= None
 
-			newOC.point = None
-			newOC.xlng = None
-			newOC.ylat = None			
-		else:
-			xlng,ylat = rv
-			newOC.point = Point(xlng,ylat)
-			newOC.xlng = xlng
-			newOC.ylat = ylat			
-	
-	
 	newOC.crimeCat = classify(newOC)
 
 	# 2do: Retrain to produce pseudo-UCR, pseudo-PC
@@ -177,7 +167,7 @@ def mergeIncid2List(matchObjList,newOC):
 	
 	for prevObj in matchObjList:
 
-		updates = applyChanges(prevObj,newOC)
+		updates = bldUpdates(prevObj,newOC)
 
 		# prefer CLOSEST matching, requiring fewest updates
 		if len(updates) < minNUpdate:
@@ -211,7 +201,7 @@ def check4changes(obj1,obj2):
 							
 	return updates
 
-def applyChanges(prevObj,newOC):
+def bldUpdates(prevObj,newOC):
 	'''	returns {fldName: (oldval,newval)} for  fields changed from prevObj in newOC
 	
 		ASSUME nil values NOT allowed to clobber existing values
@@ -219,19 +209,22 @@ def applyChanges(prevObj,newOC):
 		ASSUME only dailyIncid (not patrol log) fields can change:
 			updates only modifiableFields
 			
+		ASSUME cdateTime differences < minTimeDiffSec (=60sec)  ignored
+		
+		ASSUME point differences < minPointDistance (=1e3)  ignored
+
 		ASSUME crimeCat DERIVED from ctype,desc in dailyIncid; don't include it
 		
 		ASSUME xlng, ylat DERIVED from point; only changes in point are checked
-			but xlng,ylat also changed when it is
-			
+
 							
 	'''
+	global NSmallDist
 	
 	modifiableFields = ('cdateTime', 'ctype', 'desc', 'beat', 'addr','point')
 
 	minTimeDiffSec = 60.
-	minPointDistance = 1e-4
-	minXYDist = math.sqrt(0.5 * minPointDistance * minPointDistance)
+	minPointDistance = 1e-3
 	
 	# NB: fldName will be unique
 	updates = {} # {fldName: (oldval,newval)}
@@ -251,38 +244,27 @@ def applyChanges(prevObj,newOC):
 				try:
 					timeDiffSec = (newVal - prevVal).total_seconds()
 				except Exception as e:
-					logger.warning('applyChanges: bad timeDiff?! prev=%s new=%s except=%s',prevVal.tzinfo,newVal.tzinfo,e)
+					logger.warning('bldUpdates: bad timeDiff?! prev=%s new=%s except=%s',prevVal.tzinfo,newVal.tzinfo,e)
 					
 				if timeDiffSec < minTimeDiffSec:
 					continue
 				
-			elif fldName == 'point' and prevVal != None:
+			elif fldName == 'point' and prevVal != None and prevVal != newVal:
 				# GEOS distance calculations are linear
 				# GEOS does not perform a spherical calculation
 				try:
 					dist = newVal.distance(prevVal)
 				except Exception as e:
-					logger.warning('applyChanges: bad distance?! %s',e)
+					logger.warning('bldUpdates: bad distance?! %s',e)
 					continue
-				if dist < minPointDistance and dist != 0.0:
-					logger.info('check4changes: small distance; considered equiv opd_rd=%s dist=%s prev=%s new=%s', \
-						prevObj.opd_rd,dist,str(prevVal),str(newVal))
+				if dist < minPointDistance:
+# 					logger.info('check4changes: small distance; considered equiv opd_rd=%s dist=%s prev=%s new=%s', \
+# 						prevObj.opd_rd,dist,str(prevVal),str(newVal))
+					NSmallDist += 1
 					continue
 			
 				# NB: xlng, ylat DERIVED from point
-
-				# differences in point should  continue qbove, 
-				# but in case point distance seems small,  xlng,ylat vary...
-				
-				prevXLng = prevVal.get_x()
-				newXLng = newVal.get_x()
-				if abs(newXLng-prevXLng) > minXYDist:
-					updates['xlng'] = (getattr(prevObj,'xlng'), newXLng)
-
-				prevYLat = prevVal.get_y()
-				newYLat = newVal.get_y()
-				if abs(newYLat-prevYLat) > minXYDist:
-					updates['ylat'] = (getattr(prevObj,'ylat'), newYLat)
+				# changes to them deferred
 
 			if prevVal != newVal:
 				updates[fldName] = (prevVal,newVal)
@@ -293,10 +275,12 @@ def applyChanges(prevObj,newOC):
 
 def mergeIncidSingle(prevObj,newOC,updates=None):
 	'''match newOC against SINGLE prevObj with same opd_rd
-		non-nil updates when called by mergeIncid2List()
+		non-nil updates when precomputed by mergeIncid2List()
 
-		if check4changes() (or non-nil updates) identifies changed fields
+		if non-nil updates identifies changed fields
+		
 			incidents with ONLY changes to descFldSet generate new oidx record 
+			
 			adds newOC.source to end of matching previous object
 			creates OCUpdate records for all changes
 			SAVES updated previous object 
@@ -306,9 +290,9 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 				('newOIDX' newOC)
 				(err,info) on errors
 	'''
-	
+
 	if updates == None: # ie, not being called by mergeIncid2List()
-		updates = applyChanges(prevObj,newOC)
+		updates = bldUpdates(prevObj,newOC)
 
 	descFldSet = {'ctype', 'desc'}
 	
@@ -336,20 +320,39 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 				
 				return ('newOIDX',newOC)
 
-		# NB: only FIRST (non-newOIDX) change to an incident from same socrata update applied
+		# NB: only FIRST (non-newOIDX, above) change to an incident from same socrata update applied
 		if (prevObj.socrataDT != None and prevObj.socrataDT == newOC.socrataDT):
-			errmsg = '%s "%s"' % (newOC.opd_rd,str(updates))
+			upStr = ';'.join( [ ('%s: "%s"->"%s"' % (k,v[0],v[1])) for k,v in updates.items() ] )
+			errmsg = '%s %s' % (newOC.opd_rd,upStr)
 			return ('dupErr', errmsg)
 				
 		# NB: two different socrataDT may occur in same run; only update source once
 		if newOC.source not in prevObj.source:
 			prevObj.source += '+' + newOC.source
-
+		
 		# apply updates to prevObj
 		for fldName,oldNew in updates.items():
 			prevVal,newVal = oldNew
 			setattr(prevObj,fldName,newVal)
 			
+		# DEFERRED geotag missing addresses, eg "IFO address"
+		if prevObj.point == None and prevObj.addr.strip() != '':
+		
+			rv = geocodeAddr(prevObj.addr)
+
+			if type(rv) == type("string") and rv.startswith('GMiss-'):
+				logger.info('mergeIncidSingle: geotagErr "%s" %s' ,prevObj.addr,rv)
+				
+			else:
+				xlng,ylat = rv
+				prevObj.point = Point(xlng,ylat)
+				prevObj.xlng = xlng
+				prevObj.ylat = ylat
+				# add to updates, for OCUpdate below
+				updates['point'] = (None,prevObj.point)
+				updates['xlng'] = (None,prevObj.xlng)
+				updates['ylat'] = (None,prevObj.ylat)
+				
 		# changes to descFldSet impact crimeCat
 		newCC = classify(prevObj)
 		if newCC != prevObj.crimeCat:
@@ -358,6 +361,7 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 			prevObj.crimeCat = newCC
 			
 		# NB: updated record gets timestamp associated with newOC socrata :updated_at
+		prevSocDT = prevObj.socrataDT
 		prevObj.socrataDT = newOC.socrataDT
 
 		try:
@@ -377,7 +381,7 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 			ocup.oidx = prevObj.oidx
 			ocup.fieldName = fldName
 			ocup.newSrc = newOC.source
-			ocup.prevSocDT = prevObj.socrataDT
+			ocup.prevSocDT = prevSocDT
 			ocup.newSocDT = newOC.socrataDT
 			ocup.prevVal = str(prevVal)
 			ocup.newVal = str(newVal)
@@ -388,7 +392,10 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 		return None
 
 NGGeoTag = 0
+NSmallDist = 0
 def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
+	'''mrege results of socrata client.get() query into existing OakCrime database
+	'''
 		
 	nadd = 0
 	ndup = 0
@@ -398,6 +405,8 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 	ngeo = 0
 	nerr = 0
 	noidx = 0
+	nbadAddr = 0
+	nGeoTag = 0
 	nbadDate = 0
 	currSocDT = None
 	minGoodDate = awareDT(datetime(2014,1,1))
@@ -416,15 +425,19 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 			currSocDT = socDT	
 			
 		cid = socDict['casenumber']
-		cdateTime = parseSocDT(socDict['datetime'])
+		
+		try:
+			cdateTime = parseSocDT(socDict['datetime'])
+		except Exception as e:
+			logger.warning('mergeList: missing datetime?! incidIdx=%d srcLbl=%s socDict="%s"', incidIdx,srcLbl,socDict)
+			continue
 		
 		# ignore updates referring to distant past or future
 		if cdateTime < minGoodDate or cdateTime > nowDT:
 			nbadDate += 1
 			continue
 		
-		
-		# 200317: temporarily disable Google geotagging
+		# no geotagging in tests
 		# newOC = socrata2OakCrime(socDict,srcLbl,doGeoTag=False) 
 		newOC = socrata2OakCrime(socDict,srcLbl)
 
@@ -476,7 +489,27 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 				nsame += 1
 				
 		else:
-			# add if not already present
+			# add newOC if not already present
+			
+			# DEFERRED geotag missing addresses
+			# newOC with address but potentially without Socrata point
+			if newOC.point == None and newOC.addr != '' and newOC.addr != 'UNKNOWN':
+			
+				rv = geocodeAddr(newOC.addr)
+				
+				# NB: geocodeAddr() checks for bad addresses without doing geotag
+				if rv == None:
+					nbadAddr += 1
+				elif type(rv) == type("string") and rv.startswith('GMiss-'):
+					nbadAddr += 1											
+					logger.info('mergeList: geotagErr "%s" %s' ,newOC.addr,rv)
+					
+				else:
+					xlng,ylat = rv
+					newOC.point = Point(xlng,ylat)
+					newOC.xlng = xlng
+					newOC.ylat = ylat
+			
 			if newOC.crimeCat != '':
 				ncc += 1
 			if newOC.point != None:
@@ -505,15 +538,15 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 			(incidIdx, currSocDT,nadd,ndup,nupdate,nsame,noidx,nbadDate,nerr,tot) )
 
 	nincid = OakCrime.objects.all().count()
-	rptMsg = 'mergeList: NAdd=%d NDupCID=%d NUpdate=%d NSame=%d NOIDX=%d NBadDate=%d NErr=%d NCrimeCat=%d NGeo=%d NGoogleGeoTag=%d NIncid=%d' % \
-		(nadd,ndup,nupdate,nsame,noidx,nbadDate,nerr,ncc,ngeo,NGGeoTag,nincid) 
+	rptMsg = 'mergeList: NAdd=%d NDupCID=%d NUpdate=%d NSame=%d NOIDX=%d NBadDate=%d NErr=%d NCrimeCat=%d NSmallDist=%d NGeo=%d NGoogleGeoTag=%d NIncid=%d' % \
+		(nadd,ndup,nupdate,nsame,noidx,nbadDate,nerr,ncc,NSmallDist,ngeo,NGGeoTag,nincid) 
 	logger.info(rptMsg)
 	return rptMsg
 
 def harvest(startDate):
 
 	DefaultNDays = 14
-	nowDT = datetime.now()
+	nowDT = datetime.now(OaklandTimeZone)
 	
 	client = Socrata(OaklandResourceName,SocrataKey)
 	
@@ -521,8 +554,11 @@ def harvest(startDate):
 		minDateTime = nowDT - timedelta(days=DefaultNDays)	
 	else:
 		minDateTime = datetime.strptime(startDate,'%Y-%m-%d')
-		
-	socBegDateStr = minDateTime.strftime(Socrata_date_format)
+	
+	# socBegDateStr = minDateTime.strftime(Socrata_date_format)
+	# TESTING
+	socBegDateStr = '2020-04-26'
+	
 	# Endpoint Version: 2.1
 	results = client.get(OPDKey, where = (":updated_at > '%s'" % (socBegDateStr)), \
 						limit=SocrataMaxRecords, 
@@ -546,16 +582,13 @@ def harvest(startDate):
 	# NB: underbar format to separate, ala OPD_date
 	srcLbl = 'SOC_' + nowDT.strftime('%y%m%d')
 	
-	# HACK for temp srcLbl
-	# srcLbl = 'SOC_190824-2'
-
 	#########
 	summRpt = mergeList(results,srcLbl,verboseFreq='chgSocDT',rptAll=True)  # verboseFreq=100, 
 	#########
 
 	bits = summRpt.split(' ')
 	hdrStats = ' '.join([ 'Socrata harvest:',bits[1],bits[3],bits[11] ])
-	elapTime = datetime.now() - nowDT
+	elapTime = datetime.now(OaklandTimeZone) - nowDT
 	rptMsg = 'do_harvest: Completed %s sec' % (elapTime.total_seconds())
 	logger.info(rptMsg)
 	summRpt = summRpt + '\n' + rptMsg

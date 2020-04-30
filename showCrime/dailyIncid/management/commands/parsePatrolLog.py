@@ -685,40 +685,7 @@ def json_serial(o):
 	else:
 		return str(o)
 
-def geocodeAddr(addr,gconn):
 
-	loc2 = addr.replace('blk ',' ')
-	loc2 = loc2.replace('block ',' ')
-	loc2 = loc2.replace('of ',' ')
-	loc2 = loc2.replace('IFO ',' ') # 180131
-			
-	# Geocoding via Google
-	# print('trying google...')
-	
-	loc2 += ' Oakland CA'
-	geoCodeG = gconn.geocode(loc2)
-		
-	# NB: python API doesn't provide status, only results!?
-	# if geoCodeG['status'] == 'OK':
-	#	f = geoCodeG['results'][0]
-
-	if len(geoCodeG) < 1:
-		return('GMiss-none')
-	
-	f = geoCodeG[0]
-	oakFnd = False
-	for ac in f['address_components']:
-		if 'locality' in ac['types'] and ac['long_name'] == 'Oakland':
-			oakFnd = True
-			break
-	if oakFnd:
-		xlng = f['geometry']['location']['lng']
-		ylat = f['geometry']['location']['lat']
-		return (xlng,ylat)
-	else:
-		return('GMiss-noOak')
-
-	
 def addGeoCode2(dpIdxList,gconn,verbose=None):
 	'''create updated dlogTbl with XLng, YLat and GCConf columns
 	180131: search against Google
@@ -758,14 +725,10 @@ def addGeoCode2(dpIdxList,gconn,verbose=None):
 			dpo.save()
 			continue
 
-		rv = geocodeAddr(loc,gconn)
-		
-		if rv == 'GMiss-none':
-			logger.warning('addGeoCode G: %d %s "%s" GMiss-none' , (i,cid,loc))
-			ngmiss += 1
-		
-		elif rv == 'GMiss-noOak':
-			logger.info('addGeoCode G: %d %s "%s" GMiss-noOak' , i,cid,loc)
+		rv = geocodeAddr(loc)
+							
+		if rv==None or type(rv) == type("string") and rv.startswith('GMiss-'):
+			logger.warning('addGeoCode2: geotagErr "%s" %s' ,loc,rv)
 			ngmiss += 1
 			
 		else:
