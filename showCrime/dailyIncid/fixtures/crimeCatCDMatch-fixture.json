@@ -1,0 +1,1512 @@
+[
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 1,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "ASSAULT_WITH_FIREARM_ON_PERSON",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 2,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "BATTERY",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 3,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "BATTERY_SPOUSE_EX_SPOUSE_DATE_ETC",
+   "crimeCat": "DOM-VIOL_BATTERY-SPOUSE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 4,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "BURGLARY_AUTO",
+   "crimeCat": "LARCENY_BURGLARY_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 5,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "BURGLARY_FORCIBLE_ENTRY",
+   "crimeCat": "LARCENY_BURGLARY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 6,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "CARJACKING_WITH_FIREARM",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 7,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "CONTEMPT_OF_COURT_DISOBEY_COURT_ORDER_ETC",
+   "crimeCat": "COURT_ORDER"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 8,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "CONTEMPT_OF_COURT_VIOLATE_PROTECTIVE_ORDER_ETC",
+   "crimeCat": "COURT_WARRANT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 9,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "CRIMINAL_CONTEMPT",
+   "crimeCat": "COURT_WARRANT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 10,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "DISTURB_THE_PEACE",
+   "crimeCat": "QUALITY_DISORDERLY-CONDUCT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 11,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "DISTURBING_THE_PEACE",
+   "crimeCat": "QUALITY_DISORDERLY-CONDUCT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 12,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "DUI_ALCOHOL_DRUGS",
+   "crimeCat": "TRAFFIC_DUI"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 13,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "FORCE_ADW_OTHER_DANGEROUS_WEAPON_GBI",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 14,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "GRAND_THEFT",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 15,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "INDECENT_EXPOSURE",
+   "crimeCat": "SEX_OTHER"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 16,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "INFLICT_CORPORAL_INJURY_ON_SPOUSE_COHABITANT",
+   "crimeCat": "DOM-VIOL_BATTERY-SPOUSE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 17,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "INFLICT_CRPL_INJ_SP_COHAB",
+   "crimeCat": "DOM-VIOL_BATTERY-SPOUSE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 18,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "MAIL_ETC_THEFT_ETC",
+   "crimeCat": "LARCENY_THEFT_PETTY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 19,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "PLANT_CULTIVATE_ETC_MARIJUANA_HASHISH",
+   "crimeCat": "QUALITY_DRUG_POSSESSION_MARIJUANA"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 20,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "POSSESS_NARCOTIC_CONTROLLED_SUBSTANCE",
+   "crimeCat": "QUALITY_DRUG_POSSESSION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 21,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "POSSESSION_OF_A_MACHINE_GUN",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 22,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "PROHIBITED_POSSESS_AMMUNITION_OR_RELOADED_AMMUNITION",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 23,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "RAPE_BY_FORCE_FEAR_ETC",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 24,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "RAPE_VICTIM_INCAPABLE_OF_GIVING_CONSENT",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 25,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "RAPE_VICTIM_UNCONSCIOUS_OF_THE_NATURE_OF_THE_ACT",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 26,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "ROBBERY___STRONG_ARM__HANDS__FISTS__FEET__ETC__",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 27,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "ROBBERY_FIREARM",
+   "crimeCat": "ROBBERY_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 28,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "RUNAWAY_JUVENILE",
+   "crimeCat": "OTHER_RUNAWAY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 29,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "SC_RAPE",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 30,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "SC_UNEXPLAINED_DEATH",
+   "crimeCat": "HOMICIDE_UNEXPLAINED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 31,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "SHOOT_AT_UNOCCUPIED_DWELLING_VEHICLE_ETC",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 32,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "SIMPLE_POSSESSION_OF_HEROIN__COCAINE__LISTED_CONTROLLED_SUBSTANCES",
+   "crimeCat": "QUALITY_DRUG"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 33,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "SUPV_ETC_PROSTITUTION",
+   "crimeCat": "SEX_PROSTITUTION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 34,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "THEFT",
+   "crimeCat": "LARCENY_THEFT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 35,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "THEFT_BY_USE_OF_ACCESS_CARD",
+   "crimeCat": "LARCENY_FORGERY-COUNTERFEIT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 36,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "THREAT_CRIME_INT_TERRORIZE",
+   "crimeCat": "ASSAULT_THREATS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 37,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "TRESPASS_OCCUPY_PROPERTY_W_O_CONSENT",
+   "crimeCat": "QUALITY_CURFEW-LOITERING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 38,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "UNLICENSED_DRIVER",
+   "crimeCat": "TRAFFIC_MISDEMEANOR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 39,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VANDALISM",
+   "crimeCat": "VANDALISM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 40,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VEHICLE_THEFT___AUTO",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 41,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VIOLATION_CUSTODY_DECREE",
+   "crimeCat": "COURT_CUSTODY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 42,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VIOLATION_OF_PROBATION_FELONY",
+   "crimeCat": "COURT_PROBATION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 43,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VIOLATION_OF_PROBATION_MISD",
+   "crimeCat": "COURT_PROBATION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 44,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VIOLATION_PAROLE_FELONY",
+   "crimeCat": "COURT_PAROLE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 45,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "VOL_PROTECTIVE_ORDER_MNR",
+   "crimeCat": "COURT_ORDER"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 46,
+  "fields": {
+   "matchType": "d",
+   "ctype": "",
+   "desc": "WILLFUL_DISCHARGE_FIREARM_IN_NEGLIGENT_MANNER",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 47,
+  "fields": {
+   "matchType": "c",
+   "ctype": "ARSON",
+   "desc": "",
+   "crimeCat": "ARSON"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 48,
+  "fields": {
+   "matchType": "c",
+   "ctype": "ASSAULT",
+   "desc": "",
+   "crimeCat": "ASSAULT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 49,
+  "fields": {
+   "matchType": "c",
+   "ctype": "BURG___COMMERCIAL",
+   "desc": "",
+   "crimeCat": "LARCENY_BURGLARY_COMMERCIAL"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 50,
+  "fields": {
+   "matchType": "c",
+   "ctype": "BURG___RESIDENTIAL",
+   "desc": "",
+   "crimeCat": "LARCENY_BURGLARY_RESIDENTIAL"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 51,
+  "fields": {
+   "matchType": "c",
+   "ctype": "BURGLARY",
+   "desc": "",
+   "crimeCat": "LARCENY_BURGLARY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 52,
+  "fields": {
+   "matchType": "c",
+   "ctype": "DOMESTIC_VIOLENCE",
+   "desc": "",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 53,
+  "fields": {
+   "matchType": "c",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "",
+   "crimeCat": "QUALITY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 54,
+  "fields": {
+   "matchType": "c",
+   "ctype": "FORCIBLE_RAPE",
+   "desc": "",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 55,
+  "fields": {
+   "matchType": "c",
+   "ctype": "FORGERY___COUNTERFEITING",
+   "desc": "",
+   "crimeCat": "LARCENY_FORGERY-COUNTERFEIT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 56,
+  "fields": {
+   "matchType": "c",
+   "ctype": "FRAUD",
+   "desc": "",
+   "crimeCat": "LARCENY_FRAUD"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 57,
+  "fields": {
+   "matchType": "c",
+   "ctype": "KIDNAPPING",
+   "desc": "",
+   "crimeCat": "KIDNAPPING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 58,
+  "fields": {
+   "matchType": "c",
+   "ctype": "MOTOR_VEHICLE_THEFT",
+   "desc": "",
+   "crimeCat": "LARCENY_THEFT_VEHICLE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 59,
+  "fields": {
+   "matchType": "c",
+   "ctype": "PROSTITUTION",
+   "desc": "",
+   "crimeCat": "SEX_PROSTITUTION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 60,
+  "fields": {
+   "matchType": "c",
+   "ctype": "THEFT_LARCENY",
+   "desc": "",
+   "crimeCat": "LARCENY_THEFT"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 61,
+  "fields": {
+   "matchType": "c",
+   "ctype": "TOWED_VEHICLE",
+   "desc": "",
+   "crimeCat": "TRAFFIC_TOWED-VEHICLE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 62,
+  "fields": {
+   "matchType": "c",
+   "ctype": "VANDALISM",
+   "desc": "",
+   "crimeCat": "VANDALISM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 63,
+  "fields": {
+   "matchType": "c",
+   "ctype": "WEAPONS",
+   "desc": "",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 64,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "ADW_NOT_F_ARM_PO_FIRE_GBI",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 65,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "ADW_WITH_FORCE__POSSIBLE_GBI",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 66,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DISTURBING_THE_PEACE",
+   "desc": "ANNOYING_TELEPHONE_CALL_OBSCENE_THREATENING",
+   "crimeCat": "QUALITY_TELEPHONE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 67,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DOMESTIC_VIOLENCE",
+   "desc": "ANNOYING_TELEPHONE_CALL_OBSCENE_THREATENING",
+   "crimeCat": "QUALITY_TELEPHONE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 68,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "ANYONE_WHO_WILLFULLY_DISCHARGES_A_FIREARM_IN_A_GROSSLY_NEGLIGENT_MANNER",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 69,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "ANYONE_WHO_WILLFULLY_DISCHARGES_A_FIREARM_IN_A_GROSSLY_NEGLIGENT_MANNER",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 70,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "ASSAULT_PERSON_WITH_A_SEMIAUTOMATIC_FIREARM",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 71,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "ASSAULT_PERSON_WITH_A_SEMIAUTOMATIC_FIREARM",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 72,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "ASSAULT_WITH_FIREARM_ON_PERSON",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 73,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "ASSAULT_WITH_FIREARM_ON_PERSON",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 74,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MISDEMEANOR_ASSAULT",
+   "desc": "ASSAULT_WITH_FIREARM_ON_PERSON",
+   "crimeCat": "ASSAULT_MISDEMEANOR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 75,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MOTOR_VEHICLE_THEFT",
+   "desc": "ATTEMPT_VEHICLE_THEFT_AUTO",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_ATTEMPTED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 76,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ATTEMPTED_ROBBERY_FIREARM",
+   "crimeCat": "ROBBERY_ATTEMPTED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 77,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ATTEMPTED_ROBBERY_KNIFE",
+   "crimeCat": "ROBBERY_ATTEMPTED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 78,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ATTEMPTED_ROBBERY_OTHER_DANGEROUS_WEAPON",
+   "crimeCat": "ROBBERY_ATTEMPTED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 79,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ATTEMPTED_ROBBERY_STRONG_ARM",
+   "crimeCat": "ROBBERY_ATTEMPTED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 80,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "BATTERY",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 81,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MISDEMEANOR_ASSAULT",
+   "desc": "BATTERY",
+   "crimeCat": "ASSAULT_MISDEMEANOR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 82,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "BATTERY_SPOUSE_EX_SPOUSE_DATE_ETC",
+   "crimeCat": "DOM-VIOL_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 83,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DOMESTIC_VIOLENCE",
+   "desc": "BATTERY_SPOUSE_EX_SPOUSE_DATE_ETC",
+   "crimeCat": "DOM-VIOL_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 84,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "BATTERY_W_SERIOUS_BODILY_INJURY",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 85,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "BATTERY_W_SERIOUS_BODILY_INJURY",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 86,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MISDEMEANOR_ASSAULT",
+   "desc": "BATTERY_W_SERIOUS_BODILY_INJURY",
+   "crimeCat": "ASSAULT_MISDEMEANOR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 87,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "BURG___AUTO",
+   "desc": "BURGLARY_AUTO",
+   "crimeCat": "LARCENY_BURGLARY_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 88,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "BURGLARY_AUTO",
+   "crimeCat": "LARCENY_BURGLARY_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 89,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "CARJACKING___STRONGARM",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 90,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "CARJACKING_WITH_FIREARM",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 91,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "CARJACKING_WITH_KNIFE",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 92,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "CARJACKING_WITH_OTHER_DANGEROUS_WEAPON",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 93,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "WEAPONS",
+   "desc": "CARRY_CONCEALED_WEAPON_IN_VEHICLE",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 94,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "CRIMINAL_THREATS__THREATED_CRIME_W_INTENT_TO_TERRORIZE",
+   "crimeCat": "ASSAULT_THREATS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 95,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "SEX_CRIMES",
+   "desc": "DISORDERLY_CONDUCT_PROSTITUTION",
+   "crimeCat": "SEX_PROSTITUTION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 96,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DUI",
+   "desc": "DUI_ALCOHOL_DRUGS",
+   "crimeCat": "TRAFFIC_DUI"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 97,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "EXHIBIT_DEADLY_WEAPON_OTHER_THAN_FIREARM",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 98,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "EXHIBIT_FIREARM",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 99,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "FORCE_ADW_KNIFE_GBI",
+   "crimeCat": "ASSAULT_KNIFE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 100,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "FORCE_ADW_OTHER_DANGEROUS_WEAPON_GBI",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 101,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "FORCE_ADW_OTHER_DANGEROUS_WEAPON_GBI",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 102,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MISDEMEANOR_ASSAULT",
+   "desc": "FORCE_ADW_OTHER_DANGEROUS_WEAPON_GBI",
+   "crimeCat": "ASSAULT_MISDEMEANOR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 103,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "GIVE_TRANSPORT_MARIJUANA_HASHISH_UNDER_1_OZ",
+   "crimeCat": "QUALITY_DRUG_POSSESSION_MARIJUANA"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 104,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "GRAND_THEFT",
+   "desc": "GRAND_THEFT",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 105,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "GRAND_THEFT",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 106,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "GRAND_THEFT",
+   "desc": "GRAND_THEFT_FROM_PERSON",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 107,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "GRAND_THEFT_FROM_PERSON",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 108,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "GRAND_THEFT",
+   "desc": "GRAND_THEFT_MONEY_LABOR_PROPERTY__OVER__400",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 109,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "GRAND_THEFT_MONEY_LABOR_PROPERTY__OVER__400",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 110,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "INFLICT_CORPORAL_INJURY_ON_SPOUSE_COHABITANT",
+   "crimeCat": "DOM-VIOL_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 111,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "OTHER",
+   "desc": "KIDNAPPING",
+   "crimeCat": "KIDNAPPING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 112,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "SEX_CRIMES",
+   "desc": "LOITER_INTENT_PROSTITUTION",
+   "crimeCat": "SEX_PROSTITUTION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 113,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "HOMICIDE",
+   "desc": "MURDER",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 114,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "HOMICIDE",
+   "desc": "MURDER_FIRST_DEGREE",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 115,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "HOMICIDE",
+   "desc": "MURDER_FIRST_DEGREE_SHOOT_FROM_VEHICLE",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 116,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "PETTY_THEFT",
+   "crimeCat": "LARCENY_THEFT_PETTY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 117,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "PLANT_CULTIVATE_ETC_MARIJUANA_HASHISH",
+   "crimeCat": "QUALITY_DRUG_POSSESSION_MARIJUANA"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 118,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "POSS_STOLEN_VEH_VES_ETC",
+   "crimeCat": "LARCENY_POSSESSION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 119,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "POSSESS_CONTROLLED_SUBSTANCE_PARAPHERNALIA",
+   "crimeCat": "QUALITY_DRUG_POSSESSION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 120,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "NARCOTICS",
+   "desc": "POSSESS_CONTROLLED_SUBSTANCE_PARAPHERNALIA",
+   "crimeCat": "QUALITY_DRUG_POSSESSION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 121,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "POSSESS_MARIJUANA_HASHISH",
+   "crimeCat": "QUALITY_DRUG_POSSESSION_MARIJUANA"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 122,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "POSSESS_MARIJUANA_HASHISH_FOR_SALE",
+   "crimeCat": "QUALITY_DRUG_POSSESSION_MARIJUANA"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 123,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "POSSESS_MARIJUANA_OVER_28_5_GRAMS",
+   "crimeCat": "QUALITY_DRUG_POSSESSION_MARIJUANA"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 124,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "NARCOTICS",
+   "desc": "POSSESS_NARCOTIC_CONTROLLED_SUBSTANCE",
+   "crimeCat": "QUALITY_DRUG_POSSESSION"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 125,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "RECEIVE_ETC_KNOWN_STOLEN_PROPERTY",
+   "crimeCat": "LARCENY_RECEIVED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 126,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY___STRONG_ARM__HANDS__FISTS__FEET__ETC__",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 127,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY_FIREARM",
+   "crimeCat": "ROBBERY_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 128,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY_INHABITED_DWELLING___FIREARM",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 129,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY_INHABITED_DWELLING___OTHER_DANGEROUS_INSTRUMENT",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 130,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY_INHABITED_DWELLING___STRONGARM__HANDS__FISTS__FEET_",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 131,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY_KNIFE_OR_CUTTING_INSTRUMENT",
+   "crimeCat": "ROBBERY_KNIFE"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 132,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "ROBBERY_OTHER_DANGEROUS_WEAPON",
+   "crimeCat": "ROBBERY_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 133,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "SC_CARJACKING___FIREARM",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 134,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ROBBERY",
+   "desc": "SC_ROBBERY___HANDS__FISTS__FEET__ETC____AGGRAVATED",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 135,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "HOMICIDE",
+   "desc": "SC_UNEXPLAINED_DEATH",
+   "crimeCat": "HOMICIDE_UNEXPLAINED"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 136,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "SELL_FURNISH_ETC_MARIJUANA_HASHISH",
+   "crimeCat": "QUALITY_DRUG_SALE-MFCTR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 137,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "SHOOT_AT_INHABITED_DWELLING_VEHICLE_ETC",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 138,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "SHOOT_AT_INHABITED_DWELLING_VEHICLE_ETC",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 139,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MISDEMEANOR_ASSAULT",
+   "desc": "SHOOT_AT_INHABITED_DWELLING_VEHICLE_ETC",
+   "crimeCat": "ASSAULT_MISDEMEANOR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 140,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "SHOOT_AT_UNOCCUPIED_DWELLING_VEHICLE_ETC",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 141,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "SHOOT_AT_UNOCCUPIED_DWELLING_VEHICLE_ETC",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 142,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "THEFT_LARCENY",
+   "desc": "SHOPLIFT",
+   "crimeCat": "LARCENY_THEFT_PETTY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 143,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "PETTY_THEFT",
+   "desc": "THEFT",
+   "crimeCat": "LARCENY_THEFT_PETTY"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 144,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "THREAT_CRIME_INT_TERRORIZE",
+   "crimeCat": "ASSAULT_THREATS"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 145,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "TRANSPORT_SELL_CONTROLLED_SUBSTANCE__AMENDED_",
+   "crimeCat": "QUALITY_DRUG_SALE-MFCTR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 146,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "DRUGS_ALCOHOL_VIOLATIONS",
+   "desc": "TRANSPORT_SELL_NARCOTIC_CONTROLLED_SUBSTANCE",
+   "crimeCat": "QUALITY_DRUG_SALE-MFCTR"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 147,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "MOTOR_VEHICLE_THEFT",
+   "desc": "VEHICLE_THEFT___AUTO",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 148,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "STOLEN_VEHICLE",
+   "desc": "VEHICLE_THEFT___AUTO",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 149,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "ASSAULT",
+   "desc": "WILLFUL_DISCHARGE_FIREARM_IN_NEGLIGENT_MANNER",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 150,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "FELONY_ASSAULT",
+   "desc": "WILLFUL_DISCHARGE_FIREARM_IN_NEGLIGENT_MANNER",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.crimecatmatch",
+  "pk": 151,
+  "fields": {
+   "matchType": "cd",
+   "ctype": "WEAPONS",
+   "desc": "WILLFUL_DISCHARGE_FIREARM_IN_NEGLIGENT_MANNER",
+   "crimeCat": "WEAPONS"
+  }
+ }
+]

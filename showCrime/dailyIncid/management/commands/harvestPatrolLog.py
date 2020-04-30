@@ -98,9 +98,9 @@ def getMiss(boxidx,verbose=False):
 			if verbose:
 				logger.info('getMiss: retrieved path=%s',path)
 				
-		nowDT = datetime.now()
-		locDT = awareDT(nowDT)
-		boxobj.harvestDT = locDT
+		nowDT = datetime.now(OaklandTimeZone)
+		# locDT = awareDT(nowDT)
+		boxobj.harvestDT = nowDT
 		boxobj.save()
 		return True
 	except Exception as e:
@@ -428,9 +428,9 @@ class Command(BaseCommand):
 
 		verbose = None
 		initAll = False 
-		HarvestOverlapBuffer = 2
+		HarvestOverlapBuffer = 14
 		
-		beginDT = datetime.now()
+		beginDT = datetime.now(OaklandTimeZone)
 		runDate = awareDT(beginDT)
 		dateStr = datetime.strftime(runDate,'%y%m%d')
 
@@ -462,13 +462,13 @@ class Command(BaseCommand):
 		summRpt += 'updateBoxID: OPDPatrolFolder modifiedDT=%s\n' % (topModDTStr)
 					
 		chgList = updateBoxID(lastBoxDT)
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('updateBoxID DONE elapTime=%s' , elapTime.total_seconds())	
 		summRpt += 'updateBoxID: NChanged BoxID=%s\n' % len(chgList)
 
 		## identify those not yet reflected in local cache under HarvestRootDir
 		missingList = compBox2Dir(chgList)	
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('compBox2Dir DONE elapTime=%s' , elapTime.total_seconds())
 	
 		## harvest these to local cache under HarvestRootDir
@@ -477,7 +477,7 @@ class Command(BaseCommand):
 			if getMiss(boxidx):
 				harvestedFiles.append(boxidx)
 		logger.info('NFilesHarvested=%d' ,len(harvestedFiles))
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('getMiss DONE elapTime=%s' , elapTime.total_seconds())	
 		summRpt += 'NFilesHarvested=%d\n'  % len(harvestedFiles)
 
@@ -490,26 +490,26 @@ class Command(BaseCommand):
 						
 		# dpIdxList = list of all DailyParse indices produced as part of parse
 		dpIdxList = parsePL.parseLogFiles(unParsed,HarvestRootDir)
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('parseLogFiles DONE elapTime=%s' , elapTime.total_seconds())			
 		summRpt += 'parseLogFiles: NIncidParsed=%d\n'  % len(dpIdxList)
 
 		## Regularize attributes from PDF fields, including geotagging
 		
 		parsePL.regularizeIncidTbl(dpIdxList)
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('regularizeIncidTbl DONE elapTime=%s' , elapTime.total_seconds())			
 		
 		CurrGClient = makeGConnection()  # sets CurrGClient
 				
 		parsePL.addGeoCode2(dpIdxList, CurrGClient)
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('addGeoCode DONE elapTime=%s' , elapTime.total_seconds())			
 
 		# dlogMatchTbl: 	cid -> OakCrime UNSAVED and 
 		# dlogUnmatchTbl: 	dlogCID -> OakCrime UNSAVED					
 		dlMatchTbl, unMatchTbl = postPL.findSimIncid(dpIdxList,dateStr)
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('findSimIncid DONE NMatch=%d NUnMatch=%d elapTime=%s' , \
 			len(dlMatchTbl),len(unMatchTbl),elapTime.total_seconds())	
 		summRpt += 'findSimIncid: NMatch=%d NUnMatch=%d\n'  % (len(dlMatchTbl),len(unMatchTbl))
@@ -558,13 +558,13 @@ class Command(BaseCommand):
 		logger.info('%s Unmatched saved FINAL NUpdate=%d NErr=%d' , dateStr,nupdate,nerr)
 		summRpt += 'UnMatch NUpdate=%d NErr=%d\n'  % (nupdate,nerr)
 		
-		elapTime = datetime.now() - beginDT
+		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		rptMsg = ' DONE elapTime=%s' % elapTime.total_seconds()
 		logger.info(rptMsg)			
 		
 		summRpt = summRpt + rptMsg + '\n'
 
-		hdrStats = 'PatrolLog harvest: NHarvest=%d NIncid=%d NMatch=%d NUnMatch=%d' % (len(harvestedFiles), len(dpIdxList), len(dlMatchTbl),len(unMatchTbl))
+		hdrStats = 'PatrolLog: NHarvest=%d NIncid=%d NMatch=%d NUnMatch=%d' % (len(harvestedFiles), len(dpIdxList), len(dlMatchTbl),len(unMatchTbl))
 		send_mail(hdrStats, summRpt, 'rik@electronicArtifacts.com', \
 				['rik@electronicArtifacts.com'], fail_silently=False)
 

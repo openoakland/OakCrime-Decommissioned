@@ -587,7 +587,7 @@ def harvest(startDate):
 	#########
 
 	bits = summRpt.split(' ')
-	hdrStats = ' '.join([ 'Socrata harvest:',bits[1],bits[3],bits[11] ])
+	hdrStats = ' '.join([ 'Socrata:',bits[1],bits[3],bits[11] ])
 	elapTime = datetime.now(OaklandTimeZone) - nowDT
 	rptMsg = 'do_harvest: Completed %s sec' % (elapTime.total_seconds())
 	logger.info(rptMsg)

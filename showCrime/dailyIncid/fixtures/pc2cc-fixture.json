@@ -1,0 +1,1314 @@
+[
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 1,
+  "fields": {
+   "pc": "(211",
+   "crimeCat": "ROBBERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 2,
+  "fields": {
+   "pc": "(664",
+   "crimeCat": "(attempt)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 3,
+  "fields": {
+   "pc": "10851",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 4,
+  "fields": {
+   "pc": "10851(a)",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 5,
+  "fields": {
+   "pc": "10851(a)vc",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 6,
+  "fields": {
+   "pc": "10851vc",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_AUTO"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 7,
+  "fields": {
+   "pc": "187",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 8,
+  "fields": {
+   "pc": "187-homicide",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 9,
+  "fields": {
+   "pc": "187(a)",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 10,
+  "fields": {
+   "pc": "18710(a)",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 11,
+  "fields": {
+   "pc": "187p.c.",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 12,
+  "fields": {
+   "pc": "187pc-homicide",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 13,
+  "fields": {
+   "pc": "187pcx2",
+   "crimeCat": "HOMICIDE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 14,
+  "fields": {
+   "pc": "20001",
+   "crimeCat": "TRAFFIC_HIT-RUN"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 15,
+  "fields": {
+   "pc": "20001(a)",
+   "crimeCat": "TRAFFIC_HIT-RUN"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 16,
+  "fields": {
+   "pc": "20001vc",
+   "crimeCat": "TRAFFIC_HIT-RUN"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 17,
+  "fields": {
+   "pc": "20002",
+   "crimeCat": "TRAFFIC_HIT-RUN"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 18,
+  "fields": {
+   "pc": "20002vc",
+   "crimeCat": "TRAFFIC_HIT-RUN"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 19,
+  "fields": {
+   "pc": "207",
+   "crimeCat": "KIDNAPPING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 20,
+  "fields": {
+   "pc": "207-kidnapping",
+   "crimeCat": "KIDNAPPING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 21,
+  "fields": {
+   "pc": "207(a)",
+   "crimeCat": "KIDNAPPING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 22,
+  "fields": {
+   "pc": "207pc-kidnapping",
+   "crimeCat": "KIDNAPPING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 23,
+  "fields": {
+   "pc": "211",
+   "crimeCat": "ROBBERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 24,
+  "fields": {
+   "pc": "211-strongarm",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 25,
+  "fields": {
+   "pc": "211p.c.",
+   "crimeCat": "ROBBERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 26,
+  "fields": {
+   "pc": "211p.c.-armed",
+   "crimeCat": "ROBBERY_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 27,
+  "fields": {
+   "pc": "211p.c.-strong",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 28,
+  "fields": {
+   "pc": "211pc-armed",
+   "crimeCat": "ROBBERY_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 29,
+  "fields": {
+   "pc": "211pc-knife",
+   "crimeCat": "ROBBERY_KNIFE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 30,
+  "fields": {
+   "pc": "211pc-robbery",
+   "crimeCat": "ROBBERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 31,
+  "fields": {
+   "pc": "211pc-simulated",
+   "crimeCat": "ROBBERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 32,
+  "fields": {
+   "pc": "211pc-strong",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 33,
+  "fields": {
+   "pc": "211pc-strongarm",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 34,
+  "fields": {
+   "pc": "211sa",
+   "crimeCat": "ROBBERY_STRONG-ARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 35,
+  "fields": {
+   "pc": "212",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 36,
+  "fields": {
+   "pc": "212.5",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 37,
+  "fields": {
+   "pc": "212.5(a)",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 38,
+  "fields": {
+   "pc": "212.5(b)",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 39,
+  "fields": {
+   "pc": "212.5pc-home",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 40,
+  "fields": {
+   "pc": "212.5pchome",
+   "crimeCat": "ROBBERY_INHABITED-DWELLING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 41,
+  "fields": {
+   "pc": "215",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 42,
+  "fields": {
+   "pc": "215(a",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 43,
+  "fields": {
+   "pc": "215(a)",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 44,
+  "fields": {
+   "pc": "215p.c.",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 45,
+  "fields": {
+   "pc": "215pc-carjacking",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 46,
+  "fields": {
+   "pc": "215pc-simulated",
+   "crimeCat": "LARCENY_THEFT_VEHICLE_CAR-JACKING"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 47,
+  "fields": {
+   "pc": "220",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 48,
+  "fields": {
+   "pc": "220(a)(1)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 49,
+  "fields": {
+   "pc": "243",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 50,
+  "fields": {
+   "pc": "243.4",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 51,
+  "fields": {
+   "pc": "243.4(a)",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 52,
+  "fields": {
+   "pc": "243.4(e)(1)",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 53,
+  "fields": {
+   "pc": "243.6",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 54,
+  "fields": {
+   "pc": "243(b)",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 55,
+  "fields": {
+   "pc": "243(c)",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 56,
+  "fields": {
+   "pc": "243(d)",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 57,
+  "fields": {
+   "pc": "243(e)(1)",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 58,
+  "fields": {
+   "pc": "243(e)1",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 59,
+  "fields": {
+   "pc": "243d",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 60,
+  "fields": {
+   "pc": "243e",
+   "crimeCat": "ASSAULT_BATTERY"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 61,
+  "fields": {
+   "pc": "244",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 62,
+  "fields": {
+   "pc": "245",
+   "crimeCat": "ASSAULT"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 63,
+  "fields": {
+   "pc": "245(",
+   "crimeCat": "ASSAULT"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 64,
+  "fields": {
+   "pc": "245(a(2)",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 65,
+  "fields": {
+   "pc": "245(a)",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 66,
+  "fields": {
+   "pc": "245(a)(1",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 67,
+  "fields": {
+   "pc": "245(a)(1)",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 68,
+  "fields": {
+   "pc": "245(a)(1)-stabbing",
+   "crimeCat": "ASSAULT_KNIFE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 69,
+  "fields": {
+   "pc": "245(a)(1)p.c.",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 70,
+  "fields": {
+   "pc": "245(a)(1)pc-assault",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 71,
+  "fields": {
+   "pc": "245(a)(1)pc-force",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 72,
+  "fields": {
+   "pc": "245(a)(1)pc-pistol",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 73,
+  "fields": {
+   "pc": "245(a)(1)pc-shooting",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 74,
+  "fields": {
+   "pc": "245(a)(1)pc-stabbing",
+   "crimeCat": "ASSAULT_KNIFE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 75,
+  "fields": {
+   "pc": "245(a)(1)pc-wooden",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 76,
+  "fields": {
+   "pc": "245(a)(1)pc;",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 77,
+  "fields": {
+   "pc": "245(a)(1)vc",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 78,
+  "fields": {
+   "pc": "245(a)(2",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 79,
+  "fields": {
+   "pc": "245(a)(2)",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 80,
+  "fields": {
+   "pc": "245(a)(2)p.c",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 81,
+  "fields": {
+   "pc": "245(a)(2)p.c.",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 82,
+  "fields": {
+   "pc": "245(a)(2)pc-shooting",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 83,
+  "fields": {
+   "pc": "245(a)(4)",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 84,
+  "fields": {
+   "pc": "245(a)1",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 85,
+  "fields": {
+   "pc": "245(a)1()",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 86,
+  "fields": {
+   "pc": "245(a)1)",
+   "crimeCat": "ASSAULT_OTHER-WEAPON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 87,
+  "fields": {
+   "pc": "245(a)2",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 88,
+  "fields": {
+   "pc": "245(b)",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 89,
+  "fields": {
+   "pc": "245(c)",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 90,
+  "fields": {
+   "pc": "245(d)(1)",
+   "crimeCat": "ASSAULT_FIREARM"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 91,
+  "fields": {
+   "pc": "246",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 92,
+  "fields": {
+   "pc": "246.3",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 93,
+  "fields": {
+   "pc": "246.3(a)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 94,
+  "fields": {
+   "pc": "246.3pc-discharge",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 95,
+  "fields": {
+   "pc": "246.5",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 96,
+  "fields": {
+   "pc": "246(b)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 97,
+  "fields": {
+   "pc": "246pc-discharge",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 98,
+  "fields": {
+   "pc": "246pc(3x)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 99,
+  "fields": {
+   "pc": "247",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 100,
+  "fields": {
+   "pc": "247(b)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 101,
+  "fields": {
+   "pc": "247(b)pc-shooting",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 102,
+  "fields": {
+   "pc": "247(d)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 103,
+  "fields": {
+   "pc": "247b",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 104,
+  "fields": {
+   "pc": "261",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 105,
+  "fields": {
+   "pc": "261.5",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 106,
+  "fields": {
+   "pc": "261.5(a)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 107,
+  "fields": {
+   "pc": "261.5(d)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 108,
+  "fields": {
+   "pc": "261(a)(1)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 109,
+  "fields": {
+   "pc": "261(a)(2)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 110,
+  "fields": {
+   "pc": "261(a)(3)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 111,
+  "fields": {
+   "pc": "261(a)(4)",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 112,
+  "fields": {
+   "pc": "261pc-rape",
+   "crimeCat": "SEX_RAPE"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 113,
+  "fields": {
+   "pc": "273",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 114,
+  "fields": {
+   "pc": "273.5",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 115,
+  "fields": {
+   "pc": "273.5(a)",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 116,
+  "fields": {
+   "pc": "273(a)(1)",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 117,
+  "fields": {
+   "pc": "273(d)",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 118,
+  "fields": {
+   "pc": "273(d)(a)",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 119,
+  "fields": {
+   "pc": "273d",
+   "crimeCat": "DOM-VIOL"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 120,
+  "fields": {
+   "pc": "288",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 121,
+  "fields": {
+   "pc": "288",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 122,
+  "fields": {
+   "pc": "288.2(a)(1)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 123,
+  "fields": {
+   "pc": "288.5",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 124,
+  "fields": {
+   "pc": "288.5(a)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 125,
+  "fields": {
+   "pc": "288(a)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 126,
+  "fields": {
+   "pc": "288(a)(1)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 127,
+  "fields": {
+   "pc": "288(a)(b)(2)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 128,
+  "fields": {
+   "pc": "288(a)(c)(2)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 129,
+  "fields": {
+   "pc": "288(a)d)1",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 130,
+  "fields": {
+   "pc": "288(a)p",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 131,
+  "fields": {
+   "pc": "288(b)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 132,
+  "fields": {
+   "pc": "288(b)(1)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 133,
+  "fields": {
+   "pc": "288(c)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 134,
+  "fields": {
+   "pc": "288(c)(1)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 135,
+  "fields": {
+   "pc": "288a",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 136,
+  "fields": {
+   "pc": "288a(2)(a)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 137,
+  "fields": {
+   "pc": "288a(c)(3)",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 138,
+  "fields": {
+   "pc": "288pc-lewd",
+   "crimeCat": "SEX"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 139,
+  "fields": {
+   "pc": "29800(a)(1)",
+   "crimeCat": "COURT_WARRANT"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 140,
+  "fields": {
+   "pc": "417",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 141,
+  "fields": {
+   "pc": "417.3",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 142,
+  "fields": {
+   "pc": "417(a)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 143,
+  "fields": {
+   "pc": "417(a)(1)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 144,
+  "fields": {
+   "pc": "417(a)(2)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 145,
+  "fields": {
+   "pc": "417(a)(2)(b)",
+   "crimeCat": "WEAPONS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 146,
+  "fields": {
+   "pc": "422",
+   "crimeCat": "ASSAULT_THREATS"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 147,
+  "fields": {
+   "pc": "451",
+   "crimeCat": "ARSON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 148,
+  "fields": {
+   "pc": "451(b)",
+   "crimeCat": "ARSON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 149,
+  "fields": {
+   "pc": "451(d)",
+   "crimeCat": "ARSON"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 150,
+  "fields": {
+   "pc": "459",
+   "crimeCat": "(entry)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 151,
+  "fields": {
+   "pc": "487",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 152,
+  "fields": {
+   "pc": "487(a)",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 153,
+  "fields": {
+   "pc": "487(c)",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 154,
+  "fields": {
+   "pc": "487(d)",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 155,
+  "fields": {
+   "pc": "487c",
+   "crimeCat": "LARCENY_THEFT_GRAND"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 156,
+  "fields": {
+   "pc": "664",
+   "crimeCat": "(attempt)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 157,
+  "fields": {
+   "pc": "901",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 158,
+  "fields": {
+   "pc": "901-traffic",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 159,
+  "fields": {
+   "pc": "901(a)",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 160,
+  "fields": {
+   "pc": "901(with",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 161,
+  "fields": {
+   "pc": "901a",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 162,
+  "fields": {
+   "pc": "901c",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 163,
+  "fields": {
+   "pc": "901city",
+   "crimeCat": "(901)"
+  }
+ },
+ {
+  "model": "dailyIncid.pc2cc",
+  "pk": 164,
+  "fields": {
+   "pc": "901cp",
+   "crimeCat": "(901)"
+  }
+ }
+]

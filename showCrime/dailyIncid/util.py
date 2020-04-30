@@ -78,20 +78,24 @@ def classify(incid):
 
 	if incid.pcList is not None and len(incid.pcList) > 0:
 		# NB: need to evaluate pcList = STRING
-		pcList = eval(incid.pcList)
-		for pc in pcList:
-			try:
-				pco = PC2CC.objects.get(pc=pc)
-				# NB: some PC codes are 'qualifiers'			
-				if pco.crimeCat.startswith('('):
-					continue
-				return pco.crimeCat
+		try:
+			pcList = eval(incid.pcList)
+			for pc in pcList:
+				try:
+					pco = PC2CC.objects.get(pc=pc)
+					# NB: some PC codes are 'qualifiers'			
+					if pco.crimeCat.startswith('('):
+						continue
+					return pco.crimeCat
 				
-			except ObjectDoesNotExist:
-				continue
-			except Exception as e:
-				logger.warning('classify: bad PC?! pc=%s except=%s',pc,e)
-				continue
+				except ObjectDoesNotExist:
+					continue
+				except Exception as e:
+					logger.warning('classify: bad PC?! opd_rd=%s pc=%s except=%s',opd_rd,pc,e)
+					continue
+
+		except Exception as e:
+			logger.warning('classify: badPCList?! opd_rd=%s pcList=%s except=%s',incid.opd_rd,incid.pcList,e)
 				
 	if incid.ctype =='' and incid.desc == '':
 		return ''
