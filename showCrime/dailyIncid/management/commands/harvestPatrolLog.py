@@ -283,11 +283,10 @@ def updateBoxID(lastUpdate,verbose=False):
 				nskip += 1
 				continue
 
-			monItems = monf.get_items()
 			if verbose:
-				logger.info('updateBoxID: updating month folder %s %s modified %s NFiles=%d' , mbo.name,mbo.boxidx,mbo.boxModDT,len(monItems))		
+				logger.info('updateBoxID: updating month folder %s %s modified %s' , mbo.name,mbo.boxidx,mbo.boxModDT)		
 
-			for dayf in monItems:
+			for dayf in monf.get_items():
 				if dayf.type != 'file':
 					logger.info('updateBoxID: skipping day non-file in month %s / %s (%s %s)' , \
 						mkey,dayf.name,dayf.id,dayf.type)
