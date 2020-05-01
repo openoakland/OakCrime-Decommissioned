@@ -248,7 +248,7 @@ def updateBoxID(lastUpdate,verbose=False):
 		for monf in yrf.get_items():
 			if monf.type != 'folder':
 				if verbose:
-					logger.info('updateBoxID: skipping month non-folder in %s / %s (boxidx=%s %s)' , ykey,monf.name,monf.boxidx,monf.type)
+					logger.info('updateBoxID: skipping month non-folder in %s / %s (type= %s)' , ykey,monf.name,monf.type)
 				nskip += 1
 				continue
 			mkey = ykey + '_' + monf.name.strip().lower().replace('_','#')
