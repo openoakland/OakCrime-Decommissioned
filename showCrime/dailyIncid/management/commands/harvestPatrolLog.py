@@ -282,24 +282,34 @@ def updateBoxID(lastUpdate,verbose=False):
 						monf.name,monf.id,monf.type,monModDT,prevMonModDT,lastUpdate)
 				nskip += 1
 				continue
-			
-			if verbose:
-				logger.info('updateBoxID: updating month folder %s %s modified %s' , mbo.name,mbo.boxidx,mbo.boxModDT)		
 
-			for dayf in monf.get_items():
+			monItems = monf.get_items()
+			if verbose:
+				logger.info('updateBoxID: updating month folder %s %s modified %s NFiles=%d' , mbo.name,mbo.boxidx,mbo.boxModDT,len(monItems))		
+
+			for dayf in monItems:
 				if dayf.type != 'file':
 					logger.info('updateBoxID: skipping day non-file in month %s / %s (%s %s)' , \
 						mkey,dayf.name,dayf.id,dayf.type)
 					nskip += 1
 					continue
+
 				dkey = mkey + '_' + dayf.name.strip().lower().replace('_','#')
+				
+				if verbose:
+					logger.info('updateBoxID: dkey=%s',dkey)
+
 				dayInfo = CurrBoxClient.file(file_id=dayf.id).get(fields=['modified_at'])
 
 				try: 
 					dbo = BoxID.objects.get(name=dkey)
+					
 					# 200325: check for days in BoxID but not harvested, parsed
 					if dbo.harvestDT == None or dbo.parseDT == None:
 						newChanges.add(dbo.idx)
+						if verbose:
+							logger.info('updateBoxID: unparsed dkey=%s',dkey)
+
 				except ObjectDoesNotExist:
 					
 					dbo = BoxID()
