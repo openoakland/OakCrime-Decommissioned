@@ -516,11 +516,7 @@ def mergeList(results,srcLbl,verboseFreq=None,rptAll=False):
 				ngeo += 1
 		
 			try:
-				newOC.idx = None
-				#  Key (idx)=(901207) already exists
-				#  uniqueKey constraint being violated?!
-				newOC.save(force_insert=True)
-				
+				newOC.save()				
 				nadd += 1
 				if rptAll:
 					rptMsg = 'mergeList: new added %d %s' % (incidIdx,cid)
