@@ -426,7 +426,7 @@ class Command(BaseCommand):
 		lastCheck = options['lastCheck']
 		logger.info('harvestPatrolLog: lastCheck=%s' , lastCheck)
 
-		verbose = None
+		verbose = True
 		initAll = False 
 		HarvestOverlapBuffer = 14
 		
@@ -461,7 +461,7 @@ class Command(BaseCommand):
 		topModDTStr = topfInfo.modified_at
 		summRpt += 'updateBoxID: OPDPatrolFolder modifiedDT=%s\n' % (topModDTStr)
 					
-		chgList = updateBoxID(lastBoxDT)
+		chgList = updateBoxID(lastBoxDT,verbose=verbose)
 		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('updateBoxID DONE elapTime=%s' , elapTime.total_seconds())	
 		summRpt += 'updateBoxID: NChanged BoxID=%s\n' % len(chgList)
@@ -474,7 +474,7 @@ class Command(BaseCommand):
 		## harvest these to local cache under HarvestRootDir
 		harvestedFiles = []
 		for boxidx in missingList:
-			if getMiss(boxidx):
+			if getMiss(boxidx,verbose=verbose):
 				harvestedFiles.append(boxidx)
 		logger.info('NFilesHarvested=%d' ,len(harvestedFiles))
 		elapTime = datetime.now(OaklandTimeZone) - beginDT
@@ -518,8 +518,9 @@ class Command(BaseCommand):
 		allCID.sort()
 		nupdate =0
 		nerr=0
+		verboseFreq = 10
 		for i,cid in enumerate(allCID):
-			if verbose != None and (i % verbose)==0:
+			if verbose != None and (i % verboseFreq)==0:
 				logger.info('%s Matches saved %d NUpdate=%d NErr=%d' , dateStr,i,nupdate,nerr)
 			newOC = dlMatchTbl[cid]
 						
@@ -541,7 +542,7 @@ class Command(BaseCommand):
 		nupdate =0
 		nerr=0
 		for i,cid in enumerate(allCID):
-			if verbose != None and (i % verbose)==0:
+			if verbose != None and (i % verboseFreq)==0:
 				logger.info('%s Unmatched saved %d NUpdate=%d NErr=%d' , dateStr,i,nupdate,nerr)
 			newOC = unMatchTbl[cid]
 			# NB: findSimIncid() returns None in unMatchTbl for cid's without any best match
