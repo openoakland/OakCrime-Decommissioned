@@ -308,7 +308,7 @@ def updateBoxID(lastUpdate,verbose=False):
 					if dbo.harvestDT == None or dbo.parseDT == None:
 						newChanges.add(dbo.idx)
 						if verbose:
-							logger.info('updateBoxID: unparsed dkey=%s',dkey)
+							logger.info('updateBoxID: unparsed BoxID.idx=%d dkey=%s',dbo.idx,dkey)
 
 				except ObjectDoesNotExist:
 					
