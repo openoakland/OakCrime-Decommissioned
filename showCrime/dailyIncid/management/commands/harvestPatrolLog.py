@@ -302,6 +302,8 @@ def updateBoxID(lastUpdate,verbose=False):
 
 				try: 
 					dbo = BoxID.objects.get(name=dkey)
+					if verbose:
+						logger.info('updateBoxID: idx=%d boxidx=%d dkey=%s',dbo.idx,dbo.boxidx,dbo.froot,dkey)
 					
 					# 200325: check for days in BoxID but not harvested, parsed
 					if dbo.harvestDT == None or dbo.parseDT == None:
