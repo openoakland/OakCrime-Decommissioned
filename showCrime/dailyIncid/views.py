@@ -571,7 +571,7 @@ def hybridQual(request,mapType):
 	logline = 'ccatList: %s' % (ccatList,)
 	logger.info(logline)
 
-	NTopLevelCC = 14 # updated 200416
+	NTopLevelCC = 15 # updated 200416
 	if len(ccatList) < NTopLevelCC:
 		
 		# NB: disjunction across separate crimeCat query sets!
@@ -994,7 +994,7 @@ def majorCrimeCatP(incid):
 	'''distinguish major, minor and dailyLog-only incidents
 	'''
 	
-	majCC = ["HOMICIDE","SEX_RAPE","WEAPONS"]
+	majCC = ["HOMICIDE","RAPE","WEAPONS"]
 	majCCPrefix = ["ROBBERY","ASSAULT"]
 	
 	cc = incid.crimeCat
