@@ -30,12 +30,12 @@ urlpatterns = [
     url(r'^dailyIncid/', include('dailyIncid.urls')),
     # url(r'^', include(router.urls)),
 
-	url(r'^$', views.index, name='showCrimeIndex'),
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	
     url(r'^admin/', admin.site.urls),
 	#	200504: avoiding direct dailyIncid.views references
-	#    url(r'^health/', views.health, name='health'),
+	#	url(r'^$', views.index, name='showCrimeIndex'),
+	#   url(r'^health/', views.health, name='health'),
 ]
 if settings.DEBUG:
     import debug_toolbar
