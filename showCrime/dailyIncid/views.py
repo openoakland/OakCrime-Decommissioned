@@ -989,6 +989,22 @@ def incidRpt(request,opd_rd):
 	context['incid'] = incidList[0]
 
 	return render(request, 'dailyIncid/incidRpt.html', context)
+
+@login_required
+def getBeat(request):
+
+	if request.method == 'POST':
+		logger.info('getBeat-Post')
+		bform = beatQ(request.POST)
+		if bform.is_valid():
+			qryData = bform.cleaned_data
+			qurl = '/dailyIncid/ncpc/%s' % (qryData['beat'])
+			return HttpResponseRedirect(qurl)
+	else:
+		logger.info('user=%s getBeat-nonPost' 
+		bform = beatQ()
+		
+	return render(request, 'dailyIncid/getBeat.html', {'form': bform})
 	
 def majorCrimeCatP(incid):
 	'''distinguish major, minor and dailyLog-only incidents

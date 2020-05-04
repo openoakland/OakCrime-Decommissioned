@@ -118,6 +118,14 @@ class twoTypeQ(forms.Form):
 		else:
 			return '%s+%s' % (self.beat,self.crimeCat)
 
+class beatQ(forms.Form):
+	
+	# idx = forms.IntegerField()
+	beat = forms.ChoiceField(choices=BeatChoices)
+		
+	def __unicode__(self):
+		return '%s' % (self.beat)
+
 class getLatLng(forms.Form):
 	'''simple form to collect lat/long
 	'''

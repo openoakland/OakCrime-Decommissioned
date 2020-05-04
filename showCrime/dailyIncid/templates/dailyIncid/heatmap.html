@@ -571,8 +571,9 @@
 			}); // eo-onLoad
 			
 
-			map.on('click', 'incidMarker', function(e) {
-				var lbl = `<b>Incid#:</b> ${e.features[0].properties.opd_rd} ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`
+	  map.on('click', 'incidMarker', function(e) {
+			var url = `/dailyIncid/incidRpt/${e.features[0].properties.opd_rd}`;
+			var lbl = `<a href="${url}"><b>Incid#: ${e.features[0].properties.opd_rd}</b></a> ${e.features[0].properties.cdateTime}  ${e.features[0].properties.crimeCat}`
 				
 			  new mapboxgl.Popup()
 			  	// mapzen version

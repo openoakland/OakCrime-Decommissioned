@@ -8,14 +8,9 @@
 
 <h1 align=center>Visualizing Oakland Police Department <br> Daily Incident data</h1>
 
-<p>If you don't yet have a login to OakCrime.org, send a request to <a href="mailto:info@oakcrime.org?subject=LoginRequest">info@oakcrime.org</a>.  Please include which beat / NCPC you live in (cf. <a href="http://mapgis.oaklandnet.com/PoliceDistricts/">OPD District & Beat Locator</a>), and a description of your intended use of the facility, so we can plan accordingly. </p>
+<p>If you have any questions about OakCrime.org, send a message to <a href="mailto:info@oakcrime.org?subject=LoginRequest">info@oakcrime.org</a>.  Please include which beat / NCPC you live in (cf. <a href="http://mapgis.oaklandnet.com/PoliceDistricts/">OPD District & Beat Locator</a>), and a description of your intended use of the facility, so we can plan accordingly. </p>
 
 <ul>
-	<li><h3><a href="/dailyIncid/heatmap/gun/">Gun-related crimes</h3></a>Crimes involving guns, 			
-		within the last 90 days, based on patrol daily log entries.
-	</li>
-	
-
 	<li><h3><a href="/dailyIncid/heatmap/">Heatmap overview</h3></a> "Heatmap" of last 90 days
 	      of crime.  Zoom map, select crime categories and date
 	      range of interest, and zoom into questions of interest.
@@ -26,7 +21,15 @@
 	<li><h3><a href="/dailyIncid/query/">Plot <em>longitudinal data</em></a></h3> All data (since 2014) for a specific OPD "beat" 
 	and one or two crime categories
 	</li>
-	
+
+	<li><h3><a href="/dailyIncid/heatmap/gun/">Gun-related crimes</h3></a>Crimes involving guns, 			
+		within the last 90 days, based on patrol daily log entries.
+	</li>
+		
+	<!-- <li><h3><a href="/dailyIncid/getNCPC/">Neighborhood Crime Prevention Councils (NCPC)</h3></a> -->
+	<!--   Reports supporting regular NCPC meetings -->
+	<!-- </li> -->
+		
 	<li><h3>Plot recent incidents <em>near a geographic point on a map</em>:</h3>
 	<p>All incidents within the last six months and within a 0.5 kilometer radius of the point of interested are plotted
 	on a map.  "Major" crime incidents (<code>HOMOCIDE, SEX_RAPE, WEAPONS, ROBBERY, ASSAULT</code>) are plotted with red 
