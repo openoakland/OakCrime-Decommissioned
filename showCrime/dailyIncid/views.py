@@ -906,6 +906,152 @@ def bldNCPCRpt(request):
 	
 	return render(request, 'dailyIncid/ncpc.html', context)
 
+@login_required	
+def bldNCPCRpt2(request,beat):
+	'''produce report for NCPC of beat 
+	'''
+
+	nowDT = awareDT(datetime.now())
+	minDate = nowDT - timedelta(days=60)
+				
+	if beat.find('+') != -1:
+		beatList = beat.split('+')
+		beat0 = beatList[0]
+		beat1 = beatList[1]
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					filter( Q(beat=beat0) | Q(beat=beat1) ). \
+					order_by('cdateTime')
+		
+	else:
+		qs0 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+					filter(cdateTime__lt=nowDT). \
+					filter(beat=beat). \
+					order_by('cdateTime')
+	
+	incidList0 = list(qs0)		
+	nbeat = len(incidList0)	
+	logline = 'username=%s bldNCPCRpt Beat=%s N=%d' % (userName, beat,nbeat)
+	logger.info(logline)
+
+	# qs1 uses relaxed bbox around beat's incidents
+
+	xlngMin = ylatMin = 1000.
+	xlngMax = -1000.
+	ylatMax = 0.
+	xlngSum = 0.
+	ylatSum = 0.
+	ncoord = 0
+	
+	incid0_opd_rd_Dict = {} # dict for quick tests by second vicinity set
+	for incid in incidList0:
+		incid0_opd_rd_Dict[incid.opd_rd] = True
+		if incid.ylat == None:
+			continue
+		
+		ncoord += 1
+		xlngSum += incid.xlng
+		ylatSum += incid.ylat
+		
+		if incid.ylat < ylatMin:
+			ylatMin = incid.ylat
+		if incid.ylat > ylatMax:
+			ylatMax = incid.ylat
+		
+		if incid.xlng < xlngMin:
+			xlngMin = incid.xlng
+		if incid.xlng > xlngMax:
+			xlngMax= incid.xlng
+			
+	ctrXLng = xlngSum / float(ncoord)
+	ctrYLat = ylatSum / float(ncoord)
+	
+	ctrXLng = xlngSum / float(ncoord)
+	ctrYLat = ylatSum / float(ncoord)
+	
+	# relax bbox
+	# BBoxBorder = 1e-3
+	BBoxBorder = 1e-2
+	
+	# 	xmin = sw[0]
+	# 	ymin = ne[1]
+	# 	xmax = sw[1]
+	# 	ymax = ne[0]
+	
+# 	xlngMin -= BBoxBorder
+# 	xlngMax += BBoxBorder
+# 	ylatMin -= BBoxBorder
+# 	ylatMax += BBoxBorder
+
+	xlngMin = ctrXLng - BBoxBorder
+	xlngMax = ctrXLng + BBoxBorder
+	ylatMin = ctrYLat - BBoxBorder
+	ylatMax = ctrYLat + BBoxBorder
+	
+	bbox = (xlngMin, ylatMin, xlngMax, ylatMax)
+	geom = Polygon.from_bbox(bbox)
+	
+	qs1 = OakCrime.objects.filter(cdateTime__gt=minDate). \
+				filter(cdateTime__lt=nowDT). \
+				filter(point__contained=geom). \
+				order_by('cdateTime')
+	incidList1 = list(qs1)		
+	nvicinity = len(incidList1)	
+	logline = 'username=%s bldNCPCRpt Beat=%s NVincinity=%d' % (userName, beat,nvicinity)
+	logger.info(logline)
+	
+	context = {}
+	
+	context['beat'] = beat
+	context['user'] = userName
+	context['nbeat'] = nbeat
+	context['nvicinity'] = nvicinity
+
+	maxDateDigits = nowDT.strftime('%y%m%d')
+	minDateDigits = minDate.strftime('%y%m%d')
+	maxDateStr = nowDT.strftime('%b %d %Y')
+	minDateStr = minDate.strftime('%b %d %Y')
+
+	context['minDateDigits'] = minDateDigits
+	context['maxDateDigits'] = maxDateDigits
+	
+	context['minDateStr'] = minDateStr
+	context['maxDateStr'] = maxDateStr
+
+	gjFeatures = []
+	for o in incidList1:
+		if o.ylat == None:
+			f = geojson.Feature( geometry=None, properties={"count": 1} )
+		else:
+			[jlat,jlng] = jitterCoord(o.ylat, o.xlng)
+			pt = geojson.Point( (jlng, jlat) )
+			f = geojson.Feature( geometry=pt, properties={"count": 1} )
+		f.properties['opd_rd'] = o.opd_rd
+		dtstr = o.cdateTime.strftime('%a,%b-%d-%y_%I:%M%p')
+		f.properties['cdateTime'] = dtstr
+		f.properties['crimeCat'] = o.crimeCat
+	
+		# NB: use major flag to distinguish beat from vicinity
+		if o.source.find('SOC_') == -1:
+			f.properties['majorIncid'] = 'DLog'
+		else:
+			# NB: mapbox get works on STRINGS
+			f.properties['majorIncid'] =  str(o.opd_rd in incid0_opd_rd_Dict)
+		
+		gjFeatures.append(f)
+
+	gjCollection = geojson.FeatureCollection(gjFeatures)
+	rawgj = geojson.dumps(gjCollection)
+	
+	context['dataArr'] = rawgj
+
+	# MapZen bounding box coordinates in a 'southwest_lng,southwest_lat,northeast_lng,northeast_lat' format	
+	# MapBox bounding box coordinates in an array of LngLatLike objects in [sw, ne] order, or an array of
+	# numbers in [west, south, east, north] order.
+	
+	context['mapBounds'] = list(bbox)
+	
+	return render(request, 'dailyIncid/ncpc.html', context)
 
 def bldNCPCcsv(incidList):
 	
@@ -998,10 +1144,10 @@ def getBeat(request):
 		bform = beatQ(request.POST)
 		if bform.is_valid():
 			qryData = bform.cleaned_data
-			qurl = '/dailyIncid/ncpc/%s' % (qryData['beat'])
+			qurl = '/dailyIncid/ncpc2/%s' % (qryData['beat'])
 			return HttpResponseRedirect(qurl)
 	else:
-		logger.info('user=%s getBeat-nonPost' 
+		logger.info('getBeat-nonPost')
 		bform = beatQ()
 		
 	return render(request, 'dailyIncid/getBeat.html', {'form': bform})
