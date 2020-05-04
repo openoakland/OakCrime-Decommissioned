@@ -22,7 +22,7 @@ from django.contrib.staticfiles import views as static_views
 
 from rest_framework import routers
 
-from dailyIncid import views
+# from dailyIncid import views
 
 from django.conf import settings
 
@@ -33,8 +33,9 @@ urlpatterns = [
 	url(r'^$', views.index, name='showCrimeIndex'),
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 	
-    url(r'^admin/', admin.site.urls),    
-    url(r'^health/', views.health, name='health'),
+    url(r'^admin/', admin.site.urls),
+	#	200504: avoiding direct dailyIncid.views references
+	#    url(r'^health/', views.health, name='health'),
 ]
 if settings.DEBUG:
     import debug_toolbar
