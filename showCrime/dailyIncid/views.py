@@ -330,10 +330,11 @@ def nearHere(request):
 					order_by('cdateTime')
 					
 		incidList = list(queryset)
-		for o in incidList:
-			jlat,jlng = jitterCoord(o.ylat,o.xlng)
-			o.ylat = jlat
-			o.ylng = jlng
+		# 200504: 2do: jiggle dots on these near* maps
+		# for o in incidList:
+		# 	jlat,jlng = jitterCoord(o.ylat,o.xlng)
+		# 	o.ylat = jlat
+		# 	o.ylng = jlng
 		
 		logger.info('user=%s NearHere: NIncid=%d near (lat=%s,lng=%s)' % (userName, len(incidList), qryData['lat'], qryData['lng']))
 
