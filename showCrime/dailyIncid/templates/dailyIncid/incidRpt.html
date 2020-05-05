@@ -64,12 +64,17 @@
 		<dt>Crime category</dt><dd>{{incid.crimeCat}}</dd>
 	</dl>
 
-    <form id="downloadForm" action="/dailyIncid/need2login/">
+    <form id="downloadForm" action="/dailyIncid/vaporWare/">
 
-		<p align=center>Do you have 
-			<button type="submit" style="color:blue">information to share</button>
-			about this incident you wish to pass along to OPD?
-		  </p>
+		<p align=center>Do you have information to share 
+			<button type="submit" style="color:blue">with the Oakland Police</button>
+			about this incident?
+		</p>
+		<p align=center>Do you have information to share about this incident
+			<button type="submit" style="color:blue">with your neighbors but <b>NOT</b> withOPD</button>
+		</p>
+		
+		
     </form>
 
 	{% if incid.xlng != None %}

@@ -39,6 +39,8 @@ def need2login(request):
 	logger.warning('need2login attempt')
 	return render(request, 'dailyIncid/need2login.html', {})
 
+def vaporWare(request):
+	return HttpResponse("NOT YET IMPLEMENTED! Watch this space!")
 
 @login_required
 def getQuery(request):

@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
 
     url(r'^need2login/.*$', views.need2login, name='need2login'),
+    url(r'^vaporWare/.*$', views.vaporWare, name='vaporWare'),
 
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout$', auth_views.logout, {'next_page': 'index'}, name='logout', ),
