@@ -100,7 +100,7 @@
 			else 
 				icon.className = 'greenMarker';
 	
-			var url = `/dailyIncid/incidRpt/${e.features[0].properties.opd_rd}`;
+			var url = `/dailyIncid/incidRpt/${incid.opd_rd}`;
 			var lbl = `<a href="${url}"><b>Incid#: ${incid.opd_rd}</b></a> ${incid.cdateTime}  ${incid.crimeCat}`
 
 			var popup = new mapboxgl.Popup().setText(lbl);			
