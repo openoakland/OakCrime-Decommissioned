@@ -330,11 +330,6 @@ def nearHere(request):
 					order_by('cdateTime')
 					
 		incidList = list(queryset)
-		# 200504: 2do: jiggle dots on these near* maps
-		for o in incidList:
-			jlat,jlng = jitterCoord(o.ylat,o.xlng)
-			o.ylat = jlat
-			o.ylng = jlng
 		
 		logger.info('user=%s NearHere: NIncid=%d near (lat=%s,lng=%s)' % (userName, len(incidList), qryData['lat'], qryData['lng']))
 
@@ -392,6 +387,13 @@ def choosePlace(request,ptype):
 					order_by('cdateTime')
 					
 		incidList = list(queryset)
+
+		# 200504: 2do: jiggle dots on these near* maps
+		# for o in incidList:
+		# 	jlat,jlng = jitterCoord(o.ylat,o.xlng)
+		# 	o.ylat = jlat
+		# 	o.ylng = jlng
+		
 		
 		logger.info('username=%s choosePlace: Ptype=%s Choice=%s NIncid=%d near (xlng=%s,ylat=%s)' % \
 			(userName, ptype, tpchoice.name, len(incidList), xlng, ylat))
