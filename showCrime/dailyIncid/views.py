@@ -389,10 +389,10 @@ def choosePlace(request,ptype):
 		incidList = list(queryset)
 
 		# 200504: 2do: jiggle dots on these near* maps
-		# for o in incidList:
-		# 	jlat,jlng = jitterCoord(o.ylat,o.xlng)
-		# 	o.ylat = jlat
-		# 	o.ylng = jlng
+		for o in incidList:
+			jlat,jlng = jitterCoord(o.ylat,o.xlng)
+			o.ylat = jlat
+			o.ylng = jlng
 		
 		
 		logger.info('username=%s choosePlace: Ptype=%s Choice=%s NIncid=%d near (xlng=%s,ylat=%s)' % \
