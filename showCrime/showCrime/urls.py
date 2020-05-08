@@ -24,7 +24,7 @@ from rest_framework import routers
 
 # from dailyIncid import views
 # relative
-from ..dailyIncid.views import health
+from .dailyIncid.views import health
 
 from django.conf import settings
 
