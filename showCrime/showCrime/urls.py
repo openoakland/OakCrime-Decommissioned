@@ -24,14 +24,14 @@ from rest_framework import routers
 
 # from dailyIncid import views
 # relative
-from .dailyIncid.views import health
+# from .dailyIncid.views import health
 
 from django.conf import settings
 
 urlpatterns = [
     url(r'^dailyIncid/', include('dailyIncid.urls')),
 	#	200504: avoiding direct dailyIncid.views references
-	   url(r'^health/', health, name='health'),
+	#   url(r'^health/', health, name='health'),
 	
     # url(r'^', include(router.urls)),
 
