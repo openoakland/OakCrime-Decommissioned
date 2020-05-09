@@ -1,4 +1,6 @@
 from django.db import DatabaseError, connection
+from django.http import  JsonResponse
+from django.utils import timezone
 
 def health(_):
     """ Returns a simplified view of the health of this application.
