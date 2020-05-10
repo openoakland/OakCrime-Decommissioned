@@ -95,7 +95,7 @@ def classify(incid):
 					continue
 
 		except Exception as e:
-			logger.warning('classify: badPCList?! opd_rd=%s pcList=%s except=%s',incid.opd_rd,incid.pcList,e)
+			logger.warning('classify: badPCList?! opd_rd=%s pcList="%s" type(pcList)=%s except=%s',incid.opd_rd,incid.pcList,type(incid.pcList),e)
 				
 	if incid.ctype =='' and incid.desc == '':
 		return ''
