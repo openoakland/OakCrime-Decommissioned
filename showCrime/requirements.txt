@@ -2,6 +2,7 @@ argon2-cffi==19.2.0
 boxsdk[jwt]==2.7.1
 Django==1.11.28
 django-amazon-ses==3.0.2
+django-google-analytics-app==4.4.1
 django-environ==0.4.5
 djangorestframework==3.11.0
 editdistance==0.4

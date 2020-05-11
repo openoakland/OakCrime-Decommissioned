@@ -41,6 +41,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+	'google_analytics',
     'rest_framework',
 ]
 
@@ -236,6 +237,9 @@ LEAFLET_CONFIG = {
     'MAX_ZOOM': 20,
 }
 
+GOOGLE_ANALYTICS = {
+    'google_analytics_id': 'UA-166031912-1',
+}
 
 # Email configuration
 
