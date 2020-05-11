@@ -727,7 +727,8 @@ def addGeoCode2(dpIdxList,gconn,verbose=None):
 
 		rv = geocodeAddr(loc)
 							
-		if rv==None or type(rv) == type("string") and rv.startswith('GMiss-'):
+		if rv==None or \
+			   (type(rv) == type("string") and rv.startswith('GMiss-')):
 			logger.warning('addGeoCode2: geotagErr "%s" %s' ,loc,rv)
 			ngmiss += 1
 			

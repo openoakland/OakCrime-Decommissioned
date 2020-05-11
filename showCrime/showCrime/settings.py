@@ -141,6 +141,10 @@ STATICFILES_DIRS = [
     str(project_root.path('static')),
 ]
 
+LOG_FILE_PATH = env('LOG_FILE_PATH', cast=str, default=str(project_root.path('logs')))
+
+PLOT_PATH = os.path.join(project_root, 'plots')
+
 SITE_ID = 1
 
 CACHES = {
@@ -175,7 +179,6 @@ def generate_file_handler(filename):
     return handler
 
 
-LOG_FILE_PATH = env('LOG_FILE_PATH', cast=str, default=str(project_root.path('logs')))
 ENABLE_LOGGING_TO_FILE = env('ENABLE_LOGGING_TO_FILE', cast=bool, default=False)
 LOGGING = {
     'version': 1,
@@ -233,7 +236,6 @@ LEAFLET_CONFIG = {
     'MAX_ZOOM': 20,
 }
 
-PLOT_PATH = os.path.join(project_root, 'plots')
 
 # Email configuration
 

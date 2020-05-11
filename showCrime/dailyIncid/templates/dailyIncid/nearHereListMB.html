@@ -100,12 +100,12 @@
 			else 
 				icon.className = 'greenMarker';
 	
-			var url = '/dailyIncid/incidRpt/{{incid.opd_rd}}';
-			var lbl = '<a href="{{url}}"><b>Incid#: {{incid.opd_rd}}</b></a> {{incid.cdateTime}}  {{incid.crimeCat}}';
-            
+	        var url = `/dailyIncid/incidRpt/{{incid.opd_rd}}`;
+	        var lbl = `<a href="${url}"><b>Incid#: {{incid.opd_rd}} </b></a> {{incid.cdateTime}} {{incid.crimeCat}}`;
+
             console.log("lbl: "+lbl);
 
-			var popup = new mapboxgl.Popup().setText(lbl);			
+			var popup = new mapboxgl.Popup().setHTML(lbl);			
 			
 			// console.log(popTxt+" "+icon);
 
