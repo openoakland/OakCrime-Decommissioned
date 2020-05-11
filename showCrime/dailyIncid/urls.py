@@ -37,10 +37,11 @@ urlpatterns = [
     # NB: params not part of url!?
     url(r'hybridQual/(?P<mapType>.+)/$', views.hybridQual, name='hybridQual'),
 
-    url(r'getNCPC/$', views.getBeat, name='getBeat'),
-    url(r'ncpc2/$', views.bldNCPCRpt2, name='ncpc'),
-    url(r'downloadNCPC/(?P<beat>[0-9XY+]+)_(?P<minDateDigit>[0-9]+)_(?P<maxDateDigit>[0-9]+)/$', views.downloadNCPC,
-        name='downloadNCPC'),
+    # url(r'getNCPC/$', views.getBeat, name='getBeat'),
+    # url(r'ncpc2/$', views.bldNCPCRpt2, name='ncpc'),
+    # url(r'downloadNCPC/(?P<beat>[0-9XY+]+)_(?P<minDateDigit>[0-9]+)_(?P<maxDateDigit>[0-9]+)/$', views.downloadNCPC,
+    #     name='downloadNCPC'),
+
     url(r'incidRpt/(?P<opd_rd>.+)/$', views.incidRpt, name='incidRpt'),
 
     # DRF/API
