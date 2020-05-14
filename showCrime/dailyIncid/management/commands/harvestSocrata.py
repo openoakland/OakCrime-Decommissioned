@@ -311,10 +311,18 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 				qs = OakCrime.objects.filter(opd_rd = prevObj.opd_rd).aggregate(maxOIDX=Max('oidx'))
 				currMaxOIDX = qs['maxOIDX']
 				newOC.oidx = currMaxOIDX+1
+
+				# NB: newOC has no xlng,ylat,point set; borrow these from prevObj
+				# assert(prevObj.addr == newOC.addr,'new/old addresses are different?!')
+				if prevObj.point != None:
+					newOC.xlng = prevObj.xlng
+					newOC.ylat = prevObj.ylat
+					newOC.point = prevObj.point
 				
 				try:
 					newOC.save()
 				except Exception as e:
+					logger.warning('mergeIncidSingle: cant save newOIDX cid=%s idx=%s oidx=%d %s' , prevObj.opd_rd,prevObj.idx, newOC.oidx, e)
 					errmsg = 'cid=%s %s' % (newOC.opd_rd, e)
 					return ('saveNewErr',errmsg)
 				
@@ -339,6 +347,8 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 		if prevObj.point == None and prevObj.addr.strip() != '':
 		
 			rv = geocodeAddr(prevObj.addr)
+			global NGGeoTag
+			NGGeoTag += 1
 
 			if type(rv) == type("string") and rv.startswith('GMiss-'):
 				logger.info('mergeIncidSingle: geotagErr "%s" %s' ,prevObj.addr,rv)
@@ -555,9 +565,8 @@ def harvest(startDate):
 	else:
 		minDateTime = datetime.strptime(startDate,'%Y-%m-%d')
 	
-	# socBegDateStr = minDateTime.strftime(Socrata_date_format)
-	# TESTING
-	socBegDateStr = '2020-04-26'
+	socBegDateStr = minDateTime.strftime(Socrata_date_format)
+
 	
 	# Endpoint Version: 2.1
 	results = client.get(OPDKey, where = (":updated_at > '%s'" % (socBegDateStr)), \
