@@ -128,20 +128,18 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.11/howto/static-files/
-
 PUBLIC_ROOT = env('PUBLIC_ROOT', cast=str, default=str(project_root.path('public')))
+STATIC_ROOT = str(environ.Path(PUBLIC_ROOT).path('static'))
+LOG_FILE_PATH = env('LOG_FILE_PATH', cast=str, default=str(project_root.path('logs')))
+ENABLE_LOGGING_TO_FILE = env('ENABLE_LOGGING_TO_FILE', cast=bool, default=True)
+
 MEDIA_ROOT = str(environ.Path(PUBLIC_ROOT).path('media'))
 MEDIA_URL = '/media/'
-STATIC_ROOT = str(environ.Path(PUBLIC_ROOT).path('static'))
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     str(project_root.path('static')),
 ]
-
-LOG_FILE_PATH = env('LOG_FILE_PATH', cast=str, default=str(project_root.path('logs')))
 
 PLOT_PATH = os.path.join(project_root, 'plots')
 
@@ -150,7 +148,6 @@ SITE_ID = 1
 CACHES = {
     'default': env.cache(default='locmemcache://showCrime'),
 }
-
 
 def generate_file_handler(filename):
     """ Generates a logging handler that writes to a file.
@@ -179,7 +176,6 @@ def generate_file_handler(filename):
     return handler
 
 
-ENABLE_LOGGING_TO_FILE = env('ENABLE_LOGGING_TO_FILE', cast=bool, default=False)
 LOGGING = {
     'version': 1,
     'formatters': {

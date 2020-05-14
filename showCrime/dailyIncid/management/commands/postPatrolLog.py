@@ -157,9 +157,13 @@ def mergeDLog2Incid(dpo,incid,nowDate):
 	newOC.ctractGeoID = None
 
 	# add dlog features
+
+	# NB: all *List fields maintained as STRINGS
+	# 2do: replace *List fields as JSONField
+
 	newOC.dlogData = True
 	# 2do HACK: parse_OPDLog_PDForm.regularizeIncidTbl() doesn't always provide these fields(:
-	newOC.lossList = dlogDict['reg_loss']		if ('reg_loss' in dlogDict) else []
+	newOC.lossList = str(dlogDict['reg_loss'])		if ('reg_loss' in dlogDict) else ''
 	# NB: parse_OPDLog_PDForm.regularizeIncidTbl() only includes 'reg_gsw' from some injuries
 	newOC.gswP = 'reg_gsw' in dlogDict
 	newOC.weapon = dlogDict['reg_weapon']		if ('reg_weapon' in dlogDict) else ''
@@ -169,8 +173,8 @@ def mergeDLog2Incid(dpo,incid,nowDate):
 	newOC.nvictim = dlogDict['reg_nvictim']	 if ('reg_nvictim' in dlogDict) else 0
 	newOC.nhospital = dlogDict['reg_nhospital'] if ('reg_nhospital' in dlogDict) else 0
 	# 2do HACK: parse_OPDLog_PDForm.regularizeIncidTbl()  WHY WOULD reg_ro and reg_pc be missing?!
-	newOC.roList = dlogDict['reg_ro']		   if ('reg_ro' in dlogDict) else []
-	newOC.pcList = dlogDict['reg_pc']			if ('reg_pc' in dlogDict) else []
+	newOC.roList = str(dlogDict['reg_ro'])		   if ('reg_ro' in dlogDict) else ''
+	newOC.pcList = str(dlogDict['reg_pc'])			if ('reg_pc' in dlogDict) else ''
 
 	newOC.crimeCat = classify(newOC)
 		
