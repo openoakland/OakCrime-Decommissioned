@@ -347,21 +347,25 @@ def mergeIncidSingle(prevObj,newOC,updates=None):
 		if prevObj.point == None and prevObj.addr.strip() != '':
 		
 			rv = geocodeAddr(prevObj.addr)
-			global NGGeoTag
-			NGGeoTag += 1
 
-			if type(rv) == type("string") and rv.startswith('GMiss-'):
-				logger.info('mergeIncidSingle: geotagErr "%s" %s' ,prevObj.addr,rv)
-				
-			else:
-				xlng,ylat = rv
-				prevObj.point = Point(xlng,ylat)
-				prevObj.xlng = xlng
-				prevObj.ylat = ylat
-				# add to updates, for OCUpdate below
-				updates['point'] = (None,prevObj.point)
-				updates['xlng'] = (None,prevObj.xlng)
-				updates['ylat'] = (None,prevObj.ylat)
+			# NB: rv==None implies UNKNOWN or similar address; GoogleGeoTag NOT performed
+			if rv != None:
+
+				global NGGeoTag
+				NGGeoTag += 1
+
+				if type(rv) == type("string") and rv.startswith('GMiss-'):
+					logger.info('mergeIncidSingle: geotagErr "%s" %s' ,prevObj.addr,rv)
+
+				else:
+					xlng,ylat = rv
+					prevObj.point = Point(xlng,ylat)
+					prevObj.xlng = xlng
+					prevObj.ylat = ylat
+					# add to updates, for OCUpdate below
+					updates['point'] = (None,prevObj.point)
+					updates['xlng'] = (None,prevObj.xlng)
+					updates['ylat'] = (None,prevObj.ylat)
 				
 		# changes to descFldSet impact crimeCat
 		newCC = classify(prevObj)
