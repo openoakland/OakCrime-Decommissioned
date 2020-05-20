@@ -27,6 +27,7 @@ from .views import health
 from django.conf import settings
 
 urlpatterns = [
+    url(r'', include('dailyIncid.urls')),
     url(r'^dailyIncid/', include('dailyIncid.urls')),
 	url(r'^health/', health, name='health'),
 	
