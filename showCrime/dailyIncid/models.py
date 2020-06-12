@@ -283,7 +283,7 @@ class DailyParse(models.Model):
 	parseOrder = models.IntegerField(default=0)
 	opd_rd = models.CharField(max_length=10,db_index=True)
 	incidDT = models.DateTimeField(null=True)
-	parseDict = JSONField(default={})
+	parseDict = JSONField(default=dict)
 
 	
 	
