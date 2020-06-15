@@ -1,4 +1,5 @@
-from django.conf.urls import url
+from django.urls import include
+from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
@@ -10,8 +11,8 @@ urlpatterns = [
     url(r'^need2login/.*$', views.need2login, name='need2login'),
     url(r'^vaporWare/.*$', views.vaporWare, name='vaporWare'),
 
-    url(r'^login/$', auth_views.login, name='login'),
-    url(r'^logout$', auth_views.logout, {'next_page': 'index'}, name='logout', ),
+    url(r'^login/$', auth_views.LoginView, name='login'),
+    url(r'^logout$', auth_views.LogoutView, {'next_page': 'index'}, name='logout', ),
 
 	url(r'^djga/', include('google_analytics.urls')),
 
