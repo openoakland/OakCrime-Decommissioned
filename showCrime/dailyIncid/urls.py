@@ -14,8 +14,6 @@ urlpatterns = [
     url(r'^login/$', auth_views.LoginView, name='login'),
     url(r'^logout$', auth_views.LogoutView, {'next_page': 'index'}, name='logout', ),
 
-	url(r'^djga/', include('google_analytics.urls')),
-
     # first interface
     url(r'^query/$', views.getQuery, name='query'),
     url(r'^plots/(?P<beat>\w+)\+(?P<crimeCat>[\w_-]+).png$', views.plotResults, name='plotResults'),
