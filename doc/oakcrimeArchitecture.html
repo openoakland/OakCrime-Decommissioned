@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P STYLE="margin-top: 0.17in; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>OakCrime
+System Architecture</FONT></FONT></P>
+<P>OakCrime maintains a database of crime incidents reported by
+Oakland Police Department (OPD) and supports a Django application
+that allows querying and visualization on maps.  The main features of
+the design and primary data tables are shown in the data model
+diagram below:</P>
+<P align=center><IMG SRC="dailyIncid-model.png" NAME="OakCrime data model" ALIGN=CENTER WIDTH=560 HEIGHT=696 BORDER=1>
+</P>
+<P>The system is implemented via two Amazon Web Service (AWS) Elastic
+Beanstalk environments and an AWS RDS database:</P>
+<UL>
+	<LI><P><B>worker: </B><SPAN STYLE="font-weight: normal">performs
+	daily “harvests” from two resources provided by OPD</SPAN></P>
+	<UL>
+		<LI><P><SPAN STYLE="font-weight: normal">data.oaklandnet.com:
+		</SPAN><FONT FACE="Courier, monospace"><SPAN STYLE="font-weight: normal">harvestSocrata</SPAN></FONT><SPAN STYLE="font-weight: normal">
+		gathers daily reports on all (~100/day) incidents via an API
+		developed by Socrata.com </SPAN>
+		</P>
+		<LI><P><SPAN STYLE="font-weight: normal">https://app.box.com/v/2016OPDDailyLogs:
+		</SPAN><FONT FACE="Courier, monospace"><SPAN STYLE="font-weight: normal">harvestPatrolLogs
+		</SPAN></FONT>gathers<SPAN STYLE="font-weight: normal"> (~ 10/day)
+		PDF “daily log” reports on major “Part 1” crimes on most
+		days</SPAN></P>
+		<LI><P><SPAN STYLE="font-weight: normal">This process also merges
+		new data about incidents already part of the database</SPAN></P>
+	</UL>
+	<LI><P STYLE="font-weight: normal"><B>oakcrime-production</B>: a
+	Postgres (with postgis geographic support) database into which
+	worker posts new incidents</P>
+	<LI><P STYLE="font-weight: normal"><B>web</B>: Provides the
+	OakCrime.org website via a Django application supported by the
+	database</P>
+</UL>
+<P><SPAN STYLE="font-weight: normal">The </SPAN><FONT FACE="Courier, monospace"><SPAN STYLE="font-weight: normal">OakCrime</SPAN></FONT><SPAN STYLE="font-weight: normal">
+table contains primary information about incidents.  </SPAN><FONT FACE="Courier, monospace"><SPAN STYLE="font-weight: normal">OCUpdate
+</SPAN></FONT>maintains information about changes made to incident
+data made based on subsequent reports.  For example, major crimes
+reported in daily logs often have details that are not part of the
+standard incident reporting.  All incidents are classified into a
+crime hierarchy called OAKCC; <A HREF="http://rikiwiki.electronicartifacts.com/opd-crime-statistics/oakcc">further
+details on this process</A> are described in a separate note.  
+<FONT FACE="Courier, monospace"><SPAN STYLE="font-weight: normal">harvestPatrolLogs
+</SPAN></FONT> maintains a catalog of Box documentIDs to identify
+newly posted PDF's.  These are cached, and the intermediate results
+of the (computationally expensive) PDF parsing are also maintained as
+JSON dictionaries in the  <FONT FACE="Courier, monospace"><SPAN STYLE="font-weight: normal">DailyParse
+</SPAN></FONT>table.</P>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
