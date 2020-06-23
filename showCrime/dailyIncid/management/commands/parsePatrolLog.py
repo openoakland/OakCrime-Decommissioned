@@ -363,311 +363,316 @@ def regularizeIncidTbl(dpIdxList):
 			
 		# NB: fields sorted to ensure DATE from froot established before time
 		for fld in sorted(incidInfo.keys()):
+			try:
 
-			v = incidInfo[fld]
-			
-			# normalize strings
-			if type(v) == type('string'):
-				v2 = v.lower().strip()
-				# NB: single, double quotes replaced with exclamation marks to facilitate CSV export
-				v2 = v2.replace("'","!!")
-				v2 = v2.replace('"','!!!')
-				if v2 != v:
-					newIncidInfo[fld] = v2
-					v = v2
-
-			# some fields unprocessed
-			if fld in SkipFields:
-				continue 
-			
-			if fld=='froot':
-				match = date_pat.match(v)
-				if match:
-					(day,mon,year) = match.groups()
-					if len(year)==2:
-						year = '20'+year
-					mon = mon.lower()
-					try:
-						moni = Month3Char.index(mon)
-						dpo.incidDT = datetime(year=int(year),month=moni+1,day=int(day))
-						dpo.incidDT = OaklandTimeZone.localize(dpo.incidDT)
-						ngoodDate += 1
-					except Exception as e:
-						logger.warning('regularizeIncidTbl: cant construct dateTime?! cid=%s v=%s e=%s',cid,v,e)
+				v = incidInfo[fld]
+				
+				# normalize strings
+				if type(v) == type('string'):
+					v2 = v.lower().strip()
+					# NB: single, double quotes replaced with exclamation marks to facilitate CSV export
+					v2 = v2.replace("'","!!")
+					v2 = v2.replace('"','!!!')
+					if v2 != v:
+						newIncidInfo[fld] = v2
+						v = v2
+	
+				# some fields unprocessed
+				if fld in SkipFields:
+					continue 
+				
+				if fld=='froot':
+					match = date_pat.match(v)
+					if match:
+						(day,mon,year) = match.groups()
+						if len(year)==2:
+							year = '20'+year
+						mon = mon.lower()
+						try:
+							moni = Month3Char.index(mon)
+							dpo.incidDT = datetime(year=int(year),month=moni+1,day=int(day))
+							dpo.incidDT = OaklandTimeZone.localize(dpo.incidDT)
+							ngoodDate += 1
+						except Exception as e:
+							logger.warning('regularizeIncidTbl: cant construct dateTime?! cid=%s v=%s e=%s',cid,v,e)
+							nbadDate += 1
+					else:
+						logger.warning('regularizeIncidTbl: bad date?! cid=%s v=%s',cid,v)
 						nbadDate += 1
-				else:
-					logger.warning('regularizeIncidTbl: bad date?! cid=%s v=%s',cid,v)
-					nbadDate += 1
-				
-				continue
-
-			if fld=='time':
-				ftime = None
-				if v.find('/') != -1:
-					spos = v.find('/')
-					time1 = v[:spos]
-					if len(time1)==4:
-						ftime = time1
-				elif len(v)==4:
-					ftime = v 
 					
-				if ftime != None:
-					hr = int(ftime[:2])
-					min = int(ftime[2:])
-					try:
-						dpo.incidDT = dpo.incidDT.replace(hour=hr,minute=min)
-						ngoodTime += 1
-					except Exception as e:
-						logger.warning('regularizeIncidTbl: bad ftime?! cid=%s ftime=%s',cid,ftime)
+					continue
+	
+				if fld=='time':
+					ftime = None
+					if v.find('/') != -1:
+						spos = v.find('/')
+						time1 = v[:spos]
+						if len(time1)==4:
+							ftime = time1
+					elif len(v)==4:
+						ftime = v 
+						
+					if ftime != None:
+						hr = int(ftime[:2])
+						min = int(ftime[2:])
+						try:
+							dpo.incidDT = dpo.incidDT.replace(hour=hr,minute=min)
+							ngoodTime += 1
+						except Exception as e:
+							logger.warning('regularizeIncidTbl: bad ftime?! cid=%s ftime=%s',cid,ftime)
+							nbadTime += 1
+					else:
+						logger.warning('regularizeIncidTbl: bad time?! cid=%s v=%s',cid,v)
 						nbadTime += 1
-				else:
-					logger.warning('regularizeIncidTbl: bad time?! cid=%s v=%s',cid,v)
-					nbadTime += 1
-			
-			if fld == 'area':
-				v = v.replace('?','/')
-				flds = v.upper().split('/')
-				if len(flds)==2:
-					newIncidInfo['reg_area'] = flds[0].strip()
-					beatFnd = flds[1].strip()
-				elif len(flds)==1:
-					if flds[0].find('X') != -1 or flds[0].find('Y') != -1:
-						beatFnd = flds[0].strip()
-					else:
+				
+				if fld == 'area':
+					v = v.replace('?','/')
+					flds = v.upper().split('/')
+					if len(flds)==2:
 						newIncidInfo['reg_area'] = flds[0].strip()
-				else:
-					logger.warning('regularizeIncidTbl: bad area/beat?! cid=%s v=%s',cid,v)
-					nbadBeat += 1
-					beatFnd = ''
-				
-				newIncidInfo['reg_beat'] = normBeat(beatFnd)
-				
-			
-			## augment existing fields with regularized 'reg_' versions
-			# NB: fields not regularized
-			# sgt
-			# suspect: 0,1,multiple
-			# custody: 0,1
-			# victim: parens; "victims"
-			
-			# loss: comma "and" & sep; victim ref, "v1"; 
-			# reg_loss: list of items
-			if fld=='loss':
-				if v == 'none' or v == "n/a" or v == 'unk' or v == 'unknown' or v == 'no loss':
-					newIncidInfo['reg_loss'] = []
-				else:
-					reg = reg_remove_victim(v)
-					reg = reg.replace('(recovered)','')
-							
-					reg = reg.replace(' and ',', ')
-					reg = reg.replace(' with ',', ')
-					reg = reg.replace(' containing ',', ')
-					reg = reg.replace(' & ',', ')				
-					reg = reg.replace('/',', ')				
-					lossList = reg.split(',')
-					rll = []
-					for l in lossList:
-						l.replace('.','')
-						l = l.strip()
-						if len(l) ==0:
-							continue
-						if l.find('cash') != -1 or l.find('currency') != -1 or l.find('money') != -1  or l.find('$') != -1:
-							rll.append('cash')
-						elif l.find('phone') != -1:
-							rll.append('phone')
-						elif l.find('personal') != -1:
-							rll.append('personalProperty')
-						elif l.find('gun') != -1 or l.find('firearm') != -1 or l.find('pistol') != -1:
-							rll.append('gun')
+						beatFnd = flds[1].strip()
+					elif len(flds)==1:
+						if flds[0].find('X') != -1 or flds[0].find('Y') != -1:
+							beatFnd = flds[0].strip()
 						else:
-							rll.append(l)
-					newIncidInfo['reg_loss'] = rll
-					
-			# injury: gsw; condition (stable); moderate; noise words
-			if fld=='injury':
-				if v.find('gsw') != -1 or v.find('gunshot') != -1:
-					newIncidInfo['reg_gsw'] = True
-			
-			# weapon: handgun, gun, knife, personal; caliber; possible qualifier
-			if fld=='weapon':
-				if v == '' or v == ' ' or v == 'none' or v == 'unknown' or v == 'unkown' or v == 'unk' or v == 'n/a':
-					newIncidInfo['reg_weapon'] = ''
-				elif v.find('gun') != -1 or v.find('firearm') != -1 or v.find('rifle') != -1 or v.find('pistol') != -1:
-					reg = 'gun'
-					qual = ''
-					if v.find('simulate') != -1:
-						qual = 'simulate'
+							newIncidInfo['reg_area'] = flds[0].strip()
 					else:
-						for gtype in ['40','45','9mm','auto']:
-							if v.find(gtype) != -1:
-								qual = gtype
-								break
-					if qual != '':
-						reg += ':'+qual	
-					newIncidInfo['reg_weapon'] = reg
-				elif v.find('knife') != -1:
-					newIncidInfo['reg_weapon'] = 'knife'
-				elif v.find('personal') != -1 or v.find('hands') != -1:
-					newIncidInfo['reg_weapon'] = 'personal'
-				else:
-					newIncidInfo['reg_weapon'] = v.strip()
+						logger.warning('regularizeIncidTbl: bad area/beat?! cid=%s v=%s',cid,v)
+						nbadBeat += 1
+						beatFnd = ''
 					
-			# callout: yes, no; / qualifier
-			if fld=='callout':
-				if v == '' or v.find('no') != -1:
-					newIncidInfo['reg_callout'] = 'no'
-				else:
-					reg = v.replace('yes','')
-					for p in ['/','-',';']:
-						reg = reg.replace(p,' ')
-					reg = reg.strip()
-					newIncidInfo['reg_callout'] = 'yes:' + reg
-			
-			# ncustody: number word -> integer; "suspect"; parens
-			if fld=='ncustody':
-				if v == '0' or v == '' or v == 'n/a' or v.find('no') != -1:
-					newIncidInfo['reg_ncustody'] = 0
-				elif v == 'yes':
-					newIncidInfo['reg_ncustody'] = 1
-				else:
-					reg = v.replace('suspect','')
-					reg = reg.replace('suspects','')
-					reg = reg.replace('in-custody','')
-					reg = reg_removeParens(reg)
+					newIncidInfo['reg_beat'] = normBeat(beatFnd)
 					
-					n = -1
-					# break on first number found
-					for w in reg.split():
-						w2 = reg_numWord(w)
-						try:
-							n = int(w2)
-							break
-						except Exception as e:
-							continue
-					if n !=-1:
-						newIncidInfo['reg_ncustody'] = n
-					
-			# nsuspect: number word -> integer; parens; multiple; gender; "suspects
-			if fld=='nsuspect':
-				if v == '0' or v == '' or v == 'n/a' or v.find('no') != -1 or v.find('unk') != -1:
-					newIncidInfo['reg_nsuspect'] = 0
-				else:
-					reg = v.replace('suspect','')
-					reg = reg.replace('suspects','')
-					reg = reg_removeParens(reg)
-					
-					# NB: dropping gender
-					reg = reg.replace('male','')
-					reg = reg.replace('males','')
-					reg = reg.replace('female','')
-					reg = reg.replace('females','')
-					
-					reg = reg.replace('/',' ')
-					reg = reg.replace('-',' ')
-					
-					n = -1
-					# break on first number found
-					for w in reg.split():
-						w2 = reg_numWord(w)
-						try:
-							n = int(w2)
-							break
-						except Exception as e:
-							continue
-					if n != -1:
-						newIncidInfo['reg_nsuspect'] = n
-								
-			# nvictim: number word -> integer; / gender; business; "victim"
-			if fld=='nvictim':
-				if v == '0' or v == '' or v == 'n/a' or v.find('no') != -1 or v.find('unk') != -1:
-					newIncidInfo['reg_nvictim'] = 0
-				else:
-					reg = v.replace('victim','')
-					reg = reg_removeParens(reg)
-
-					# NB: dropping gender
-					reg = reg.replace('male','')
-					reg = reg.replace('males','')
-					reg = reg.replace('female','')
-					reg = reg.replace('females','')
-					reg = reg.replace('m','')
-					reg = reg.replace('f','')
-
-					reg = reg.replace('/',' ')
-					reg = reg.replace('-',' ')
-
-					n = -1
-					# break on first number found
-					for w in reg.split():
-						w2 = reg_numWord(w)
-						try:
-							n = int(w2)
-							break
-						except Exception as e:
-							continue
-					if n != -1:
-						newIncidInfo['reg_nvictim'] = n
-					
-			# nhospital: number word -> integer; parens; self transported; refused; "victim"
-			if fld=='nhospital':
-				if v == '0' or v == '' or v == ' ' or v == 'n/a' or v.find('no') != -1 or v.find('unk') != -1:
-					newIncidInfo['reg_nhospital'] = 0
-				elif v == 'yes' or v.find('self') != -1:
-					newIncidInfo['reg_nhospital'] = 1
-				else:
-					reg = reg_removeParens(v)
-
-					n = -1
-					# break on first number found
-					for w in reg.split():
-						w2 = reg_numWord(w)
-						try:
-							n = int(w2)
-							break
-						except Exception as e:
-							continue
-					if n != -1:
-						newIncidInfo['reg_nhospital'] = n
-			
-			# ro: split on /; record first, second; names, replace '. ' with '_'; "ofc ", "
-			if fld=='ro':
-				reg = v.replace('/',' ')
-				reg = reg_removeParens(reg)
-				reg = reg.replace('desk officer','deskOfficer')
-				reg = reg.replace('ofc. ','ofc_')
-				reg = reg.replace('ofc.','ofc_')
-				reg = reg.replace('ofc ','ofc_')
-				reg = reg.replace('sgt. ','sgt_')
-				reg = reg.replace('. ','_')
-				olist = []
-				for o in reg.split(' '):
-					o = o.strip()
-					if len(o) ==0:
-						continue
-					if o.endswith('p'):
-						o = o[:-1]
-					olist.append(o)
-				newIncidInfo['reg_ro'] = olist
 				
-			# nature
-			if fld=='nature':
-				punc = ['-']
-				reg = v.replace('/',' ')
-				reg = reg.replace(',',' ')
-				pcList = []
-				for n in reg.split():
-					if n.endswith('-'):
-						n = n[:-1]
-					if n.startswith('(') and n.endswith(')'):
-						n = n[1:-1]
-					if n.startswith('pc'):
-						n = n[2:]
-					if n.endswith('pc'):
-						n = n[:-2]
-					if len(n)==0 or n.isalpha() or n in punc:
-						continue
-					pcList.append(n)
-				newIncidInfo['reg_pc'] = pcList
+				## augment existing fields with regularized 'reg_' versions
+				# NB: fields not regularized
+				# sgt
+				# suspect: 0,1,multiple
+				# custody: 0,1
+				# victim: parens; "victims"
+				
+				# loss: comma "and" & sep; victim ref, "v1"; 
+				# reg_loss: list of items
+				if fld=='loss':
+					if v == 'none' or v == "n/a" or v == 'unk' or v == 'unknown' or v == 'no loss':
+						newIncidInfo['reg_loss'] = []
+					else:
+						reg = reg_remove_victim(v)
+						reg = reg.replace('(recovered)','')
+								
+						reg = reg.replace(' and ',', ')
+						reg = reg.replace(' with ',', ')
+						reg = reg.replace(' containing ',', ')
+						reg = reg.replace(' & ',', ')				
+						reg = reg.replace('/',', ')				
+						lossList = reg.split(',')
+						rll = []
+						for l in lossList:
+							l.replace('.','')
+							l = l.strip()
+							if len(l) ==0:
+								continue
+							if l.find('cash') != -1 or l.find('currency') != -1 or l.find('money') != -1  or l.find('$') != -1:
+								rll.append('cash')
+							elif l.find('phone') != -1:
+								rll.append('phone')
+							elif l.find('personal') != -1:
+								rll.append('personalProperty')
+							elif l.find('gun') != -1 or l.find('firearm') != -1 or l.find('pistol') != -1:
+								rll.append('gun')
+							else:
+								rll.append(l)
+						newIncidInfo['reg_loss'] = rll
+						
+				# injury: gsw; condition (stable); moderate; noise words
+				if fld=='injury':
+					if v.find('gsw') != -1 or v.find('gunshot') != -1:
+						newIncidInfo['reg_gsw'] = True
+				
+				# weapon: handgun, gun, knife, personal; caliber; possible qualifier
+				if fld=='weapon':
+					if v == '' or v == ' ' or v == 'none' or v == 'unknown' or v == 'unkown' or v == 'unk' or v == 'n/a':
+						newIncidInfo['reg_weapon'] = ''
+					elif v.find('gun') != -1 or v.find('firearm') != -1 or v.find('rifle') != -1 or v.find('pistol') != -1:
+						reg = 'gun'
+						qual = ''
+						if v.find('simulate') != -1:
+							qual = 'simulate'
+						else:
+							for gtype in ['40','45','9mm','auto']:
+								if v.find(gtype) != -1:
+									qual = gtype
+									break
+						if qual != '':
+							reg += ':'+qual	
+						newIncidInfo['reg_weapon'] = reg
+					elif v.find('knife') != -1:
+						newIncidInfo['reg_weapon'] = 'knife'
+					elif v.find('personal') != -1 or v.find('hands') != -1:
+						newIncidInfo['reg_weapon'] = 'personal'
+					else:
+						newIncidInfo['reg_weapon'] = v.strip()
+						
+				# callout: yes, no; / qualifier
+				if fld=='callout':
+					if v == '' or v.find('no') != -1:
+						newIncidInfo['reg_callout'] = 'no'
+					else:
+						reg = v.replace('yes','')
+						for p in ['/','-',';']:
+							reg = reg.replace(p,' ')
+						reg = reg.strip()
+						newIncidInfo['reg_callout'] = 'yes:' + reg
+				
+				# ncustody: number word -> integer; "suspect"; parens
+				if fld=='ncustody':
+					if v == '0' or v == '' or v == 'n/a' or v.find('no') != -1:
+						newIncidInfo['reg_ncustody'] = 0
+					elif v == 'yes':
+						newIncidInfo['reg_ncustody'] = 1
+					else:
+						reg = v.replace('suspect','')
+						reg = reg.replace('suspects','')
+						reg = reg.replace('in-custody','')
+						reg = reg_removeParens(reg)
+						
+						n = -1
+						# break on first number found
+						for w in reg.split():
+							w2 = reg_numWord(w)
+							try:
+								n = int(w2)
+								break
+							except Exception as e:
+								continue
+						if n !=-1:
+							newIncidInfo['reg_ncustody'] = n
+						
+				# nsuspect: number word -> integer; parens; multiple; gender; "suspects
+				if fld=='nsuspect':
+					if v == '0' or v == '' or v == 'n/a' or v.find('no') != -1 or v.find('unk') != -1:
+						newIncidInfo['reg_nsuspect'] = 0
+					else:
+						reg = v.replace('suspect','')
+						reg = reg.replace('suspects','')
+						reg = reg_removeParens(reg)
+						
+						# NB: dropping gender
+						reg = reg.replace('male','')
+						reg = reg.replace('males','')
+						reg = reg.replace('female','')
+						reg = reg.replace('females','')
+						
+						reg = reg.replace('/',' ')
+						reg = reg.replace('-',' ')
+						
+						n = -1
+						# break on first number found
+						for w in reg.split():
+							w2 = reg_numWord(w)
+							try:
+								n = int(w2)
+								break
+							except Exception as e:
+								continue
+						if n != -1:
+							newIncidInfo['reg_nsuspect'] = n
+									
+				# nvictim: number word -> integer; / gender; business; "victim"
+				if fld=='nvictim':
+					if v == '0' or v == '' or v == 'n/a' or v.find('no') != -1 or v.find('unk') != -1:
+						newIncidInfo['reg_nvictim'] = 0
+					else:
+						reg = v.replace('victim','')
+						reg = reg_removeParens(reg)
+	
+						# NB: dropping gender
+						reg = reg.replace('male','')
+						reg = reg.replace('males','')
+						reg = reg.replace('female','')
+						reg = reg.replace('females','')
+						reg = reg.replace('m','')
+						reg = reg.replace('f','')
+	
+						reg = reg.replace('/',' ')
+						reg = reg.replace('-',' ')
+	
+						n = -1
+						# break on first number found
+						for w in reg.split():
+							w2 = reg_numWord(w)
+							try:
+								n = int(w2)
+								break
+							except Exception as e:
+								continue
+						if n != -1:
+							newIncidInfo['reg_nvictim'] = n
+						
+				# nhospital: number word -> integer; parens; self transported; refused; "victim"
+				if fld=='nhospital':
+					if v == '0' or v == '' or v == ' ' or v == 'n/a' or v.find('no') != -1 or v.find('unk') != -1:
+						newIncidInfo['reg_nhospital'] = 0
+					elif v == 'yes' or v.find('self') != -1:
+						newIncidInfo['reg_nhospital'] = 1
+					else:
+						reg = reg_removeParens(v)
+	
+						n = -1
+						# break on first number found
+						for w in reg.split():
+							w2 = reg_numWord(w)
+							try:
+								n = int(w2)
+								break
+							except Exception as e:
+								continue
+						if n != -1:
+							newIncidInfo['reg_nhospital'] = n
+				
+				# ro: split on /; record first, second; names, replace '. ' with '_'; "ofc ", "
+				if fld=='ro':
+					reg = v.replace('/',' ')
+					reg = reg_removeParens(reg)
+					reg = reg.replace('desk officer','deskOfficer')
+					reg = reg.replace('ofc. ','ofc_')
+					reg = reg.replace('ofc.','ofc_')
+					reg = reg.replace('ofc ','ofc_')
+					reg = reg.replace('sgt. ','sgt_')
+					reg = reg.replace('. ','_')
+					olist = []
+					for o in reg.split(' '):
+						o = o.strip()
+						if len(o) ==0:
+							continue
+						if o.endswith('p'):
+							o = o[:-1]
+						olist.append(o)
+					newIncidInfo['reg_ro'] = olist
+					
+				# nature
+				if fld=='nature':
+					punc = ['-']
+					reg = v.replace('/',' ')
+					reg = reg.replace(',',' ')
+					pcList = []
+					for n in reg.split():
+						if n.endswith('-'):
+							n = n[:-1]
+						if n.startswith('(') and n.endswith(')'):
+							n = n[1:-1]
+						if n.startswith('pc'):
+							n = n[2:]
+						if n.endswith('pc'):
+							n = n[:-2]
+						if len(n)==0 or n.isalpha() or n in punc:
+							continue
+						pcList.append(n)
+					newIncidInfo['reg_pc'] = pcList
+
+			except Exception as e:
+				logger.info('regularizeIncidTbl: bad field?! cid=%s fld=%s %s',cid,fld,e)
+				continue
 				
 			# eo fld loop
 

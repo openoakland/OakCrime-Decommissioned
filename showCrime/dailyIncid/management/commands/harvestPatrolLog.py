@@ -203,8 +203,7 @@ def updateBoxID(lastUpdate,verbose=False):
 	newChanges = set()
 	for yrf in yearFolders:
 		if yrf.type != 'folder':
-			if verbose:
-				logger.info('updateBoxID: skipping year non-folder %s %s %s' , yrf.name,yrf.id,yrf.type)
+			# if verbose: logger.info('updateBoxID: skipping year non-folder %s %s %s' , yrf.name,yrf.id,yrf.type)
 			nskip += 1
 			continue
 		# NB: '_' used to separate key bits; make sure it isn't already there
@@ -237,9 +236,7 @@ def updateBoxID(lastUpdate,verbose=False):
 		yrModDT = dateutil.parser.parse(yrInfo.modified_at)
 		
 		if prevYrModDT is not None and not (yrModDT > prevYrModDT and yrModDT > lastUpdate):
-			if verbose:
-				logger.info('updateBoxID: skipping year %s (boxidx=%s %s) yrModDT=%s prevYrModDT=%s lastUpdate=%s' , \
-					yrf.name,yrf.id,yrf.type,yrModDT,prevYrModDT,lastUpdate)
+			# if verbose: logger.info('updateBoxID: skipping year %s (boxidx=%s %s) yrModDT=%s prevYrModDT=%s lastUpdate=%s' , yrf.name,yrf.id,yrf.type,yrModDT,prevYrModDT,lastUpdate)
 			continue
 		
 		if verbose:
@@ -247,8 +244,7 @@ def updateBoxID(lastUpdate,verbose=False):
 
 		for monf in yrf.get_items():
 			if monf.type != 'folder':
-				if verbose:
-					logger.info('updateBoxID: skipping month non-folder in %s / %s (type= %s)' , ykey,monf.name,monf.type)
+				# if verbose: logger.info('updateBoxID: skipping month non-folder in %s / %s (type= %s)' , ykey,monf.name,monf.type)
 				nskip += 1
 				continue
 			mkey = ykey + '_' + monf.name.strip().lower().replace('_','#')
@@ -277,9 +273,7 @@ def updateBoxID(lastUpdate,verbose=False):
 			monModDT = dateutil.parser.parse(monInfo.modified_at)
 				
 			if prevMonModDT is not None and not (monModDT > prevMonModDT and monModDT > lastUpdate):
-				if verbose:
-					logger.info('updateBoxID: skipping month %s (id=%s %s) monModDT=%s prevMonModDT=%s lastUpdate=%s' , \
-						monf.name,monf.id,monf.type,monModDT,prevMonModDT,lastUpdate)
+				# if verbose: logger.info('updateBoxID: skipping month %s (id=%s %s) monModDT=%s prevMonModDT=%s lastUpdate=%s' , monf.name,monf.id,monf.type,monModDT,prevMonModDT,lastUpdate)
 				nskip += 1
 				continue
 
@@ -500,7 +494,7 @@ class Command(BaseCommand):
 		logger.info('NUparsed=%d since %s',len(unParsed),parseSinceDT)
 						
 		# dpIdxList = list of all DailyParse indices produced as part of parse
-		dpIdxList = parsePL.parseLogFiles(unParsed,HarvestRootDir)
+		dpIdxList = parsePL.parseLogFiles(unParsed,HarvestRootDir,verbose=verbose)
 		elapTime = datetime.now(OaklandTimeZone) - beginDT
 		logger.info('parseLogFiles DONE elapTime=%s' , elapTime.total_seconds())			
 		summRpt += 'parseLogFiles: NIncidParsed=%d\n'  % len(dpIdxList)
