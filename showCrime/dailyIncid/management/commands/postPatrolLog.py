@@ -77,7 +77,8 @@ def mergeDLog2Incid(dpo,incid,nowDate):
 		if newOC.xlng != None and newOC.ylat != None:
 			try:
 				newpt = Point(newOC.xlng,newOC.ylat,srid=SRS_default)
-				newpt.transform(SRS_10N)
+				# 200926: why is this transform here?!
+				# newpt.transform(SRS_10N)
 				newOC.point = newpt
 			except Exception as e:
 				logger.warning('mergeDLog2Incid: cant make point for dlog?! %s %s %s\n\t%s' , newOC.opd_rd,newOC.xlng,newOC.ylat,e)
@@ -136,7 +137,8 @@ def mergeDLog2Incid(dpo,incid,nowDate):
 		elif newOC.xlng != None and newOC.ylat != None:
 			try:
 				newpt = Point(newOC.xlng,newOC.ylat,srid=SRS_default)
-				newpt.transform(SRS_10N)
+				# 200926: why is this transform here?!
+				# newpt.transform(SRS_10N)
 				newOC.point = newpt
 			except Exception as e:
 				logger.warning('mergeDLog2Incid: cant add point from dlog?! %s %s %s\n\t%s' , incid.opd_rd,newOC.xlng,newOC.ylat,e)
@@ -192,12 +194,7 @@ def getBestMatch(dpo,dlogCID,verbose=False,cidFilter=True):
 	
 	dlog = json.loads(dpo.parseDict)
 	dlogDateTime = dpo.incidDT
-	
-	# ASSUME 4am cutoff ala 29 Sept 17 "0400hrs / Friday (29SEP17) - 0400hrs / Saturday (30SEP17)"
-	# 		ie goes 4 hours into next day's incidents
-	if dlogDateTime.hour <= 4:
-		dlogDateTime += timedelta(days=1)
-		
+			
 	minDate = (dlogDateTime - timedelta(days=DateRange))
 	maxDate = (dlogDateTime + timedelta(days=DateRange))
 
@@ -210,11 +207,15 @@ def getBestMatch(dpo,dlogCID,verbose=False,cidFilter=True):
 	dlYLat = dlog['YLat']
 	
 	dlPt = Point(dlXLng,dlYLat,srid=SRS_default)
-	
-	result = OakCrime.objects.filter(cdateTime__gte=minDate) \
-							 .filter(cdateTime__lte=maxDate) \
-							 .exclude(point__isnull=True) \
-							 .filter(point__distance_lte=(dlPt, D(m=CloseRadius)))
+
+	try:
+		result = OakCrime.objects.filter(cdateTime__gte=minDate) \
+								 .filter(cdateTime__lte=maxDate) \
+								 .exclude(point__isnull=True) \
+								 .filter(point__distance_lte=(dlPt, D(m=CloseRadius)))
+	except Exception as e:
+		logger.warning(f'bestMatch: query failed: {dlog["rptno"]} {e}')
+		return None
 	
 	matchTbl = {}
 	for i,incid in enumerate(result):

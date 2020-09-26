@@ -79,6 +79,11 @@ def classify(incid):
 	if incid.pcList is not None and len(incid.pcList) > 0:
 		# NB: need to evaluate pcList = STRING
 		try:
+			if incid.pcList is not None and len(incid.pcList) > 0:
+				if type(incid.pcList) == type('string'):
+					pcList = eval(incid.pcList)
+				else:
+					pcList = incid.pcList
 			pcList = eval(incid.pcList)
 			for pc in pcList:
 				try:
