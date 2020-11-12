@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 ## Constants
 OaklandTimeZone = pytz.timezone('America/Los_Angeles')
-OaklandResourceName = "data.oaklandnet.com"
+OaklandResourceName = "data.oaklandca.gov"
 CityNearOaklandList = ['Berkeley','Piedmont','Emeryville','San Leandro','Alameda']
 
 Socrata_date_format = '%Y-%m-%dT%H:%M:%S' # 2013-12-04T19:00:00
