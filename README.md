@@ -1,7 +1,11 @@
-[![CircleCI](https://circleci.com/gh/openoakland/OakCrime.svg?style=svg)](https://circleci.com/gh/openoakland/OakCrime)
+## Project status: DECOMMISSIONED
+
+This project has been decommissioned and is no longer maintained. It presents policing-related data from OPD without appropriate context, which may result in viewers misunderstanding or mischaracterizing data in ways that potentially impact historically marginalized and oppressed groups, particularly communities of color. If you're interested in revising this project, please contact OpenOakland's Steering Committee at [steering@openoakland.org](mailto:steering@openoakland.org). Let us know why you're interested and what you hope to accomplish. Consider using the [Project Exploration Worksheet](https://docs.google.com/document/d/1k24P9JiAUEzJLPFRDjVh7aRZexax6NUhfPFLSI3R80M/edit?usp=sharing) to realign this project with OpenOakland's mission and values.
+
 
 OakCrime
 ========
+[![CircleCI](https://circleci.com/gh/openoakland/OakCrime.svg?style=svg)](https://circleci.com/gh/openoakland/OakCrime)
 
 Code supporting citizen analysis of crime in Oakland, CA
 
